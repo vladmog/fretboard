@@ -1,0 +1,436 @@
+/* Brutalist Black on White - Balenciaga-inspired */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #fff;
+    color: #000;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    height: 100%;
+    overflow: hidden;
+}
+
+.app-container {
+    display: grid;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+/* Desktop/Tablet: stacked layout (fretboard on top, controls below) */
+@media (min-width: 769px) {
+    .app-container {
+        grid-template-rows: 1fr auto;
+        grid-template-columns: 1fr;
+        padding: 2rem;
+        gap: 2rem;
+    }
+
+    #fretboard-panel {
+        min-height: 0;
+    }
+
+    #controls-panel {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    #controls-panel h2 {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Mobile: side-by-side (fretboard left vertical, controls right) */
+@media (max-width: 768px) {
+    .app-container {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 100%;
+        padding: 1rem;
+        gap: 1rem;
+        height: 100%;
+    }
+
+    #fretboard-panel,
+    #controls-panel {
+        height: 100%;
+        max-height: 100%;
+        min-height: 0;
+    }
+
+    #controls-panel {
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #controls-panel h2 {
+        margin-bottom: 1rem;
+    }
+
+    .control-group {
+        margin-bottom: 1rem;
+    }
+}
+
+#fretboard-panel {
+    background-color: #f5f5f5;
+    border: 1px solid #000;
+    padding: 1rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#fretboard-panel svg {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+}
+
+#controls-panel {
+    background-color: #fff;
+    border: 1px solid #000;
+    padding: 2rem;
+}
+
+#controls-panel h2 {
+    margin-bottom: 2rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #000;
+}
+
+.control-group {
+    margin-bottom: 1.5rem;
+}
+
+.control-group > label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-size: 0.625rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #000;
+}
+
+select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #000;
+    border-radius: 0;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+}
+
+select:focus {
+    outline: none;
+    background-color: #000;
+    color: #fff;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+select:hover {
+    background-color: #000;
+    color: #fff;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+.radio-group {
+    display: flex;
+    gap: 0;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    border: 1px solid #000;
+    margin-right: -1px;
+    transition: background-color 0.1s, color 0.1s;
+    position: relative;
+}
+
+.radio-label:hover {
+    background-color: #000;
+    color: #fff;
+}
+
+.radio-label input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.radio-label:has(input:checked) {
+    background-color: #000;
+    color: #fff;
+}
+
+/* Toggle row for 7ths checkbox */
+.toggle-row {
+    margin-bottom: 0.75rem;
+}
+
+.toggle-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.toggle-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-text {
+    padding: 0.5rem 1rem;
+    border: 1px solid #000;
+    transition: background-color 0.1s, color 0.1s;
+}
+
+.toggle-label:hover .toggle-text {
+    background-color: #000;
+    color: #fff;
+}
+
+.toggle-label:has(input:checked) .toggle-text {
+    background-color: #000;
+    color: #fff;
+}
+
+/* Scale chord builder */
+#scale-chord-builder {
+    transition: opacity 0.2s;
+}
+
+.scale-chords-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.scale-chord-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color 0.1s, color 0.1s;
+}
+
+.scale-chord-btn:hover {
+    background-color: #000;
+    color: #fff;
+}
+
+.scale-chord-btn .numeral {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.25rem;
+}
+
+.scale-chord-btn .chord-name {
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.scale-chords-note {
+    font-size: 0.625rem;
+    color: #666;
+    font-style: italic;
+}
+
+/* Chord list */
+.chord-list {
+    list-style: none;
+    border: 1px solid #000;
+    min-height: 100px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 0.75rem;
+}
+
+.chord-list:empty::after {
+    content: 'No chords added';
+    display: block;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.625rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.chord-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: background-color 0.1s;
+}
+
+.chord-list-item:last-child {
+    border-bottom: none;
+}
+
+.chord-list-item:hover {
+    background-color: #f5f5f5;
+}
+
+.chord-list-item.selected {
+    background-color: #000;
+    color: #fff;
+}
+
+.chord-list-item.selected:hover {
+    background-color: #333;
+}
+
+.remove-chord-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 0.25rem;
+    opacity: 0.5;
+    transition: opacity 0.1s;
+}
+
+.remove-chord-btn:hover {
+    opacity: 1;
+}
+
+.chord-list-item.selected .remove-chord-btn {
+    color: #fff;
+}
+
+/* Chord list actions */
+.chord-list-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid #000;
+    cursor: pointer;
+    transition: background-color 0.1s, color 0.1s;
+}
+
+.btn-add {
+    background-color: #000;
+    color: #fff;
+}
+
+.btn-add:hover {
+    background-color: #333;
+}
+
+.btn-clear {
+    background-color: #fff;
+    color: #000;
+}
+
+.btn-clear:hover {
+    background-color: #000;
+    color: #fff;
+}
+
+/* Info panel */
+#info-panel {
+    background-color: #f5f5f5;
+    border: 1px solid #000;
+    padding: 1rem;
+}
+
+#info-panel > label {
+    margin-bottom: 0.5rem;
+}
+
+.info-content {
+    padding: 0;
+}
+
+.info-title {
+    font-size: 1rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #ccc;
+}
+
+.info-row {
+    margin-bottom: 0.75rem;
+}
+
+.info-label {
+    display: block;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    display: block;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+}
