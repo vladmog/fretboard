@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fretboard Visualizer</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="fretboard-panel">
+            <!-- SVG fretboard will be rendered here by JavaScript -->
+        </div>
+
+        <div id="controls-panel">
+            <h2>Controls</h2>
+
+            <div class="control-group">
+                <label>Mode</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="mode" value="scale" checked>
+                        Scale
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="mode" value="chord">
+                        Chord
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="root-note" id="root-label">Scale Root</label>
+                <select id="root-note">
+                    <option value="C">C</option>
+                    <option value="C#">C#</option>
+                    <option value="D">D</option>
+                    <option value="Eb">Eb</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                    <option value="F#">F#</option>
+                    <option value="G">G</option>
+                    <option value="Ab">Ab</option>
+                    <option value="A">A</option>
+                    <option value="Bb">Bb</option>
+                    <option value="B">B</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="type-select">Type</label>
+                <select id="type-select">
+                    <!-- Options populated by JavaScript based on mode -->
+                </select>
+            </div>
+
+            <div id="scale-chord-builder" class="control-group">
+                <label>Scale Chords</label>
+                <div class="toggle-row">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="sevenths-toggle">
+                        <span class="toggle-text">7ths</span>
+                    </label>
+                </div>
+                <div id="scale-chords">
+                    <!-- Scale chord buttons populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Chord List</label>
+                <ul id="chord-list-items" class="chord-list">
+                    <!-- Chord list items populated by JavaScript -->
+                </ul>
+                <div class="chord-list-actions">
+                    <button id="add-chord-btn" class="btn btn-add">+ Add</button>
+                    <button id="clear-list-btn" class="btn btn-clear">Clear</button>
+                </div>
+            </div>
+
+            <div id="info-panel" class="control-group">
+                <label>Info</label>
+                <div class="info-content">
+                    <div id="info-title" class="info-title">C Major</div>
+                    <div class="info-row">
+                        <span class="info-label">Notes:</span>
+                        <span id="info-notes" class="info-value">C D E F G A B</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Intervals:</span>
+                        <span id="info-intervals" class="info-value">1 2 3 4 5 6 7</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/fretboard.js"></script>
+    <script src="static/js/music-theory.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+</html>
