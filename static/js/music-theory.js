@@ -12,6 +12,22 @@ const FLAT_NOTES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 
 // Keys that prefer flats
 const FLAT_KEYS = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb'];
 
+// Color palette for interval markers (indexed by semitone distance 0-11)
+const INTERVAL_COLORS = [
+    '#DAF5F0',  // 0 - Root (1)
+    '#B5D2AD',  // 1 - Minor 2nd (b2)
+    '#FDFD96',  // 2 - Major 2nd (2)
+    '#F8D6B3',  // 3 - Minor 3rd (b3)
+    '#FCDFFF',  // 4 - Major 3rd (3)
+    '#E3DFF2',  // 5 - Perfect 4th (4)
+    '#A7DBD8',  // 6 - Tritone (b5)
+    '#BAFCA2',  // 7 - Perfect 5th (5)
+    '#FFDB58',  // 8 - Minor 6th/Aug 5th (b6/#5)
+    '#FFA07A',  // 9 - Major 6th (6)
+    '#FFC0CB',  // 10 - Minor 7th (b7)
+    '#C4A1FF'   // 11 - Major 7th (7)
+];
+
 // Interval definitions - semitone distance from root
 const INTERVALS = {
     '1': 0,    // root/unison
@@ -324,24 +340,21 @@ function getNotesOnFretboard(noteToLabel, frets = 15, root = null) {
 }
 
 /**
- * Get color for an interval based on the 3-color system
- * Root = black, Third = dark gray, Others = light gray
+ * Get color for an interval based on semitone distance
  * @param {string} interval - Interval name (e.g., '1', '3', 'b3', '5')
  * @returns {string} Hex color code
  */
 function getIntervalColor(interval) {
-    // Root
-    if (interval === '1') {
-        return '#000';
+    // Get semitone distance for this interval
+    const semitones = INTERVALS[interval];
+
+    // Return corresponding color (0-11)
+    if (semitones !== undefined && semitones >= 0 && semitones < INTERVAL_COLORS.length) {
+        return INTERVAL_COLORS[semitones];
     }
 
-    // Thirds
-    if (interval === '3' || interval === 'b3') {
-        return '#666';
-    }
-
-    // Everything else (5, 7, 2, 4, 6, etc.)
-    return '#999';
+    // Fallback to first color if interval not found
+    return INTERVAL_COLORS[0];
 }
 
 /**
