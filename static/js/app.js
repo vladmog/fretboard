@@ -15,6 +15,7 @@
         chordList: [],          // Array of { root, type, symbol }
         selectedChordIndex: -1, // Index in chord list, -1 = none selected
         showSevenths: false,    // Toggle for scale chord builder
+        showRelative: false,    // Toggle for relative major/minor
         fretboard: null         // Fretboard API instance
     };
 
@@ -56,10 +57,19 @@
 
         state.fretboard.clearMarkers();
 
+        // Use relative scale if toggle is active
+        let displayScale = scale;
+        if (state.showRelative && (scale.type === 'major' || scale.type === 'natural_minor')) {
+            const relativeInfo = MusicTheory.getRelativeScale(scale.root, scale.type);
+            if (relativeInfo) {
+                displayScale = MusicTheory.buildScale(relativeInfo.root, relativeInfo.scaleType);
+            }
+        }
+
         const positions = MusicTheory.getNotesOnFretboard(
-            scale.noteToDegree,
+            displayScale.noteToDegree,
             15,
-            scale.root
+            displayScale.root
         );
 
         for (const pos of positions) {
@@ -73,9 +83,9 @@
         }
 
         updateInfoPanel({
-            title: `${scale.root} ${scale.name}`,
-            notes: scale.notes,
-            intervals: scale.degrees
+            title: `${displayScale.root} ${displayScale.name}`,
+            notes: displayScale.notes,
+            intervals: displayScale.degrees
         });
     }
 
@@ -299,7 +309,19 @@
             return;
         }
 
-        const chords = MusicTheory.buildScaleChords(state.root, state.scaleType, state.showSevenths);
+        // Use relative scale if toggle is active
+        let chordRoot = state.root;
+        let chordScaleType = state.scaleType;
+
+        if (state.showRelative) {
+            const relativeInfo = MusicTheory.getRelativeScale(state.root, state.scaleType);
+            if (relativeInfo) {
+                chordRoot = relativeInfo.root;
+                chordScaleType = relativeInfo.scaleType;
+            }
+        }
+
+        const chords = MusicTheory.buildScaleChords(chordRoot, chordScaleType, state.showSevenths);
 
         container.innerHTML = '';
 
@@ -506,6 +528,12 @@
             typeSelect.addEventListener('change', (e) => {
                 if (state.mode === 'scale') {
                     state.scaleType = e.target.value;
+                    // Reset relative toggle if switching to unsupported scale type
+                    if (state.scaleType !== 'major' && state.scaleType !== 'natural_minor') {
+                        state.showRelative = false;
+                        const relativeToggle = document.getElementById('relative-toggle');
+                        if (relativeToggle) relativeToggle.checked = false;
+                    }
                     renderScaleChords();
                 } else {
                     state.chordType = e.target.value;
@@ -522,6 +550,16 @@
             seventhsToggle.addEventListener('change', (e) => {
                 state.showSevenths = e.target.checked;
                 renderScaleChords();
+            });
+        }
+
+        // Relative scale toggle
+        const relativeToggle = document.getElementById('relative-toggle');
+        if (relativeToggle) {
+            relativeToggle.addEventListener('change', (e) => {
+                state.showRelative = e.target.checked;
+                renderScaleChords();
+                updateDisplay();
             });
         }
 

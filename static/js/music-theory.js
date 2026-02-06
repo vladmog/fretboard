@@ -454,6 +454,38 @@ function buildScaleChords(root, scaleType, sevenths = false) {
     return chords;
 }
 
+/**
+ * Get the relative scale (major <-> natural minor)
+ * @param {string} root - Root note
+ * @param {string} scaleType - Scale type ('major' or 'natural_minor')
+ * @returns {Object|null} Object with root and scaleType, or null if not supported
+ */
+function getRelativeScale(root, scaleType) {
+    if (scaleType !== 'major' && scaleType !== 'natural_minor') {
+        return null;
+    }
+
+    const rootIndex = getNoteIndex(root);
+    const useFlats = shouldUseFlats(root);
+
+    let relativeRootIndex, relativeScaleType;
+
+    if (scaleType === 'major') {
+        // Relative minor: 9 semitones up (6th degree)
+        relativeRootIndex = (rootIndex + 9) % 12;
+        relativeScaleType = 'natural_minor';
+    } else {
+        // Relative major: 3 semitones up (3rd degree)
+        relativeRootIndex = (rootIndex + 3) % 12;
+        relativeScaleType = 'major';
+    }
+
+    return {
+        root: getNoteName(relativeRootIndex, useFlats),
+        scaleType: relativeScaleType
+    };
+}
+
 // Export for use in other modules
 window.MusicTheory = {
     CHROMATIC_NOTES,
@@ -470,5 +502,6 @@ window.MusicTheory = {
     getNotesOnFretboard,
     getIntervalColor,
     buildScaleChords,
+    getRelativeScale,
     shouldUseFlats
 };
