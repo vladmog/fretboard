@@ -86,15 +86,44 @@ body {
         max-height: 100%;
         min-height: 0;
         overflow-y: auto;
-        padding: 1rem;
+        padding: 0 !important;
+        border: none !important;
+        background-color: transparent !important;
     }
 
     #controls-panel h2 {
-        margin-bottom: 1rem;
+        display: none;
     }
 
     .control-group {
         margin-bottom: 1rem;
+    }
+
+    /* Remove mode-controls internal border in mobile */
+    .mode-section .mode-controls {
+        border-left: none !important;
+        border-top: none !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        margin-top: 0.5rem !important;
+        padding-top: 0 !important;
+    }
+
+    /* Make mode toggle buttons horizontally scrollable in mobile */
+    .mode-toggle,
+    .radio-group {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .radio-group {
+        flex-wrap: nowrap !important;
+    }
+
+    .radio-label {
+        flex-shrink: 0;
+        white-space: nowrap;
     }
 }
 
@@ -102,7 +131,7 @@ body {
 #fretboard-panel {
     background-color: #f5f5f5;
     border: 3px solid #000;
-    padding: 1rem;
+    padding: 0.5rem;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -110,8 +139,8 @@ body {
 }
 
 #fretboard-panel svg {
-    width: auto;
-    height: auto;
+    width: 100%;
+    height: 100%;
     max-width: 100%;
     max-height: 100%;
     display: block;
