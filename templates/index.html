@@ -8,62 +8,66 @@
 </head>
 <body>
     <div class="app-container">
-        <div id="fretboard-panel">
-            <!-- SVG fretboard will be rendered here by JavaScript -->
-        </div>
-
         <div id="controls-panel">
             <h2>Controls</h2>
 
-            <div class="control-group">
+            <!-- Mode Section: groups mode toggle with dependent controls -->
+            <div class="mode-section">
                 <label>Mode</label>
-                <div class="radio-group">
-                    <label class="radio-label">
-                        <input type="radio" name="mode" value="scale" checked>
-                        Scale
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="mode" value="chord">
-                        Chord
-                    </label>
+                <div class="mode-toggle">
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="mode" value="scale" checked>
+                            Scale
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="mode" value="chord">
+                            Chord
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="mode" value="interval">
+                            Interval
+                        </label>
+                    </div>
                 </div>
-            </div>
+                <div class="mode-controls">
+                    <div class="control-group">
+                        <label for="root-note" id="root-label">Root Note</label>
+                        <select id="root-note">
+                            <option value="C">C</option>
+                            <option value="C#">C#</option>
+                            <option value="D">D</option>
+                            <option value="Eb">Eb</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                            <option value="F#">F#</option>
+                            <option value="G">G</option>
+                            <option value="Ab">Ab</option>
+                            <option value="A">A</option>
+                            <option value="Bb">Bb</option>
+                            <option value="B">B</option>
+                        </select>
+                    </div>
 
-            <div class="control-group">
-                <label for="root-note" id="root-label">Scale Root</label>
-                <select id="root-note">
-                    <option value="C">C</option>
-                    <option value="C#">C#</option>
-                    <option value="D">D</option>
-                    <option value="Eb">Eb</option>
-                    <option value="E">E</option>
-                    <option value="F">F</option>
-                    <option value="F#">F#</option>
-                    <option value="G">G</option>
-                    <option value="Ab">Ab</option>
-                    <option value="A">A</option>
-                    <option value="Bb">Bb</option>
-                    <option value="B">B</option>
-                </select>
-            </div>
+                    <div class="control-group">
+                        <label for="type-select" id="type-label">Scale Type</label>
+                        <select id="type-select">
+                            <!-- Options populated by JavaScript based on mode -->
+                        </select>
+                    </div>
 
-            <div class="control-group">
-                <label for="type-select">Type</label>
-                <select id="type-select">
-                    <!-- Options populated by JavaScript based on mode -->
-                </select>
-            </div>
-
-            <div id="scale-chord-builder" class="control-group">
-                <label>Scale Chords</label>
-                <div class="toggle-row">
-                    <label class="toggle-label">
-                        <input type="checkbox" id="sevenths-toggle">
-                        <span class="toggle-text">7ths</span>
-                    </label>
-                </div>
-                <div id="scale-chords">
-                    <!-- Scale chord buttons populated by JavaScript -->
+                    <div id="scale-chord-builder" class="control-group">
+                        <label>Scale Chords</label>
+                        <div class="toggle-row">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="sevenths-toggle">
+                                <span class="toggle-text">7ths</span>
+                            </label>
+                        </div>
+                        <div id="scale-chords">
+                            <!-- Scale chord buttons populated by JavaScript -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -89,9 +93,14 @@
                     <div class="info-row">
                         <span class="info-label">Intervals:</span>
                         <span id="info-intervals" class="info-value">1 2 3 4 5 6 7</span>
+                        <span class="info-hint">1=Root, 3=Third, 5=Fifth, 7=Seventh</span>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div id="fretboard-panel">
+            <!-- SVG fretboard will be rendered here by JavaScript -->
         </div>
     </div>
 

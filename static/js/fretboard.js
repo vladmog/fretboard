@@ -10,7 +10,7 @@ const styles = {
     string: { stroke: '#000', strokeWidth: 1.5 },
     fret: { stroke: '#000', strokeWidth: 1 },
     nut: { stroke: '#000', strokeWidth: 4 },
-    inlay: { fill: '#ccc', r: 4 },
+    inlay: { fill: '#888', r: 4 },
     fretNumber: { fill: '#000', fontSize: 10, fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif', fontWeight: '400' },
     marker: { fill: '#000', r: 12 },
     markerText: { fill: '#fff', fontSize: 10, fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif', fontWeight: '400' }
