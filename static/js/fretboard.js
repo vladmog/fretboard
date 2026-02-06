@@ -357,6 +357,7 @@ function getMarkerPosition(config, string, fret) {
 function setMarker(config, string, fret, options = {}) {
     const {
         color = styles.marker.fill,
+        borderColor = null,
         text = '',
         textColor = styles.markerText.fill
     } = options;
@@ -367,11 +368,16 @@ function setMarker(config, string, fret, options = {}) {
     // Create marker group
     const group = createSVGElement('g', { class: 'marker' });
 
-    // Create circle
+    // Create circle with border
+    const circleStyle = { ...styles.marker, fill: color };
+    if (borderColor) {
+        circleStyle.stroke = borderColor;
+        circleStyle.strokeWidth = 2;
+    }
     const circle = createSVGElement('circle', {
         cx: x,
         cy: y
-    }, { ...styles.marker, fill: color });
+    }, circleStyle);
     group.appendChild(circle);
 
     // Create text label if provided
