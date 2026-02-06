@@ -63,11 +63,12 @@
         );
 
         for (const pos of positions) {
-            const color = MusicTheory.getIntervalColor(pos.label);
+            const colors = MusicTheory.getIntervalColor(pos.label);
             state.fretboard.setMarker(pos.string, pos.fret, {
-                color,
+                color: colors.fill,
+                borderColor: colors.border,
                 text: pos.label,
-                textColor: pos.label === '1' ? '#fff' : '#fff'
+                textColor: colors.border
             });
         }
 
@@ -94,11 +95,12 @@
         );
 
         for (const pos of positions) {
-            const color = MusicTheory.getIntervalColor(pos.label);
+            const colors = MusicTheory.getIntervalColor(pos.label);
             state.fretboard.setMarker(pos.string, pos.fret, {
-                color,
+                color: colors.fill,
+                borderColor: colors.border,
                 text: pos.label,
-                textColor: '#fff'
+                textColor: colors.border
             });
         }
 
