@@ -78,6 +78,12 @@ body {
         height: 100%;
         max-height: 100%;
         min-height: 0;
+        padding: 0 !important;
+    }
+
+    /* Larger marker text in mobile */
+    #fretboard-panel .marker text {
+        font-size: 20px !important;
     }
 
     #controls-panel {
@@ -108,29 +114,25 @@ body {
         margin-top: 0.5rem !important;
         padding-top: 0 !important;
     }
+}
 
-    /* Make mode toggle buttons horizontally scrollable in mobile */
-    .mode-toggle,
-    .radio-group {
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .radio-group {
-        flex-wrap: nowrap !important;
-    }
-
-    .radio-label {
-        flex-shrink: 0;
-        white-space: nowrap;
+/* Tablet: apply mobile mode-section behavior (no border) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Remove mode-controls internal border in tablet */
+    .mode-section .mode-controls {
+        border-left: none !important;
+        border-top: none !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        margin-top: 0.5rem !important;
+        padding-top: 0 !important;
     }
 }
 
-/* Primary content - heaviest border */
+/* Primary content */
 #fretboard-panel {
     background-color: #f5f5f5;
-    border: 3px solid #000;
+    border: 1px solid #000;
     padding: 0.5rem;
     overflow: hidden;
     display: flex;
@@ -209,9 +211,18 @@ select:hover {
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
 }
 
+/* Universal scrolling behavior for mode toggle buttons */
+.mode-toggle,
+.radio-group {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
 .radio-group {
     display: flex;
     gap: 0;
+    flex-wrap: nowrap;
 }
 
 /* Primary controls - medium border */
@@ -228,6 +239,8 @@ select:hover {
     margin-right: -2px;
     transition: background-color 0.1s, color 0.1s;
     position: relative;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .radio-label:hover {
@@ -551,7 +564,7 @@ select:hover {
 }
 
 /* Desktop mode section - compact layout */
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
     .mode-section {
         margin-bottom: 0;
         padding: 0.75rem;
