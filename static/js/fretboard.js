@@ -10,10 +10,10 @@ const styles = {
     string: { stroke: '#000', strokeWidth: 1.5 },
     fret: { stroke: '#000', strokeWidth: 1 },
     nut: { stroke: '#000', strokeWidth: 4 },
-    inlay: { fill: '#888', r: 4 },
-    fretNumber: { fill: '#000', fontSize: 10, fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif', fontWeight: '400' },
-    marker: { fill: '#000', r: 12 },
-    markerText: { fill: '#fff', fontSize: 10, fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif', fontWeight: '400' }
+    inlay: { fill: '#888', r: 5 },
+    fretNumber: { fill: '#000', fontSize: 13, fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif', fontWeight: '400' },
+    marker: { fill: '#000', r: 15 },
+    markerText: { fill: '#fff', fontSize: 13, fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif', fontWeight: '400' }
 };
 
 // Frets with inlay markers
@@ -81,11 +81,11 @@ function createFretboard(container, config = {}) {
     const isVertical = isVerticalOrientation();
 
     // Dimensions
-    const stringSpacing = 28;
-    const fretSpacing = 56;
-    const padding = 40;
-    const nutWidth = 6;
-    const fretNumberOffset = 24;
+    const stringSpacing = 35;
+    const fretSpacing = 70;
+    const padding = 50;
+    const nutWidth = 8;
+    const fretNumberOffset = 30;
 
     // Calculate SVG dimensions based on orientation
     let svgWidth, svgHeight, fretboardWidth, fretboardHeight;
