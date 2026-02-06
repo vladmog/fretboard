@@ -263,6 +263,8 @@ select:hover {
 /* Toggle row for 7ths checkbox */
 .toggle-row {
     margin-bottom: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
 }
 
 .toggle-label {
