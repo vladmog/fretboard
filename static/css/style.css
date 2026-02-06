@@ -237,15 +237,17 @@ select:hover {
     letter-spacing: 0.15em;
     border: 2px solid #000;
     margin-right: -2px;
-    transition: background-color 0.1s, color 0.1s;
     position: relative;
     flex-shrink: 0;
     white-space: nowrap;
 }
 
-.radio-label:hover {
-    background-color: #000;
-    color: #fff;
+/* Only apply hover on devices with precise pointing (not touch) */
+@media (hover: hover) {
+    .radio-label:hover {
+        background-color: #000;
+        color: #fff;
+    }
 }
 
 .radio-label input[type="radio"] {
@@ -255,7 +257,8 @@ select:hover {
     height: 0;
 }
 
-.radio-label:has(input:checked) {
+/* Radio buttons - checked state via class */
+.radio-label.checked {
     background-color: #000;
     color: #fff;
 }
@@ -286,15 +289,17 @@ select:hover {
 .toggle-text {
     padding: 0.5rem 1rem;
     border: 1px solid #000;
-    transition: background-color 0.1s, color 0.1s;
 }
 
-.toggle-label:hover .toggle-text {
-    background-color: #000;
-    color: #fff;
+@media (hover: hover) {
+    .toggle-label:hover .toggle-text {
+        background-color: #000;
+        color: #fff;
+    }
 }
 
-.toggle-label:has(input:checked) .toggle-text {
+/* Toggle buttons - checked state via class */
+.toggle-label.checked .toggle-text {
     background-color: #000;
     color: #fff;
 }
