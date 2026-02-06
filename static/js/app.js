@@ -532,7 +532,10 @@
                     if (state.scaleType !== 'major' && state.scaleType !== 'natural_minor') {
                         state.showRelative = false;
                         const relativeToggle = document.getElementById('relative-toggle');
-                        if (relativeToggle) relativeToggle.checked = false;
+                        if (relativeToggle) {
+                            relativeToggle.checked = false;
+                            relativeToggle.closest('.toggle-label').classList.remove('checked');
+                        }
                     }
                     renderScaleChords();
                 } else {
@@ -562,6 +565,55 @@
                 updateDisplay();
             });
         }
+
+        // Handle checkbox visual state for toggle buttons
+        // Replaces CSS :has() selector which has timing issues on mobile
+        const checkboxToggles = document.querySelectorAll('.toggle-label input[type="checkbox"]');
+        checkboxToggles.forEach(checkbox => {
+            const label = checkbox.closest('.toggle-label');
+
+            // Set initial state based on checked attribute
+            if (checkbox.checked) {
+                label.classList.add('checked');
+            }
+
+            // Update class on change event
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    label.classList.add('checked');
+                } else {
+                    label.classList.remove('checked');
+                }
+            });
+        });
+
+        // Handle radio button visual state
+        // Replaces CSS :has() selector which has timing issues on mobile
+        const radioLabels = document.querySelectorAll('.radio-label');
+        radioLabels.forEach(label => {
+            const radio = label.querySelector('input[type="radio"]');
+
+            if (radio) {
+                // Set initial state
+                if (radio.checked) {
+                    label.classList.add('checked');
+                }
+
+                // Update on change
+                radio.addEventListener('change', function() {
+                    if (this.checked) {
+                        // Remove checked class from all radios in same group
+                        const groupName = this.name;
+                        document.querySelectorAll(`input[type="radio"][name="${groupName}"]`).forEach(r => {
+                            r.closest('.radio-label').classList.remove('checked');
+                        });
+
+                        // Add checked class to current label
+                        label.classList.add('checked');
+                    }
+                });
+            }
+        });
 
         // Add chord button (from dropdowns)
         const addChordBtn = document.getElementById('add-chord-btn');
