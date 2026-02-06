@@ -29,20 +29,20 @@ const INTERVAL_COLORS = [
     '#FF1493'   // 11 - Major 7th (7) - Deep Pink
 ];
 
-// Border and text colors - darker versions for contrast
+// Border colors - vibrant and saturated for high contrast
 const INTERVAL_BORDER_COLORS = [
-    '#CC0000',  // 0 - Root (1) - Dark Red
-    '#CC6600',  // 1 - Minor 2nd (b2) - Dark Orange
-    '#B8860B',  // 2 - Major 2nd (2) - Dark Goldenrod
-    '#228B22',  // 3 - Minor 3rd (b3) - Forest Green
-    '#006400',  // 4 - Major 3rd (3) - Dark Green
-    '#008B8B',  // 5 - Perfect 4th (4) - Dark Cyan
-    '#00008B',  // 6 - Tritone (b5) - Dark Blue
-    '#191970',  // 7 - Perfect 5th (5) - Midnight Blue
-    '#4B0082',  // 8 - Minor 6th/Aug 5th (b6/#5) - Indigo
-    '#8B008B',  // 9 - Major 6th (6) - Dark Magenta
-    '#C71585',  // 10 - Minor 7th (b7) - Medium Violet Red
-    '#8B0A50'   // 11 - Major 7th (7) - Deep Magenta
+    '#FF0000',  // 0 - Root (1) - Bright Red
+    '#FF6600',  // 1 - Minor 2nd (b2) - Vibrant Orange
+    '#FFB700',  // 2 - Major 2nd (2) - Bright Gold
+    '#00CC00',  // 3 - Minor 3rd (b3) - Bright Green
+    '#00AA00',  // 4 - Major 3rd (3) - Vibrant Green
+    '#00CCCC',  // 5 - Perfect 4th (4) - Bright Cyan
+    '#0066FF',  // 6 - Tritone (b5) - Vibrant Blue
+    '#0044CC',  // 7 - Perfect 5th (5) - Bright Royal Blue
+    '#8800FF',  // 8 - Minor 6th/Aug 5th (b6/#5) - Bright Purple
+    '#CC00CC',  // 9 - Major 6th (6) - Bright Magenta
+    '#FF0099',  // 10 - Minor 7th (b7) - Vibrant Pink
+    '#CC0066'   // 11 - Major 7th (7) - Bright Deep Pink
 ];
 
 // Interval definitions - semitone distance from root
@@ -359,24 +359,35 @@ function getNotesOnFretboard(noteToLabel, frets = 15, root = null) {
 /**
  * Get colors for an interval based on semitone distance
  * @param {string} interval - Interval name (e.g., '1', '3', 'b3', '5')
- * @returns {Object} Object with fill and border colors
+ * @returns {Object} Object with fill, border, and text colors
  */
 function getIntervalColor(interval) {
     // Get semitone distance for this interval
     const semitones = INTERVALS[interval];
 
-    // Return corresponding colors (0-11)
-    if (semitones !== undefined && semitones >= 0 && semitones < INTERVAL_COLORS.length) {
+    // Root is special: black fill with white text
+    if (interval === '1') {
         return {
-            fill: INTERVAL_COLORS[semitones],
-            border: INTERVAL_BORDER_COLORS[semitones]
+            fill: '#000',
+            border: INTERVAL_BORDER_COLORS[0],
+            text: '#fff'
         };
     }
 
-    // Fallback to first color if interval not found
+    // All other intervals: light grey fill with black text
+    if (semitones !== undefined && semitones >= 0 && semitones < INTERVAL_BORDER_COLORS.length) {
+        return {
+            fill: '#ddd',
+            border: INTERVAL_BORDER_COLORS[semitones],
+            text: '#000'
+        };
+    }
+
+    // Fallback
     return {
-        fill: INTERVAL_COLORS[0],
-        border: INTERVAL_BORDER_COLORS[0]
+        fill: '#ddd',
+        border: INTERVAL_BORDER_COLORS[0],
+        text: '#000'
     };
 }
 

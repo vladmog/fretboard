@@ -8,7 +8,7 @@
 
     // Application state
     const state = {
-        mode: 'scale',          // 'scale' or 'chord'
+        mode: 'scale',          // 'scale', 'chord', or 'interval'
         root: 'C',
         scaleType: 'major',
         chordType: 'maj',
@@ -68,7 +68,7 @@
                 color: colors.fill,
                 borderColor: colors.border,
                 text: pos.label,
-                textColor: colors.border
+                textColor: colors.text
             });
         }
 
@@ -100,7 +100,7 @@
                 color: colors.fill,
                 borderColor: colors.border,
                 text: pos.label,
-                textColor: colors.border
+                textColor: colors.text
             });
         }
 
@@ -108,6 +108,52 @@
             title: chord.symbol,
             notes: chord.notes,
             intervals: chord.intervals
+        });
+    }
+
+    /**
+     * Display all chromatic intervals relative to a root note
+     * @param {string} root - Root note
+     */
+    function displayIntervals(root) {
+        if (!state.fretboard) return;
+
+        state.fretboard.clearMarkers();
+
+        // Build a map of all 12 chromatic intervals
+        const rootIndex = MusicTheory.getNoteIndex(root);
+        const useFlats = MusicTheory.shouldUseFlats(root);
+        const noteToInterval = {};
+        const allIntervals = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+        const allNotes = [];
+
+        for (let i = 0; i < 12; i++) {
+            const noteIndex = (rootIndex + i) % 12;
+            const interval = allIntervals[i];
+            noteToInterval[noteIndex] = interval;
+            allNotes.push(MusicTheory.getNoteName(noteIndex, useFlats));
+        }
+
+        const positions = MusicTheory.getNotesOnFretboard(
+            noteToInterval,
+            15,
+            root
+        );
+
+        for (const pos of positions) {
+            const colors = MusicTheory.getIntervalColor(pos.label);
+            state.fretboard.setMarker(pos.string, pos.fret, {
+                color: colors.fill,
+                borderColor: colors.border,
+                text: pos.label,
+                textColor: colors.text
+            });
+        }
+
+        updateInfoPanel({
+            title: `${root} Chromatic Intervals`,
+            notes: allNotes,
+            intervals: allIntervals
         });
     }
 
@@ -134,6 +180,8 @@
             const item = state.chordList[state.selectedChordIndex];
             const chord = MusicTheory.buildChord(item.root, item.type);
             displayChord(chord);
+        } else if (state.mode === 'interval') {
+            displayIntervals(state.root);
         } else if (state.mode === 'scale') {
             const scale = MusicTheory.buildScale(state.root, state.scaleType);
             displayScale(scale);
@@ -273,6 +321,7 @@
 
     /**
      * Update scale type dropdown options based on mode
+     * Uses optgroups to organize options by category
      */
     function updateTypeDropdown() {
         const dropdown = document.getElementById('type-select');
@@ -281,31 +330,110 @@
         dropdown.innerHTML = '';
 
         if (state.mode === 'scale') {
-            for (const [key, scale] of Object.entries(MusicTheory.SCALES)) {
-                const option = document.createElement('option');
-                option.value = key;
-                option.textContent = scale.name;
-                if (key === state.scaleType) {
-                    option.selected = true;
+            // Organize scales into categories
+            const scaleCategories = {
+                'Common': ['major', 'natural_minor', 'harmonic_minor', 'melodic_minor', 'pentatonic_major', 'pentatonic_minor', 'blues'],
+                'Modes': ['dorian', 'phrygian', 'lydian', 'mixolydian', 'aeolian', 'locrian']
+            };
+
+            for (const [category, scaleKeys] of Object.entries(scaleCategories)) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = category;
+
+                for (const key of scaleKeys) {
+                    const scale = MusicTheory.SCALES[key];
+                    if (scale) {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = scale.name;
+                        if (key === state.scaleType) {
+                            option.selected = true;
+                        }
+                        optgroup.appendChild(option);
+                    }
                 }
-                dropdown.appendChild(option);
+
+                if (optgroup.children.length > 0) {
+                    dropdown.appendChild(optgroup);
+                }
+            }
+
+            // Add any remaining scales not in categories
+            const categorizedKeys = Object.values(scaleCategories).flat();
+            const remainingScales = Object.entries(MusicTheory.SCALES)
+                .filter(([key]) => !categorizedKeys.includes(key));
+
+            if (remainingScales.length > 0) {
+                const otherGroup = document.createElement('optgroup');
+                otherGroup.label = 'Other';
+                for (const [key, scale] of remainingScales) {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = scale.name;
+                    if (key === state.scaleType) {
+                        option.selected = true;
+                    }
+                    otherGroup.appendChild(option);
+                }
+                dropdown.appendChild(otherGroup);
             }
         } else {
-            for (const [key, chord] of Object.entries(MusicTheory.CHORD_TYPES)) {
-                const option = document.createElement('option');
-                option.value = key;
-                option.textContent = chord.name;
-                if (key === state.chordType) {
-                    option.selected = true;
+            // Organize chords into categories
+            const chordCategories = {
+                'Triads': ['maj', 'min', 'dim', 'aug'],
+                'Sevenths': ['maj7', 'min7', 'dom7', 'dim7', 'min7b5', 'minmaj7', 'augmaj7'],
+                'Extended': ['maj9', 'min9', 'dom9', 'maj11', 'min11', 'dom11', 'maj13', 'min13', 'dom13'],
+                'Suspended': ['sus2', 'sus4', '7sus4'],
+                'Added': ['add9', 'add11', '6', 'min6']
+            };
+
+            for (const [category, chordKeys] of Object.entries(chordCategories)) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = category;
+
+                for (const key of chordKeys) {
+                    const chord = MusicTheory.CHORD_TYPES[key];
+                    if (chord) {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = chord.name;
+                        if (key === state.chordType) {
+                            option.selected = true;
+                        }
+                        optgroup.appendChild(option);
+                    }
                 }
-                dropdown.appendChild(option);
+
+                if (optgroup.children.length > 0) {
+                    dropdown.appendChild(optgroup);
+                }
+            }
+
+            // Add any remaining chords not in categories
+            const categorizedKeys = Object.values(chordCategories).flat();
+            const remainingChords = Object.entries(MusicTheory.CHORD_TYPES)
+                .filter(([key]) => !categorizedKeys.includes(key));
+
+            if (remainingChords.length > 0) {
+                const otherGroup = document.createElement('optgroup');
+                otherGroup.label = 'Other';
+                for (const [key, chord] of remainingChords) {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = chord.name;
+                    if (key === state.chordType) {
+                        option.selected = true;
+                    }
+                    otherGroup.appendChild(option);
+                }
+                dropdown.appendChild(otherGroup);
             }
         }
     }
 
     /**
-     * Handle mode change (scale/chord toggle)
-     * @param {string} mode - 'scale' or 'chord'
+     * Handle mode change (scale/chord/interval toggle)
+     * @param {string} mode - 'scale', 'chord', or 'interval'
      */
     function setMode(mode) {
         state.mode = mode;
@@ -313,16 +441,30 @@
         updateTypeDropdown();
         renderChordList();
 
-        // Update root label based on mode
-        const rootLabel = document.getElementById('root-label');
-        if (rootLabel) {
-            rootLabel.textContent = mode === 'scale' ? 'Scale Root' : 'Chord Root';
+        // Show/hide type selector based on mode
+        const typeGroup = document.querySelector('.control-group:has(#type-select)');
+        if (typeGroup) {
+            typeGroup.style.display = mode === 'interval' ? 'none' : 'block';
+        }
+
+        // Update type label based on mode
+        const typeLabel = document.getElementById('type-label');
+        if (typeLabel) {
+            typeLabel.textContent = mode === 'scale' ? 'Scale Type' : 'Chord Type';
         }
 
         // Show/hide scale chord builder
         const builderSection = document.getElementById('scale-chord-builder');
         if (builderSection) {
             builderSection.style.display = mode === 'scale' ? 'block' : 'none';
+        }
+
+        // Show/hide Add button based on mode
+        // Scale mode: use scale chord buttons only
+        // Chord/Interval mode: show Add button for chord mode, hide for interval
+        const addChordBtn = document.getElementById('add-chord-btn');
+        if (addChordBtn) {
+            addChordBtn.style.display = (mode === 'chord') ? 'flex' : 'none';
         }
 
         if (mode === 'scale') {
@@ -419,6 +561,18 @@
         renderChordList();
         renderScaleChords();
         initEventListeners();
+
+        // Set initial mode-dependent UI states
+        const addChordBtn = document.getElementById('add-chord-btn');
+        if (addChordBtn) {
+            addChordBtn.style.display = state.mode === 'chord' ? 'flex' : 'none';
+        }
+
+        // Hide type selector in interval mode
+        const typeGroup = document.querySelector('.control-group:has(#type-select)');
+        if (typeGroup) {
+            typeGroup.style.display = state.mode === 'interval' ? 'none' : 'block';
+        }
 
         // Initial display
         updateDisplay();
