@@ -82,6 +82,11 @@
             });
         }
 
+        // Apply current rotation to newly created markers
+        if (window.RotationToggle) {
+            window.RotationToggle.applyCurrentRotation();
+        }
+
         updateInfoPanel({
             title: `${displayScale.root} ${displayScale.name}`,
             notes: displayScale.notes,
@@ -112,6 +117,11 @@
                 text: pos.label,
                 textColor: colors.text
             });
+        }
+
+        // Apply current rotation to newly created markers
+        if (window.RotationToggle) {
+            window.RotationToggle.applyCurrentRotation();
         }
 
         updateInfoPanel({
@@ -158,6 +168,11 @@
                 text: pos.label,
                 textColor: colors.text
             });
+        }
+
+        // Apply current rotation to newly created markers
+        if (window.RotationToggle) {
+            window.RotationToggle.applyCurrentRotation();
         }
 
         updateInfoPanel({
