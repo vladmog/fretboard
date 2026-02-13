@@ -8,10 +8,11 @@
 
     // Application state
     const state = {
-        mode: 'scale',          // 'scale', 'chord', or 'interval'
+        mode: 'scale',          // 'scale', 'chord', 'interval', or 'caged'
         root: 'C',
         scaleType: 'major',
         chordType: 'maj',
+        cagedShape: 'all',      // 'all', 'C', 'A', 'G', 'E', or 'D'
         chordList: [],          // Array of { root, type, symbol }
         selectedChordIndex: -1, // Index in chord list, -1 = none selected
         showSevenths: false,    // Toggle for scale chord builder
@@ -197,6 +198,80 @@
     }
 
     /**
+     * Display CAGED chord shapes
+     * @param {string} root - Root note
+     * @param {string} shapeName - Shape name ('all' or specific shape letter)
+     */
+    function displayCaged(root, shapeName) {
+        if (!state.fretboard) return;
+
+        state.fretboard.clearMarkers();
+
+        const useFlats = MusicTheory.shouldUseFlats(root);
+        const chord = MusicTheory.buildChord(root, 'maj');
+
+        // Shape border colors for "All" mode
+        const shapeBorderColors = {
+            'C': '#FF4444',
+            'A': '#FF8C00',
+            'G': '#32CD32',
+            'E': '#4169E1',
+            'D': '#9370DB'
+        };
+
+        if (shapeName === 'all') {
+            // Display all 5 shapes with distinct border colors
+            for (const shape of ['C', 'A', 'G', 'E', 'D']) {
+                const positions = MusicTheory.getCagedPositions(root, shape);
+                const borderColor = shapeBorderColors[shape];
+
+                for (const pos of positions) {
+                    // Root markers: black fill, white text
+                    // Non-root markers: grey fill, black text
+                    // All markers get shape-specific border color in "All" mode
+                    const fill = pos.isRoot ? '#000' : '#ddd';
+                    const textColor = pos.isRoot ? '#fff' : '#000';
+
+                    state.fretboard.setMarker(pos.string, pos.fret, {
+                        color: fill,
+                        borderColor: borderColor,
+                        text: getMarkerLabel(pos, useFlats),
+                        textColor: textColor
+                    });
+                }
+            }
+        } else {
+            // Display single shape with normal interval coloring
+            const positions = MusicTheory.getCagedPositions(root, shapeName);
+
+            for (const pos of positions) {
+                const colors = MusicTheory.getIntervalColor(pos.label);
+                state.fretboard.setMarker(pos.string, pos.fret, {
+                    color: colors.fill,
+                    borderColor: colors.border,
+                    text: getMarkerLabel(pos, useFlats),
+                    textColor: colors.text
+                });
+            }
+        }
+
+        // Apply current rotation to newly created markers
+        if (window.RotationToggle) {
+            window.RotationToggle.applyCurrentRotation();
+        }
+
+        const title = shapeName === 'all'
+            ? `${root} CAGED`
+            : `${root} CAGED - ${shapeName} Shape`;
+
+        updateInfoPanel({
+            title: title,
+            notes: chord.notes,
+            intervals: chord.intervals
+        });
+    }
+
+    /**
      * Update the info panel with current selection details
      * @param {Object} info - { title, notes, intervals }
      */
@@ -217,8 +292,16 @@
         if (state.selectedChordIndex >= 0 && state.selectedChordIndex < state.chordList.length) {
             // Display selected chord from list
             const item = state.chordList[state.selectedChordIndex];
-            const chord = MusicTheory.buildChord(item.root, item.type);
-            displayChord(chord);
+
+            // In CAGED mode, show CAGED shapes for the selected chord's root
+            if (state.mode === 'caged') {
+                displayCaged(item.root, state.cagedShape);
+            } else {
+                const chord = MusicTheory.buildChord(item.root, item.type);
+                displayChord(chord);
+            }
+        } else if (state.mode === 'caged') {
+            displayCaged(state.root, state.cagedShape);
         } else if (state.mode === 'interval') {
             displayIntervals(state.root);
         } else if (state.mode === 'scale') {
@@ -483,8 +566,8 @@
     }
 
     /**
-     * Handle mode change (scale/chord/interval toggle)
-     * @param {string} mode - 'scale', 'chord', or 'interval'
+     * Handle mode change (scale/chord/interval/caged toggle)
+     * @param {string} mode - 'scale', 'chord', 'interval', or 'caged'
      */
     function setMode(mode) {
         state.mode = mode;
@@ -492,16 +575,22 @@
         updateTypeDropdown();
         renderChordList();
 
-        // Show/hide type selector based on mode
+        // Show/hide type selector based on mode (hide for interval and caged)
         const typeGroup = document.querySelector('.control-group:has(#type-select)');
         if (typeGroup) {
-            typeGroup.style.display = mode === 'interval' ? 'none' : 'block';
+            typeGroup.style.display = (mode === 'interval' || mode === 'caged') ? 'none' : 'block';
         }
 
         // Update type label based on mode
         const typeLabel = document.getElementById('type-label');
         if (typeLabel) {
             typeLabel.textContent = mode === 'scale' ? 'Scale Type' : 'Chord Type';
+        }
+
+        // Show/hide CAGED shape selector
+        const cagedSelector = document.getElementById('caged-shape-selector');
+        if (cagedSelector) {
+            cagedSelector.style.display = mode === 'caged' ? 'block' : 'none';
         }
 
         // Show/hide scale chord builder
@@ -512,7 +601,8 @@
 
         // Show/hide Add button based on mode
         // Scale mode: use scale chord buttons only
-        // Chord/Interval mode: show Add button for chord mode, hide for interval
+        // Chord mode: show Add button
+        // Interval/CAGED mode: hide Add button
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
             addChordBtn.style.display = (mode === 'chord') ? 'flex' : 'none';
@@ -642,6 +732,15 @@
                     }
                 });
             }
+        });
+
+        // CAGED shape selector
+        const cagedShapeRadios = document.querySelectorAll('input[name="caged-shape"]');
+        cagedShapeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                state.cagedShape = e.target.value;
+                updateDisplay();
+            });
         });
 
         // Add chord button (from dropdowns)

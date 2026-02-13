@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(agent-browser:*)"
+      "Bash(agent-browser:*)",
+      "WebSearch"
     ]
   }
 }

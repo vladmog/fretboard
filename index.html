@@ -28,6 +28,10 @@
                             <input type="radio" name="mode" value="interval">
                             Interval
                         </label>
+                        <label class="radio-label">
+                            <input type="radio" name="mode" value="caged">
+                            CAGED
+                        </label>
                     </div>
                 </div>
                 <div class="mode-controls">
@@ -54,6 +58,36 @@
                         <select id="type-select">
                             <!-- Options populated by JavaScript based on mode -->
                         </select>
+                    </div>
+
+                    <div id="caged-shape-selector" class="control-group" style="display: none;">
+                        <label>Shape</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="caged-shape" value="all" checked>
+                                All
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="caged-shape" value="C">
+                                C
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="caged-shape" value="A">
+                                A
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="caged-shape" value="G">
+                                G
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="caged-shape" value="E">
+                                E
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="caged-shape" value="D">
+                                D
+                            </label>
+                        </div>
                     </div>
 
                     <div id="scale-chord-builder" class="control-group">
