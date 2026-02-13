@@ -508,6 +508,10 @@ select:hover {
     margin-bottom: 1.5rem;
 }
 
+.mode-section.show-note-names {
+    border-style: dashed;
+}
+
 .mode-section > label {
     display: block;
     margin-bottom: 0.75rem;
@@ -516,6 +520,13 @@ select:hover {
     text-transform: uppercase;
     letter-spacing: 0.15em;
     color: #000;
+}
+
+.mode-section.show-note-names > label::after {
+    content: ' [A B C]';
+    font-size: 0.625rem;
+    font-weight: 400;
+    color: #666;
 }
 
 .mode-controls {

@@ -16,6 +16,7 @@
         selectedChordIndex: -1, // Index in chord list, -1 = none selected
         showSevenths: false,    // Toggle for scale chord builder
         showRelative: false,    // Toggle for relative major/minor
+        showNoteNames: false,   // Toggle for note names vs intervals on markers
         fretboard: null         // Fretboard API instance
     };
 
@@ -49,6 +50,19 @@
     }
 
     /**
+     * Get the display label for a marker position
+     * @param {Object} pos - Fretboard position with noteIndex and label
+     * @param {boolean} useFlats - Whether to use flat notation
+     * @returns {string} Note name or interval label
+     */
+    function getMarkerLabel(pos, useFlats) {
+        if (state.showNoteNames) {
+            return MusicTheory.getNoteName(pos.noteIndex, useFlats);
+        }
+        return pos.label;
+    }
+
+    /**
      * Display a scale on the fretboard
      * @param {Object} scale - Scale instance from buildScale()
      */
@@ -77,7 +91,7 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
-                text: pos.label,
+                text: getMarkerLabel(pos, displayScale.useFlats),
                 textColor: colors.text
             });
         }
@@ -114,7 +128,7 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
-                text: pos.label,
+                text: getMarkerLabel(pos, chord.useFlats),
                 textColor: colors.text
             });
         }
@@ -165,7 +179,7 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
-                text: pos.label,
+                text: getMarkerLabel(pos, useFlats),
                 textColor: colors.text
             });
         }
@@ -642,6 +656,48 @@
         const clearListBtn = document.getElementById('clear-list-btn');
         if (clearListBtn) {
             clearListBtn.addEventListener('click', clearChordList);
+        }
+
+        // Long-press on mode section to toggle note names on markers
+        const modeSection = document.querySelector('.mode-section');
+        if (modeSection) {
+            let longPressTimer = null;
+            let longPressFired = false;
+
+            function startLongPress(e) {
+                longPressFired = false;
+                longPressTimer = setTimeout(() => {
+                    longPressFired = true;
+                    state.showNoteNames = !state.showNoteNames;
+                    modeSection.classList.toggle('show-note-names', state.showNoteNames);
+                    updateDisplay();
+                }, 500);
+            }
+
+            function cancelLongPress() {
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            }
+
+            modeSection.addEventListener('mousedown', startLongPress);
+            modeSection.addEventListener('touchstart', startLongPress, { passive: true });
+
+            modeSection.addEventListener('mouseup', cancelLongPress);
+            modeSection.addEventListener('mouseleave', cancelLongPress);
+            modeSection.addEventListener('touchend', cancelLongPress);
+            modeSection.addEventListener('touchmove', cancelLongPress);
+            modeSection.addEventListener('touchcancel', cancelLongPress);
+
+            // Suppress click after long-press to prevent radio button changes
+            modeSection.addEventListener('click', (e) => {
+                if (longPressFired) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    longPressFired = false;
+                }
+            }, true);
         }
     }
 
