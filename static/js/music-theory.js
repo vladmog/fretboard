@@ -547,12 +547,21 @@ function getRelativeScale(root, scaleType) {
  * Get fretboard positions for a CAGED shape
  * @param {string} root - Root note (e.g., 'C', 'G#')
  * @param {string} shapeName - CAGED shape name ('C', 'A', 'G', 'E', 'D')
+ * @param {string} chordType - Chord type key (default 'maj')
  * @returns {Array} Array of fretboard positions with { string, fret, noteIndex, label, isRoot }
  */
-function getCagedPositions(root, shapeName) {
+function getCagedPositions(root, shapeName, chordType = 'maj') {
     const shape = CAGED_SHAPES[shapeName];
     if (!shape) {
         throw new Error(`Unknown CAGED shape: ${shapeName}`);
+    }
+
+    // Build interval substitution map from major shape to target chord type
+    const chord = CHORD_TYPES[chordType];
+    const intervalMap = { '1': '1', '3': '3', '5': '5' };
+    if (chord && chord.intervals.length >= 3) {
+        intervalMap['3'] = chord.intervals[1]; // e.g. 'b3' for minor
+        intervalMap['5'] = chord.intervals[2]; // e.g. 'b5' for dim
     }
 
     const rootIndex = getNoteIndex(root);
@@ -570,7 +579,9 @@ function getCagedPositions(root, shapeName) {
     // If so, move up an octave (add 12 frets)
     let minFret = rootFret;
     for (const pos of shape.positions) {
-        const fret = rootFret + pos.offset;
+        const newInterval = intervalMap[pos.interval] || pos.interval;
+        const offsetAdjust = INTERVALS[newInterval] - INTERVALS[pos.interval];
+        const fret = rootFret + pos.offset + offsetAdjust;
         if (fret < minFret) {
             minFret = fret;
         }
@@ -582,7 +593,9 @@ function getCagedPositions(root, shapeName) {
 
     // Apply offsets to get actual fret positions
     for (const pos of shape.positions) {
-        const fret = rootFret + pos.offset;
+        const newInterval = intervalMap[pos.interval] || pos.interval;
+        const offsetAdjust = INTERVALS[newInterval] - INTERVALS[pos.interval];
+        const fret = rootFret + pos.offset + offsetAdjust;
 
         // Skip positions outside the 0-15 fret range
         if (fret < 0 || fret > 15) {
@@ -597,7 +610,7 @@ function getCagedPositions(root, shapeName) {
             string: pos.string,
             fret,
             noteIndex,
-            label: pos.interval,
+            label: newInterval,
             isRoot: pos.interval === '1'
         });
     }
