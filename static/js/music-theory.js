@@ -198,6 +198,63 @@ const STANDARD_TUNING = ['E', 'A', 'D', 'G', 'B', 'E'];
 // Open string notes as semitone indices (E=4, A=9, D=2, G=7, B=11, E=4)
 const STRING_ROOTS = [4, 9, 2, 7, 11, 4];
 
+// CAGED chord shapes - positions relative to root note
+// Each shape has a rootString (which string the root note is on, 1-6 where 1=high E)
+// and positions array with { string (1-6), offset (fret distance from root), interval }
+const CAGED_SHAPES = {
+    'C': {
+        rootString: 5,
+        positions: [
+            { string: 5, offset: 0, interval: '1' },    // Root on A string
+            { string: 4, offset: -1, interval: '3' },   // Third on D string
+            { string: 3, offset: -3, interval: '5' },   // Fifth on G string
+            { string: 2, offset: -2, interval: '1' },   // Root on B string
+            { string: 1, offset: -3, interval: '3' }    // Third on high E string
+        ]
+    },
+    'A': {
+        rootString: 5,
+        positions: [
+            { string: 5, offset: 0, interval: '1' },   // Root on A string
+            { string: 4, offset: 2, interval: '5' },   // Fifth on D string
+            { string: 3, offset: 2, interval: '1' },   // Root on G string
+            { string: 2, offset: 2, interval: '3' },   // Third on B string
+            { string: 1, offset: 0, interval: '5' }    // Fifth on high E string
+        ]
+    },
+    'G': {
+        rootString: 6,
+        positions: [
+            { string: 6, offset: 0, interval: '1' },    // Root on low E string
+            { string: 5, offset: -1, interval: '3' },   // Third on A string
+            { string: 4, offset: -3, interval: '5' },   // Fifth on D string
+            { string: 3, offset: -3, interval: '1' },   // Root on G string
+            { string: 2, offset: -3, interval: '3' },   // Third on B string
+            { string: 1, offset: 0, interval: '1' }     // Root on high E string
+        ]
+    },
+    'E': {
+        rootString: 6,
+        positions: [
+            { string: 6, offset: 0, interval: '1' },   // Root on low E string
+            { string: 5, offset: 2, interval: '5' },   // Fifth on A string
+            { string: 4, offset: 2, interval: '1' },   // Root on D string
+            { string: 3, offset: 1, interval: '3' },   // Third on G string
+            { string: 2, offset: 0, interval: '5' },   // Fifth on B string
+            { string: 1, offset: 0, interval: '1' }    // Root on high E string
+        ]
+    },
+    'D': {
+        rootString: 4,
+        positions: [
+            { string: 4, offset: 0, interval: '1' },   // Root on D string
+            { string: 3, offset: 2, interval: '5' },   // Fifth on G string
+            { string: 2, offset: 3, interval: '1' },   // Root on B string
+            { string: 1, offset: 2, interval: '3' }    // Third on high E string
+        ]
+    }
+};
+
 /**
  * Get semitone index of a note
  * @param {string} note - Note name (e.g., 'C', 'C#', 'Db')
@@ -486,6 +543,68 @@ function getRelativeScale(root, scaleType) {
     };
 }
 
+/**
+ * Get fretboard positions for a CAGED shape
+ * @param {string} root - Root note (e.g., 'C', 'G#')
+ * @param {string} shapeName - CAGED shape name ('C', 'A', 'G', 'E', 'D')
+ * @returns {Array} Array of fretboard positions with { string, fret, noteIndex, label, isRoot }
+ */
+function getCagedPositions(root, shapeName) {
+    const shape = CAGED_SHAPES[shapeName];
+    if (!shape) {
+        throw new Error(`Unknown CAGED shape: ${shapeName}`);
+    }
+
+    const rootIndex = getNoteIndex(root);
+    const positions = [];
+
+    // Find the fret where the root note appears on the root string
+    // Convert rootString (1-6 where 1=high E) to stringIndex (0-5 where 0=low E)
+    const rootStringIndex = 6 - shape.rootString;
+    const openStringNote = STRING_ROOTS[rootStringIndex];
+
+    // Calculate root fret: how many frets up from open string to reach the root note
+    let rootFret = (rootIndex - openStringNote + 12) % 12;
+
+    // Check if any position would have a negative fret
+    // If so, move up an octave (add 12 frets)
+    let minFret = rootFret;
+    for (const pos of shape.positions) {
+        const fret = rootFret + pos.offset;
+        if (fret < minFret) {
+            minFret = fret;
+        }
+    }
+
+    if (minFret < 0) {
+        rootFret += 12;
+    }
+
+    // Apply offsets to get actual fret positions
+    for (const pos of shape.positions) {
+        const fret = rootFret + pos.offset;
+
+        // Skip positions outside the 0-15 fret range
+        if (fret < 0 || fret > 15) {
+            continue;
+        }
+
+        // Calculate note index at this position
+        const stringIndex = 6 - pos.string;
+        const noteIndex = getNoteAt(stringIndex, fret);
+
+        positions.push({
+            string: pos.string,
+            fret,
+            noteIndex,
+            label: pos.interval,
+            isRoot: pos.interval === '1'
+        });
+    }
+
+    return positions;
+}
+
 // Export for use in other modules
 window.MusicTheory = {
     CHROMATIC_NOTES,
@@ -494,6 +613,7 @@ window.MusicTheory = {
     SCALES,
     CHORD_TYPES,
     STANDARD_TUNING,
+    CAGED_SHAPES,
     getNoteIndex,
     getNoteName,
     getNoteAt,
@@ -503,5 +623,6 @@ window.MusicTheory = {
     getIntervalColor,
     buildScaleChords,
     getRelativeScale,
+    getCagedPositions,
     shouldUseFlats
 };

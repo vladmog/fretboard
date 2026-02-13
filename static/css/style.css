@@ -581,6 +581,27 @@ select:hover {
     margin-bottom: 1rem;
 }
 
+/* CAGED shape selector - colored borders for "All" mode visual reference */
+input[name="caged-shape"][value="C"] ~ * {
+    border-left: 3px solid #FF4444;
+}
+
+input[name="caged-shape"][value="A"] ~ * {
+    border-left: 3px solid #FF8C00;
+}
+
+input[name="caged-shape"][value="G"] ~ * {
+    border-left: 3px solid #32CD32;
+}
+
+input[name="caged-shape"][value="E"] ~ * {
+    border-left: 3px solid #4169E1;
+}
+
+input[name="caged-shape"][value="D"] ~ * {
+    border-left: 3px solid #9370DB;
+}
+
 /* Desktop mode section - compact layout */
 @media (min-width: 1025px) {
     .mode-section {
