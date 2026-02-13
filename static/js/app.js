@@ -208,7 +208,7 @@
         state.fretboard.clearMarkers();
 
         const useFlats = MusicTheory.shouldUseFlats(root);
-        const chord = MusicTheory.buildChord(root, 'maj');
+        const chord = MusicTheory.buildChord(root, state.chordType);
 
         // Shape border colors for "All" mode
         const shapeBorderColors = {
@@ -220,29 +220,24 @@
         };
 
         if (shapeName === 'all') {
-            // Display all 5 shapes with distinct border colors
+            // Display all 5 shapes with interval-based coloring and shape-specific borders
             for (const shape of ['C', 'A', 'G', 'E', 'D']) {
-                const positions = MusicTheory.getCagedPositions(root, shape);
+                const positions = MusicTheory.getCagedPositions(root, shape, state.chordType);
                 const borderColor = shapeBorderColors[shape];
 
                 for (const pos of positions) {
-                    // Root markers: black fill, white text
-                    // Non-root markers: grey fill, black text
-                    // All markers get shape-specific border color in "All" mode
-                    const fill = pos.isRoot ? '#000' : '#ddd';
-                    const textColor = pos.isRoot ? '#fff' : '#000';
-
+                    const colors = MusicTheory.getIntervalColor(pos.label);
                     state.fretboard.setMarker(pos.string, pos.fret, {
-                        color: fill,
+                        color: colors.fill,
                         borderColor: borderColor,
                         text: getMarkerLabel(pos, useFlats),
-                        textColor: textColor
+                        textColor: colors.text
                     });
                 }
             }
         } else {
             // Display single shape with normal interval coloring
-            const positions = MusicTheory.getCagedPositions(root, shapeName);
+            const positions = MusicTheory.getCagedPositions(root, shapeName, state.chordType);
 
             for (const pos of positions) {
                 const colors = MusicTheory.getIntervalColor(pos.label);
@@ -260,9 +255,10 @@
             window.RotationToggle.applyCurrentRotation();
         }
 
+        const chordSymbol = chord.symbol;
         const title = shapeName === 'all'
-            ? `${root} CAGED`
-            : `${root} CAGED - ${shapeName} Shape`;
+            ? `${chordSymbol} CAGED`
+            : `${chordSymbol} CAGED - ${shapeName} Shape`;
 
         updateInfoPanel({
             title: title,
@@ -293,8 +289,11 @@
             // Display selected chord from list
             const item = state.chordList[state.selectedChordIndex];
 
-            // In CAGED mode, show CAGED shapes for the selected chord's root
+            // In CAGED mode, show CAGED shapes for the selected chord's root and type
             if (state.mode === 'caged') {
+                const triadicTypes = ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4'];
+                state.chordType = triadicTypes.includes(item.type) ? item.type : 'maj';
+                updateTypeDropdown();
                 displayCaged(item.root, state.cagedShape);
             } else {
                 const chord = MusicTheory.buildChord(item.root, item.type);
@@ -511,6 +510,21 @@
                 }
                 dropdown.appendChild(otherGroup);
             }
+        } else if (state.mode === 'caged') {
+            // CAGED mode: only triadic chord types
+            const triadicTypes = ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4'];
+            for (const key of triadicTypes) {
+                const chord = MusicTheory.CHORD_TYPES[key];
+                if (chord) {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = chord.name;
+                    if (key === state.chordType) {
+                        option.selected = true;
+                    }
+                    dropdown.appendChild(option);
+                }
+            }
         } else {
             // Organize chords into categories
             const chordCategories = {
@@ -575,10 +589,16 @@
         updateTypeDropdown();
         renderChordList();
 
-        // Show/hide type selector based on mode (hide for interval and caged)
+        // Show/hide type selector based on mode (hide for interval only)
         const typeGroup = document.querySelector('.control-group:has(#type-select)');
         if (typeGroup) {
-            typeGroup.style.display = (mode === 'interval' || mode === 'caged') ? 'none' : 'block';
+            typeGroup.style.display = (mode === 'interval') ? 'none' : 'block';
+        }
+
+        // When entering CAGED mode, ensure chordType is a valid triadic type
+        const triadicTypes = ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4'];
+        if (mode === 'caged' && !triadicTypes.includes(state.chordType)) {
+            state.chordType = 'maj';
         }
 
         // Update type label based on mode
@@ -828,10 +848,10 @@
             addChordBtn.style.display = state.mode === 'chord' ? 'flex' : 'none';
         }
 
-        // Hide type selector in interval mode
+        // Hide type selector in interval mode only
         const typeGroup = document.querySelector('.control-group:has(#type-select)');
         if (typeGroup) {
-            typeGroup.style.display = state.mode === 'interval' ? 'none' : 'block';
+            typeGroup.style.display = (state.mode === 'interval') ? 'none' : 'block';
         }
 
         // Initial display
