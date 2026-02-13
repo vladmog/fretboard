@@ -210,6 +210,35 @@
         const useFlats = MusicTheory.shouldUseFlats(root);
         const chord = MusicTheory.buildChord(root, state.chordType);
 
+        // Determine matching scale type for background context
+        const scaleType = ['min', 'dim'].includes(state.chordType) ? 'natural_minor' : 'major';
+        const scale = MusicTheory.buildScale(root, scaleType);
+
+        // Collect all CAGED positions into a set so we skip them when drawing scale context
+        const cagedPosKeys = new Set();
+        const shapesToDraw = shapeName === 'all' ? ['C', 'A', 'G', 'E', 'D'] : [shapeName];
+        for (const shape of shapesToDraw) {
+            const positions = MusicTheory.getCagedPositions(root, shape, state.chordType);
+            for (const pos of positions) {
+                cagedPosKeys.add(pos.string + '-' + pos.fret);
+            }
+        }
+
+        // Draw grey scale-only markers first (non-chord scale tones as background context)
+        const scalePositions = MusicTheory.getNotesOnFretboard(scale.noteToDegree, 15, root);
+        for (const pos of scalePositions) {
+            const key = pos.string + '-' + pos.fret;
+            if (cagedPosKeys.has(key)) {
+                continue;
+            }
+            state.fretboard.setMarker(pos.string, pos.fret, {
+                color: '#aaa',
+                borderColor: '#888',
+                text: getMarkerLabel(pos, useFlats),
+                textColor: '#fff'
+            });
+        }
+
         // Shape border colors for "All" mode
         const shapeBorderColors = {
             'C': '#FF4444',
@@ -219,8 +248,8 @@
             'D': '#9370DB'
         };
 
+        // Draw CAGED chord markers on top
         if (shapeName === 'all') {
-            // Display all 5 shapes with interval-based coloring and shape-specific borders
             for (const shape of ['C', 'A', 'G', 'E', 'D']) {
                 const positions = MusicTheory.getCagedPositions(root, shape, state.chordType);
                 const borderColor = shapeBorderColors[shape];
@@ -236,7 +265,6 @@
                 }
             }
         } else {
-            // Display single shape with normal interval coloring
             const positions = MusicTheory.getCagedPositions(root, shapeName, state.chordType);
 
             for (const pos of positions) {
