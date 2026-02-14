@@ -8,10 +8,11 @@
 
     // Application state
     const state = {
-        mode: 'scale',          // 'scale', 'chord', 'interval', or 'caged'
+        mode: 'scale',          // 'scale', 'chord', 'interval', 'caged', or 'modes'
         root: 'C',
         scaleType: 'major',
         chordType: 'maj',
+        modeType: 'ionian',    // Selected mode in 'modes' mode
         cagedShape: 'all',      // 'all', 'C', 'A', 'G', 'E', or 'D'
         chordList: [],          // Array of { root, type, symbol }
         selectedChordIndex: -1, // Index in chord list, -1 = none selected
@@ -296,6 +297,47 @@
     }
 
     /**
+     * Display a mode on the fretboard given a parent key and mode name
+     * @param {string} parentRoot - Parent major key (e.g., 'C')
+     * @param {string} modeName - Mode key (e.g., 'dorian')
+     */
+    function displayMode(parentRoot, modeName) {
+        if (!state.fretboard) return;
+
+        const mode = MusicTheory.MODES[modeName];
+        const modeRoot = MusicTheory.getModeRoot(parentRoot, modeName);
+        const scale = MusicTheory.buildScale(modeRoot, mode.scaleType);
+
+        state.fretboard.clearMarkers();
+
+        const positions = MusicTheory.getNotesOnFretboard(
+            scale.noteToDegree,
+            15,
+            scale.root
+        );
+
+        for (const pos of positions) {
+            const colors = MusicTheory.getIntervalColor(pos.label);
+            state.fretboard.setMarker(pos.string, pos.fret, {
+                color: colors.fill,
+                borderColor: colors.border,
+                text: getMarkerLabel(pos, scale.useFlats),
+                textColor: colors.text
+            });
+        }
+
+        if (window.RotationToggle) {
+            window.RotationToggle.applyCurrentRotation();
+        }
+
+        updateInfoPanel({
+            title: `${modeRoot} ${mode.name} (${parentRoot} Major)`,
+            notes: scale.notes,
+            intervals: scale.degrees
+        });
+    }
+
+    /**
      * Update the info panel with current selection details
      * @param {Object} info - { title, notes, intervals }
      */
@@ -329,6 +371,8 @@
             }
         } else if (state.mode === 'caged') {
             displayCaged(state.root, state.cagedShape);
+        } else if (state.mode === 'modes') {
+            displayMode(state.root, state.modeType);
         } else if (state.mode === 'interval') {
             displayIntervals(state.root);
         } else if (state.mode === 'scale') {
@@ -538,6 +582,16 @@
                 }
                 dropdown.appendChild(otherGroup);
             }
+        } else if (state.mode === 'modes') {
+            for (const [key, mode] of Object.entries(MusicTheory.MODES)) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = mode.name;
+                if (key === state.modeType) {
+                    option.selected = true;
+                }
+                dropdown.appendChild(option);
+            }
         } else if (state.mode === 'caged') {
             // CAGED mode: only triadic chord types
             const triadicTypes = ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4'];
@@ -620,7 +674,7 @@
         // Show/hide type selector based on mode (hide for interval only)
         const typeGroup = document.querySelector('.control-group:has(#type-select)');
         if (typeGroup) {
-            typeGroup.style.display = (mode === 'interval') ? 'none' : 'block';
+            typeGroup.style.display = mode === 'interval' ? 'none' : 'block';
         }
 
         // When entering CAGED mode, ensure chordType is a valid triadic type
@@ -632,7 +686,19 @@
         // Update type label based on mode
         const typeLabel = document.getElementById('type-label');
         if (typeLabel) {
-            typeLabel.textContent = mode === 'scale' ? 'Scale Type' : 'Chord Type';
+            if (mode === 'scale') {
+                typeLabel.textContent = 'Scale Type';
+            } else if (mode === 'modes') {
+                typeLabel.textContent = 'Mode';
+            } else {
+                typeLabel.textContent = 'Chord Type';
+            }
+        }
+
+        // Update root label based on mode
+        const rootLabel = document.getElementById('root-label');
+        if (rootLabel) {
+            rootLabel.textContent = mode === 'modes' ? 'Key' : 'Root Note';
         }
 
         // Show/hide CAGED shape selector
@@ -641,7 +707,7 @@
             cagedSelector.style.display = mode === 'caged' ? 'block' : 'none';
         }
 
-        // Show/hide scale chord builder
+        // Show/hide scale chord builder (only in scale mode)
         const builderSection = document.getElementById('scale-chord-builder');
         if (builderSection) {
             builderSection.style.display = mode === 'scale' ? 'block' : 'none';
@@ -705,6 +771,8 @@
                         }
                     }
                     renderScaleChords();
+                } else if (state.mode === 'modes') {
+                    state.modeType = e.target.value;
                 } else {
                     state.chordType = e.target.value;
                 }
