@@ -232,10 +232,10 @@
                 continue;
             }
             state.fretboard.setMarker(pos.string, pos.fret, {
-                color: '#aaa',
-                borderColor: '#888',
-                text: getMarkerLabel(pos, useFlats),
-                textColor: '#fff'
+                color: '#fff',
+                borderColor: '#ccc',
+                text: '',
+                textColor: 'transparent'
             });
         }
 
