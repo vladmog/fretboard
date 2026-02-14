@@ -192,6 +192,17 @@ const CHORD_TYPES = {
     }
 };
 
+// Mode definitions - maps each mode to its degree in the parent major scale
+const MODES = {
+    'ionian':     { name: 'Ionian',     degree: 1, scaleType: 'major' },
+    'dorian':     { name: 'Dorian',     degree: 2, scaleType: 'dorian' },
+    'phrygian':   { name: 'Phrygian',   degree: 3, scaleType: 'phrygian' },
+    'lydian':     { name: 'Lydian',     degree: 4, scaleType: 'lydian' },
+    'mixolydian': { name: 'Mixolydian', degree: 5, scaleType: 'mixolydian' },
+    'aeolian':    { name: 'Aeolian',    degree: 6, scaleType: 'natural_minor' },
+    'locrian':    { name: 'Locrian',    degree: 7, scaleType: 'locrian' }
+};
+
 // Standard guitar tuning (low E to high E, strings 6 to 1)
 const STANDARD_TUNING = ['E', 'A', 'D', 'G', 'B', 'E'];
 
@@ -512,6 +523,21 @@ function buildScaleChords(root, scaleType, sevenths = false) {
 }
 
 /**
+ * Get the mode root note given a parent key and mode name
+ * @param {string} parentRoot - Parent major key (e.g., 'C')
+ * @param {string} modeName - Mode name key (e.g., 'dorian')
+ * @returns {string} The root note of the mode
+ */
+function getModeRoot(parentRoot, modeName) {
+    const mode = MODES[modeName];
+    if (!mode) {
+        throw new Error(`Unknown mode: ${modeName}`);
+    }
+    const scale = buildScale(parentRoot, 'major');
+    return scale.notes[mode.degree - 1];
+}
+
+/**
  * Get the relative scale (major <-> natural minor)
  * @param {string} root - Root note
  * @param {string} scaleType - Scale type ('major' or 'natural_minor')
@@ -627,6 +653,7 @@ window.MusicTheory = {
     CHORD_TYPES,
     STANDARD_TUNING,
     CAGED_SHAPES,
+    MODES,
     getNoteIndex,
     getNoteName,
     getNoteAt,
@@ -636,6 +663,7 @@ window.MusicTheory = {
     getIntervalColor,
     buildScaleChords,
     getRelativeScale,
+    getModeRoot,
     getCagedPositions,
     shouldUseFlats
 };
