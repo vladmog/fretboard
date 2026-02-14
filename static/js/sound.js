@@ -15,11 +15,12 @@
     function ensureSynth() {
         if (!synth) {
             synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: 'triangle' },
                 envelope: {
-                    attack: 0.3,
-                    decay: 0.5,
-                    sustain: 1,
-                    release: 0.5
+                    attack: 0.005,
+                    decay: 0.4,
+                    sustain: 0.05,
+                    release: 1.0
                 }
             }).connect(limiter);
             synth.volume.value = -12;
@@ -62,7 +63,11 @@
         ensureSynth();
 
         const notesWithOctaves = assignOctaves(noteNames);
-        synth.triggerAttackRelease(notesWithOctaves, 0.8);
+        const strumDelay = 0.08; // 80ms between each note
+        const now = Tone.now();
+        notesWithOctaves.forEach((note, i) => {
+            synth.triggerAttackRelease(note, 0.8, now + i * strumDelay);
+        });
     }
 
     window.Sound = { playChord };
