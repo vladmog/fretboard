@@ -350,6 +350,22 @@ select:hover {
     font-style: italic;
 }
 
+/* Chord list header */
+.chord-list-header {
+    display: flex;
+    align-items: center;
+}
+
+.chord-list-header .toggle-label {
+    margin-left: auto;
+}
+
+.chord-list-header .toggle-text {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.5rem;
+    line-height: 1;
+}
+
 /* Chord list */
 .chord-list {
     list-style: none;

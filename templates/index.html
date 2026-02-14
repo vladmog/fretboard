@@ -114,7 +114,13 @@
             </div>
 
             <div class="control-group">
-                <label>Chord List</label>
+                <label class="chord-list-header">
+                    Chord List
+                    <span class="toggle-label" id="sound-toggle-label">
+                        <input type="checkbox" id="sound-toggle" checked>
+                        <span class="toggle-text">Sound</span>
+                    </span>
+                </label>
                 <ul id="chord-list-items" class="chord-list">
                     <!-- Chord list items populated by JavaScript -->
                 </ul>
@@ -146,8 +152,10 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/tone/build/Tone.js"></script>
     <script src="{{ url_for('static', filename='js/fretboard.js') }}"></script>
     <script src="{{ url_for('static', filename='js/music-theory.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sound.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/rotation-toggle.js') }}"></script>
 </body>

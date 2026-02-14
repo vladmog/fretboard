@@ -19,6 +19,7 @@
         showSevenths: false,    // Toggle for scale chord builder
         showRelative: false,    // Toggle for relative major/minor
         showNoteNames: false,   // Toggle for note names vs intervals on markers
+        soundEnabled: true,     // Toggle for chord list sound playback
         fretboard: null         // Fretboard API instance
     };
 
@@ -463,6 +464,12 @@
             state.selectedChordIndex = -1;
         } else {
             state.selectedChordIndex = index;
+            // Play the chord sound on select (if enabled)
+            if (state.soundEnabled) {
+                const item = state.chordList[index];
+                const chord = MusicTheory.buildChord(item.root, item.type);
+                Sound.playChord(chord.notes);
+            }
         }
         renderChordList();
         updateDisplay();
@@ -788,6 +795,14 @@
             seventhsToggle.addEventListener('change', (e) => {
                 state.showSevenths = e.target.checked;
                 renderScaleChords();
+            });
+        }
+
+        // Sound toggle
+        const soundToggle = document.getElementById('sound-toggle');
+        if (soundToggle) {
+            soundToggle.addEventListener('change', (e) => {
+                state.soundEnabled = e.target.checked;
             });
         }
 
