@@ -224,7 +224,7 @@
             }
         }
 
-        // Draw grey scale-only markers first (non-chord scale tones as background context)
+        // Draw background scale markers first (non-chord scale tones as visual context)
         const scalePositions = MusicTheory.getNotesOnFretboard(scale.noteToDegree, 15, root);
         for (const pos of scalePositions) {
             const key = pos.string + '-' + pos.fret;
