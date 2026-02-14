@@ -212,7 +212,7 @@
         const chord = MusicTheory.buildChord(root, state.chordType);
 
         // Determine parent scale type for background markers
-        const scaleType = ['min', 'dim'].includes(state.chordType) ? 'natural_minor' : 'major';
+        const scaleType = ['min', 'dim', 'min7'].includes(state.chordType) ? 'natural_minor' : 'major';
         const scale = MusicTheory.buildScale(root, scaleType);
 
         // Collect all CAGED positions for overlap detection
@@ -361,8 +361,8 @@
 
             // In CAGED mode, show CAGED shapes for the selected chord's root and type
             if (state.mode === 'caged') {
-                const triadicTypes = ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4'];
-                state.chordType = triadicTypes.includes(item.type) ? item.type : 'maj';
+                const cagedTypes = ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4', 'maj7', 'min7'];
+                state.chordType = cagedTypes.includes(item.type) ? item.type : 'maj';
                 updateTypeDropdown();
                 displayCaged(item.root, state.cagedShape);
             } else {
@@ -593,9 +593,9 @@
                 dropdown.appendChild(option);
             }
         } else if (state.mode === 'caged') {
-            // CAGED mode: only triadic chord types
-            const triadicTypes = ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4'];
-            for (const key of triadicTypes) {
+            // CAGED mode: triadic chord types + maj7/min7
+            const cagedTypes = ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4', 'maj7', 'min7'];
+            for (const key of cagedTypes) {
                 const chord = MusicTheory.CHORD_TYPES[key];
                 if (chord) {
                     const option = document.createElement('option');
@@ -677,9 +677,9 @@
             typeGroup.style.display = mode === 'interval' ? 'none' : 'block';
         }
 
-        // When entering CAGED mode, ensure chordType is a valid triadic type
-        const triadicTypes = ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4'];
-        if (mode === 'caged' && !triadicTypes.includes(state.chordType)) {
+        // When entering CAGED mode, ensure chordType is a valid CAGED type
+        const cagedTypes = ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4', 'maj7', 'min7'];
+        if (mode === 'caged' && !cagedTypes.includes(state.chordType)) {
             state.chordType = 'maj';
         }
 

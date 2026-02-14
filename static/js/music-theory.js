@@ -219,6 +219,7 @@ const CAGED_SHAPES = {
             { string: 5, offset: 0, interval: '1' },    // Root on A string
             { string: 4, offset: -1, interval: '3' },   // Third on D string
             { string: 3, offset: -3, interval: '5' },   // Fifth on G string
+            { string: 2, offset: -3, interval: '7' },   // Seventh on B string
             { string: 2, offset: -2, interval: '1' },   // Root on B string
             { string: 1, offset: -3, interval: '3' }    // Third on high E string
         ]
@@ -228,6 +229,7 @@ const CAGED_SHAPES = {
         positions: [
             { string: 5, offset: 0, interval: '1' },   // Root on A string
             { string: 4, offset: 2, interval: '5' },   // Fifth on D string
+            { string: 3, offset: 1, interval: '7' },   // Seventh on G string
             { string: 3, offset: 2, interval: '1' },   // Root on G string
             { string: 2, offset: 2, interval: '3' },   // Third on B string
             { string: 1, offset: 0, interval: '5' }    // Fifth on high E string
@@ -241,6 +243,7 @@ const CAGED_SHAPES = {
             { string: 4, offset: -3, interval: '5' },   // Fifth on D string
             { string: 3, offset: -3, interval: '1' },   // Root on G string
             { string: 2, offset: -3, interval: '3' },   // Third on B string
+            { string: 1, offset: -1, interval: '7' },   // Seventh on high E string
             { string: 1, offset: 0, interval: '1' }     // Root on high E string
         ]
     },
@@ -249,6 +252,7 @@ const CAGED_SHAPES = {
         positions: [
             { string: 6, offset: 0, interval: '1' },   // Root on low E string
             { string: 5, offset: 2, interval: '5' },   // Fifth on A string
+            { string: 4, offset: 1, interval: '7' },   // Seventh on D string
             { string: 4, offset: 2, interval: '1' },   // Root on D string
             { string: 3, offset: 1, interval: '3' },   // Third on G string
             { string: 2, offset: 0, interval: '5' },   // Fifth on B string
@@ -260,6 +264,7 @@ const CAGED_SHAPES = {
         positions: [
             { string: 4, offset: 0, interval: '1' },   // Root on D string
             { string: 3, offset: 2, interval: '5' },   // Fifth on G string
+            { string: 2, offset: 2, interval: '7' },   // Seventh on B string
             { string: 2, offset: 3, interval: '1' },   // Root on B string
             { string: 1, offset: 2, interval: '3' }    // Third on high E string
         ]
@@ -589,6 +594,9 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
         intervalMap['3'] = chord.intervals[1]; // e.g. 'b3' for minor
         intervalMap['5'] = chord.intervals[2]; // e.g. 'b5' for dim
     }
+    if (chord && chord.intervals.length >= 4) {
+        intervalMap['7'] = chord.intervals[3]; // e.g. '7' for maj7, 'b7' for min7
+    }
 
     const rootIndex = getNoteIndex(root);
     const positions = [];
@@ -605,6 +613,7 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
     // If so, move up an octave (add 12 frets)
     let minFret = rootFret;
     for (const pos of shape.positions) {
+        if (pos.interval === '7' && !('7' in intervalMap)) continue;
         const newInterval = intervalMap[pos.interval] || pos.interval;
         const offsetAdjust = INTERVALS[newInterval] - INTERVALS[pos.interval];
         const fret = rootFret + pos.offset + offsetAdjust;
@@ -619,6 +628,7 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
 
     // Apply offsets to get actual fret positions
     for (const pos of shape.positions) {
+        if (pos.interval === '7' && !('7' in intervalMap)) continue;
         const newInterval = intervalMap[pos.interval] || pos.interval;
         const offsetAdjust = INTERVALS[newInterval] - INTERVALS[pos.interval];
         const fret = rootFret + pos.offset + offsetAdjust;
