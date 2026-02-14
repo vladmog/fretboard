@@ -210,7 +210,7 @@
         const useFlats = MusicTheory.shouldUseFlats(root);
         const chord = MusicTheory.buildChord(root, state.chordType);
 
-        // Determine matching scale type for background context
+        // Determine parent scale type for background markers
         const scaleType = ['min', 'dim'].includes(state.chordType) ? 'natural_minor' : 'major';
         const scale = MusicTheory.buildScale(root, scaleType);
 
