@@ -214,7 +214,7 @@
         const scaleType = ['min', 'dim'].includes(state.chordType) ? 'natural_minor' : 'major';
         const scale = MusicTheory.buildScale(root, scaleType);
 
-        // Collect all CAGED positions into a set so we skip them when drawing scale context
+        // Collect all CAGED positions for overlap detection
         const cagedPosKeys = new Set();
         const shapesToDraw = shapeName === 'all' ? ['C', 'A', 'G', 'E', 'D'] : [shapeName];
         for (const shape of shapesToDraw) {
