@@ -377,7 +377,7 @@ select:hover {
 }
 
 .chord-list:empty::after {
-    content: 'No chords added';
+    content: 'Select Scale or Chord mode to add chords';
     display: block;
     padding: 1rem;
     text-align: center;
