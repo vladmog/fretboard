@@ -524,10 +524,6 @@ select:hover {
     margin-bottom: 1.5rem;
 }
 
-.mode-section.show-note-names {
-    border-style: dashed;
-}
-
 .mode-section > label {
     display: block;
     margin-bottom: 0.75rem;
@@ -538,11 +534,19 @@ select:hover {
     color: #000;
 }
 
-.mode-section.show-note-names > label::after {
-    content: ' [A B C]';
-    font-size: 0.625rem;
-    font-weight: 400;
-    color: #666;
+.mode-header {
+    display: flex;
+    align-items: center;
+}
+
+.mode-header .toggle-label {
+    margin-left: auto;
+}
+
+.mode-header .toggle-text {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.5rem;
+    line-height: 1;
 }
 
 .mode-controls {
