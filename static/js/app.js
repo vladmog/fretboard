@@ -806,6 +806,15 @@
             });
         }
 
+        // Note names toggle
+        const noteNamesToggle = document.getElementById('notenames-toggle');
+        if (noteNamesToggle) {
+            noteNamesToggle.addEventListener('change', (e) => {
+                state.showNoteNames = e.target.checked;
+                updateDisplay();
+            });
+        }
+
         // Relative scale toggle
         const relativeToggle = document.getElementById('relative-toggle');
         if (relativeToggle) {
@@ -888,47 +897,6 @@
             clearListBtn.addEventListener('click', clearChordList);
         }
 
-        // Long-press on mode section to toggle note names on markers
-        const modeSection = document.querySelector('.mode-section');
-        if (modeSection) {
-            let longPressTimer = null;
-            let longPressFired = false;
-
-            function startLongPress(e) {
-                longPressFired = false;
-                longPressTimer = setTimeout(() => {
-                    longPressFired = true;
-                    state.showNoteNames = !state.showNoteNames;
-                    modeSection.classList.toggle('show-note-names', state.showNoteNames);
-                    updateDisplay();
-                }, 500);
-            }
-
-            function cancelLongPress() {
-                if (longPressTimer) {
-                    clearTimeout(longPressTimer);
-                    longPressTimer = null;
-                }
-            }
-
-            modeSection.addEventListener('mousedown', startLongPress);
-            modeSection.addEventListener('touchstart', startLongPress, { passive: true });
-
-            modeSection.addEventListener('mouseup', cancelLongPress);
-            modeSection.addEventListener('mouseleave', cancelLongPress);
-            modeSection.addEventListener('touchend', cancelLongPress);
-            modeSection.addEventListener('touchmove', cancelLongPress);
-            modeSection.addEventListener('touchcancel', cancelLongPress);
-
-            // Suppress click after long-press to prevent radio button changes
-            modeSection.addEventListener('click', (e) => {
-                if (longPressFired) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    longPressFired = false;
-                }
-            }, true);
-        }
     }
 
     /**
