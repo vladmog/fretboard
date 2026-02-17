@@ -31,18 +31,18 @@ const INTERVAL_COLORS = [
 
 // Border colors - vibrant and saturated for high contrast
 const INTERVAL_BORDER_COLORS = [
-    '#FF0000',  // 0 - Root (1) - Bright Red
-    '#FF6600',  // 1 - Minor 2nd (b2) - Vibrant Orange
-    '#FFB700',  // 2 - Major 2nd (2) - Bright Gold
-    '#00CC00',  // 3 - Minor 3rd (b3) - Bright Green
-    '#00AA00',  // 4 - Major 3rd (3) - Vibrant Green
-    '#00CCCC',  // 5 - Perfect 4th (4) - Bright Cyan
-    '#0066FF',  // 6 - Tritone (b5) - Vibrant Blue
-    '#0044CC',  // 7 - Perfect 5th (5) - Bright Royal Blue
-    '#8800FF',  // 8 - Minor 6th/Aug 5th (b6/#5) - Bright Purple
-    '#CC00CC',  // 9 - Major 6th (6) - Bright Magenta
-    '#FF0099',  // 10 - Minor 7th (b7) - Vibrant Pink
-    '#CC0066'   // 11 - Major 7th (7) - Bright Deep Pink
+    '#FF0000',  // 0  - Root (1)  - Red
+    '#AA7733',  // 1  - m2 (b2)   - Dark Amber     (2nds dark)
+    '#EEBB00',  // 2  - M2 (2)    - Bright Gold     (2nds bright)
+    '#007744',  // 3  - m3 (b3)   - Dark Teal       (3rds dark)
+    '#44CC66',  // 4  - M3 (3)    - Bright Green    (3rds bright)
+    '#2299DD',  // 5  - P4 (4)    - Sky Blue        (perfects light)
+    '#EE7700',  // 6  - TT (b5)   - Orange          (tritone unique)
+    '#0055BB',  // 7  - P5 (5)    - Royal Blue      (perfects deep)
+    '#6644AA',  // 8  - m6 (b6)   - Dark Purple     (6ths dark)
+    '#BB77FF',  // 9  - M6 (6)    - Bright Lavender (6ths bright)
+    '#AA2255',  // 10 - m7 (b7)   - Burgundy        (7ths dark)
+    '#FF66AA'   // 11 - M7 (7)    - Bright Pink     (7ths bright)
 ];
 
 // Interval definitions - semitone distance from root
@@ -430,6 +430,22 @@ function getNotesOnFretboard(noteToLabel, frets = 15, root = null) {
 }
 
 /**
+ * Lighten a hex color by mixing it with white
+ * @param {string} hex - Hex color string (e.g., '#FF0000')
+ * @param {number} amount - Mix amount (0 = original, 1 = white). Default 0.82 for soft pastels.
+ * @returns {string} Lightened hex color
+ */
+function lightenColor(hex, amount = 0.82) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const lr = Math.round(r + (255 - r) * amount);
+    const lg = Math.round(g + (255 - g) * amount);
+    const lb = Math.round(b + (255 - b) * amount);
+    return '#' + [lr, lg, lb].map(c => c.toString(16).padStart(2, '0')).join('');
+}
+
+/**
  * Get colors for an interval based on semitone distance
  * @param {string} interval - Interval name (e.g., '1', '3', 'b3', '5')
  * @returns {Object} Object with fill, border, and text colors
@@ -447,10 +463,10 @@ function getIntervalColor(interval) {
         };
     }
 
-    // All other intervals: light grey fill with black text
+    // All other intervals: light tinted fill matching border color
     if (semitones !== undefined && semitones >= 0 && semitones < INTERVAL_BORDER_COLORS.length) {
         return {
-            fill: '#ddd',
+            fill: lightenColor(INTERVAL_BORDER_COLORS[semitones]),
             border: INTERVAL_BORDER_COLORS[semitones],
             text: '#000'
         };
@@ -675,5 +691,6 @@ window.MusicTheory = {
     getRelativeScale,
     getModeRoot,
     getCagedPositions,
-    shouldUseFlats
+    shouldUseFlats,
+    lightenColor
 };
