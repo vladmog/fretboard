@@ -236,8 +236,8 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: '#fff',
                 borderColor: '#ccc',
-                text: '',
-                textColor: 'transparent'
+                text: getMarkerLabel(pos, useFlats),
+                textColor: '#bbb'
             });
         }
 
