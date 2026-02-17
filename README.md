@@ -2,6 +2,8 @@
 
 A music theory tool for visualizing scales and chords on a guitar fretboard with interval notation.
 
+**[Try it live](https://vladmog.github.io/fretboard/)**
+
 ## Features
 
 - **Interactive Fretboard**: SVG-based fretboard with responsive design
