@@ -638,6 +638,24 @@ function getRelativeScale(root, scaleType) {
 }
 
 /**
+ * Get voicing priority for an interval in CAGED conflict resolution
+ * Higher priority notes are kept when two notes land on the same string
+ * or when the voicing must be trimmed to fit a 4-fret span.
+ * @param {string} interval - Interval name (e.g., '1', 'b3', '7')
+ * @param {boolean} isOnRootString - Whether this note is on the shape's root string
+ * @returns {number} Priority score (higher = more important to keep)
+ */
+function getVoicingPriority(interval, isOnRootString) {
+    if (interval === '1' && isOnRootString) return 10; // Root on root string — CAGED anchor
+    if (interval === '7' || interval === 'b7' || interval === 'bb7') return 8; // 7th family
+    if (interval === '3' || interval === 'b3') return 7; // 3rd family
+    if (interval === '2' || interval === '4') return 6;  // Sus intervals
+    if (interval === '5' || interval === 'b5' || interval === '#5') return 5; // 5th family
+    if (interval === '1') return 4; // Doubled root
+    return 3; // Anything else (6th, etc.)
+}
+
+/**
  * Get fretboard positions for a CAGED shape
  * @param {string} root - Root note (e.g., 'C', 'G#')
  * @param {string} shapeName - CAGED shape name ('C', 'A', 'G', 'E', 'D')
@@ -705,16 +723,64 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
         const stringIndex = 6 - pos.string;
         const noteIndex = getNoteAt(stringIndex, fret);
 
+        const isOnRootString = pos.string === shape.rootString && pos.interval === '1';
         positions.push({
             string: pos.string,
             fret,
             noteIndex,
             label: newInterval,
-            isRoot: pos.interval === '1'
+            isRoot: pos.interval === '1',
+            _isOnRootString: isOnRootString,
+            _priority: getVoicingPriority(newInterval, isOnRootString)
         });
     }
 
-    return positions;
+    // Phase 1: One note per string — keep highest-priority note on each string
+    const byString = {};
+    for (const pos of positions) {
+        if (!byString[pos.string] || pos._priority > byString[pos.string]._priority) {
+            byString[pos.string] = pos;
+        }
+    }
+    let filtered = Object.values(byString);
+
+    // Phase 2: Max 4-fret span — find the best 4-fret window
+    const frettedNotes = filtered.filter(p => p.fret > 0);
+    if (frettedNotes.length > 0) {
+        const minFretted = Math.min(...frettedNotes.map(p => p.fret));
+        const maxFretted = Math.max(...frettedNotes.map(p => p.fret));
+
+        if (maxFretted - minFretted > 3) {
+            // Try every possible 4-fret window and pick the best one
+            let bestWindow = null;
+            let bestScore = -1;
+
+            for (let windowStart = minFretted; windowStart <= maxFretted - 3; windowStart++) {
+                const windowEnd = windowStart + 3;
+                let score = 0;
+                for (const p of filtered) {
+                    // Open strings are always included (no finger needed)
+                    if (p.fret === 0) continue;
+                    if (p.fret >= windowStart && p.fret <= windowEnd) {
+                        score += p._priority;
+                        if (p._isOnRootString) score += 10;
+                    }
+                }
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestWindow = { start: windowStart, end: windowEnd };
+                }
+            }
+
+            // Drop fretted notes outside the best window
+            filtered = filtered.filter(p =>
+                p.fret === 0 || (p.fret >= bestWindow.start && p.fret <= bestWindow.end)
+            );
+        }
+    }
+
+    // Clean up internal fields before returning
+    return filtered.map(({ _isOnRootString, _priority, ...rest }) => rest);
 }
 
 // Export for use in other modules
