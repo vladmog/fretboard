@@ -55,12 +55,12 @@
     /**
      * Get the display label for a marker position
      * @param {Object} pos - Fretboard position with noteIndex and label
-     * @param {boolean} useFlats - Whether to use flat notation
+     * @param {Object} noteSpelling - Map of noteIndex to spelled note name
      * @returns {string} Note name or interval label
      */
-    function getMarkerLabel(pos, useFlats) {
-        if (state.showNoteNames) {
-            return MusicTheory.getNoteName(pos.noteIndex, useFlats);
+    function getMarkerLabel(pos, noteSpelling) {
+        if (state.showNoteNames && noteSpelling) {
+            return noteSpelling[pos.noteIndex] || MusicTheory.getNoteName(pos.noteIndex, false);
         }
         return pos.label;
     }
@@ -94,7 +94,7 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
-                text: getMarkerLabel(pos, displayScale.useFlats),
+                text: getMarkerLabel(pos, displayScale.noteSpelling),
                 textColor: colors.text
             });
         }
@@ -131,7 +131,7 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
-                text: getMarkerLabel(pos, chord.useFlats),
+                text: getMarkerLabel(pos, chord.noteSpelling),
                 textColor: colors.text
             });
         }
@@ -159,16 +159,22 @@
 
         // Build a map of all 12 chromatic intervals
         const rootIndex = MusicTheory.getNoteIndex(root);
-        const useFlats = MusicTheory.shouldUseFlats(root);
+        const NOTE_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        const rootLetterIdx = NOTE_LETTERS.indexOf(root[0]);
         const noteToInterval = {};
         const allIntervals = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
         const allNotes = [];
+        const noteSpelling = {};
 
         for (let i = 0; i < 12; i++) {
             const noteIndex = (rootIndex + i) % 12;
             const interval = allIntervals[i];
             noteToInterval[noteIndex] = interval;
-            allNotes.push(MusicTheory.getNoteName(noteIndex, useFlats));
+            const degreeNum = MusicTheory.getDegreeNumber(interval);
+            const degreeLetter = NOTE_LETTERS[(rootLetterIdx + degreeNum - 1) % 7];
+            const noteName = MusicTheory.spellNoteForDegree(noteIndex, degreeLetter);
+            allNotes.push(noteName);
+            noteSpelling[noteIndex] = noteName;
         }
 
         const positions = MusicTheory.getNotesOnFretboard(
@@ -182,7 +188,7 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
-                text: getMarkerLabel(pos, useFlats),
+                text: getMarkerLabel(pos, noteSpelling),
                 textColor: colors.text
             });
         }
@@ -209,7 +215,6 @@
 
         state.fretboard.clearMarkers();
 
-        const useFlats = MusicTheory.shouldUseFlats(root);
         const chord = MusicTheory.buildChord(root, state.chordType);
 
         // Determine parent scale type for background markers
@@ -236,7 +241,7 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: '#fff',
                 borderColor: '#ccc',
-                text: getMarkerLabel(pos, useFlats),
+                text: getMarkerLabel(pos, scale.noteSpelling),
                 textColor: '#bbb'
             });
         }
@@ -261,7 +266,7 @@
                     state.fretboard.setMarker(pos.string, pos.fret, {
                         color: pos.label === '1' ? colors.fill : MusicTheory.lightenColor(borderColor),
                         borderColor: borderColor,
-                        text: getMarkerLabel(pos, useFlats),
+                        text: getMarkerLabel(pos, chord.noteSpelling),
                         textColor: colors.text
                     });
                 }
@@ -274,7 +279,7 @@
                 state.fretboard.setMarker(pos.string, pos.fret, {
                     color: colors.fill,
                     borderColor: colors.border,
-                    text: getMarkerLabel(pos, useFlats),
+                    text: getMarkerLabel(pos, chord.noteSpelling),
                     textColor: colors.text
                 });
             }
@@ -322,7 +327,7 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
-                text: getMarkerLabel(pos, scale.useFlats),
+                text: getMarkerLabel(pos, scale.noteSpelling),
                 textColor: colors.text
             });
         }

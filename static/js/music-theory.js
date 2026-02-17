@@ -9,6 +9,10 @@ const CHROMATIC_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', '
 // Flat equivalents for enharmonic spelling
 const FLAT_NOTES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
+// Musical alphabet and their semitone positions (for degree-based spelling)
+const NOTE_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const LETTER_SEMITONES = [0, 2, 4, 5, 7, 9, 11];
+
 // Keys that prefer flats
 const FLAT_KEYS = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb'];
 
@@ -309,6 +313,33 @@ function shouldUseFlats(root) {
 }
 
 /**
+ * Spell a note correctly for a given scale/chord degree letter
+ * @param {number} noteIndex - Semitone index (0-11)
+ * @param {string} degreeLetter - Expected letter name (e.g., 'E' for 3rd degree of C)
+ * @returns {string} Correctly spelled note (e.g., 'Eb', 'F#', 'G')
+ */
+function spellNoteForDegree(noteIndex, degreeLetter) {
+    const naturalSemitone = LETTER_SEMITONES[NOTE_LETTERS.indexOf(degreeLetter)];
+    const diff = ((noteIndex - naturalSemitone) + 12) % 12;
+    if (diff === 0) return degreeLetter;
+    if (diff === 1) return degreeLetter + '#';
+    if (diff === 11) return degreeLetter + 'b';
+    if (diff === 2) return degreeLetter + '##';
+    if (diff === 10) return degreeLetter + 'bb';
+    // Fallback for unusual intervals
+    return getNoteName(noteIndex, diff > 6);
+}
+
+/**
+ * Extract numeric degree from an interval string
+ * @param {string} interval - Interval name (e.g., 'b3', '#4', '5')
+ * @returns {number} Degree number
+ */
+function getDegreeNumber(interval) {
+    return parseInt(interval.replace(/[b#]/g, ''));
+}
+
+/**
  * Get note at a specific fret position
  * @param {number} stringIndex - String index (0-5, 0 = low E)
  * @param {number} fret - Fret number (0 = open)
@@ -332,19 +363,24 @@ function buildScale(root, type) {
 
     const rootIndex = getNoteIndex(root);
     const useFlats = shouldUseFlats(root);
+    const rootLetterIdx = NOTE_LETTERS.indexOf(root[0]);
 
     const notes = [];
     const degrees = [];
     const noteToDegree = {};
+    const noteSpelling = {};
 
     for (const interval of scaleFormula.intervals) {
         const semitones = INTERVALS[interval];
         const noteIndex = (rootIndex + semitones) % 12;
-        const noteName = getNoteName(noteIndex, useFlats);
+        const degreeNum = getDegreeNumber(interval);
+        const degreeLetter = NOTE_LETTERS[(rootLetterIdx + degreeNum - 1) % 7];
+        const noteName = spellNoteForDegree(noteIndex, degreeLetter);
 
         notes.push(noteName);
         degrees.push(interval);
         noteToDegree[noteIndex] = interval;
+        noteSpelling[noteIndex] = noteName;
     }
 
     return {
@@ -354,6 +390,7 @@ function buildScale(root, type) {
         notes,
         degrees,
         noteToDegree,
+        noteSpelling,
         useFlats
     };
 }
@@ -372,19 +409,24 @@ function buildChord(root, type) {
 
     const rootIndex = getNoteIndex(root);
     const useFlats = shouldUseFlats(root);
+    const rootLetterIdx = NOTE_LETTERS.indexOf(root[0]);
 
     const notes = [];
     const intervals = [];
     const noteToInterval = {};
+    const noteSpelling = {};
 
     for (const interval of chordFormula.intervals) {
         const semitones = INTERVALS[interval];
         const noteIndex = (rootIndex + semitones) % 12;
-        const noteName = getNoteName(noteIndex, useFlats);
+        const degreeNum = getDegreeNumber(interval);
+        const degreeLetter = NOTE_LETTERS[(rootLetterIdx + degreeNum - 1) % 7];
+        const noteName = spellNoteForDegree(noteIndex, degreeLetter);
 
         notes.push(noteName);
         intervals.push(interval);
         noteToInterval[noteIndex] = interval;
+        noteSpelling[noteIndex] = noteName;
     }
 
     return {
@@ -395,6 +437,7 @@ function buildChord(root, type) {
         notes,
         intervals,
         noteToInterval,
+        noteSpelling,
         useFlats
     };
 }
@@ -570,22 +613,26 @@ function getRelativeScale(root, scaleType) {
     }
 
     const rootIndex = getNoteIndex(root);
-    const useFlats = shouldUseFlats(root);
+    const rootLetterIdx = NOTE_LETTERS.indexOf(root[0]);
 
-    let relativeRootIndex, relativeScaleType;
+    let relativeRootIndex, relativeScaleType, degreeOffset;
 
     if (scaleType === 'major') {
-        // Relative minor: 9 semitones up (6th degree)
+        // Relative minor: 6th degree (letter offset 5)
         relativeRootIndex = (rootIndex + 9) % 12;
         relativeScaleType = 'natural_minor';
+        degreeOffset = 5;
     } else {
-        // Relative major: 3 semitones up (3rd degree)
+        // Relative major: 3rd degree (letter offset 2)
         relativeRootIndex = (rootIndex + 3) % 12;
         relativeScaleType = 'major';
+        degreeOffset = 2;
     }
 
+    const degreeLetter = NOTE_LETTERS[(rootLetterIdx + degreeOffset) % 7];
+
     return {
-        root: getNoteName(relativeRootIndex, useFlats),
+        root: spellNoteForDegree(relativeRootIndex, degreeLetter),
         scaleType: relativeScaleType
     };
 }
@@ -692,5 +739,7 @@ window.MusicTheory = {
     getModeRoot,
     getCagedPositions,
     shouldUseFlats,
-    lightenColor
+    lightenColor,
+    spellNoteForDegree,
+    getDegreeNumber
 };
