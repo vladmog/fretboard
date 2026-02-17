@@ -690,23 +690,6 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
     // Calculate root fret: how many frets up from open string to reach the root note
     let rootFret = (rootIndex - openStringNote + 12) % 12;
 
-    // Check if any position would have a negative fret
-    // If so, move up an octave (add 12 frets)
-    let minFret = rootFret;
-    for (const pos of shape.positions) {
-        if (pos.interval === '7' && !('7' in intervalMap)) continue;
-        const newInterval = intervalMap[pos.interval] || pos.interval;
-        const offsetAdjust = INTERVALS[newInterval] - INTERVALS[pos.interval];
-        const fret = rootFret + pos.offset + offsetAdjust;
-        if (fret < minFret) {
-            minFret = fret;
-        }
-    }
-
-    if (minFret < 0) {
-        rootFret += 12;
-    }
-
     // Apply offsets to get actual fret positions
     for (const pos of shape.positions) {
         if (pos.interval === '7' && !('7' in intervalMap)) continue;
