@@ -259,7 +259,7 @@
                 for (const pos of positions) {
                     const colors = MusicTheory.getIntervalColor(pos.label);
                     state.fretboard.setMarker(pos.string, pos.fret, {
-                        color: colors.fill,
+                        color: pos.label === '1' ? colors.fill : MusicTheory.lightenColor(borderColor),
                         borderColor: borderColor,
                         text: getMarkerLabel(pos, useFlats),
                         textColor: colors.text
