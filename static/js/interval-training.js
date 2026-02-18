@@ -713,11 +713,19 @@
                 }
             });
 
+            // Compute the target note name (used for label update and sound)
+            const targetIndex2 = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
+            const targetNote2 = MusicTheory.getNoteName(targetIndex2, MusicTheory.shouldUseFlats(gameState.currentRoot));
+
+            // Update the center label to reveal the answer
+            const rootText = api.questionGroup.querySelector('.question-root');
+            if (rootText) {
+                rootText.textContent = 'from ' + gameState.currentRoot + ' is ' + targetNote2;
+            }
+
             // Play the correct interval note immediately
             const gamesState2 = window.Games ? window.Games.getState() : null;
             if (gamesState2 && gamesState2.soundEnabled) {
-                const targetIndex2 = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
-                const targetNote2 = MusicTheory.getNoteName(targetIndex2, MusicTheory.shouldUseFlats(gameState.currentRoot));
                 Sound.playNote(targetNote2, GAME_OCTAVE);
 
                 // Play both notes together as confirmation at 250ms
