@@ -139,6 +139,34 @@
         return COMPOUND_LABELS[semitone - 12] || '';
     }
 
+    // ---- Apply settings to current round without re-render ----
+
+    function applySettingsToCurrentRound() {
+        const api = gameState.circleApi;
+        if (!api) return;
+
+        // Update circle colors
+        api.noteGroups.forEach(g => {
+            const semitone = parseInt(g.getAttribute('data-semitone'));
+            const intervalLabel = SIMPLE_LABELS[semitone];
+            let colors = MusicTheory.getIntervalColor(intervalLabel);
+            if (!settings.showColors) {
+                colors = { fill: '#000', border: '#000', text: '#fff' };
+            }
+            const circle = g.querySelector('circle');
+            const text = g.querySelector('text');
+            circle.setAttribute('fill', colors.fill);
+            circle.setAttribute('stroke', colors.border);
+            text.setAttribute('fill', colors.text);
+        });
+
+        // Update notation text
+        const intervalText = api.questionGroup.querySelector('.question-interval');
+        if (intervalText) {
+            intervalText.textContent = formatIntervalName(gameState.currentSemitone, settings.notationStyle);
+        }
+    }
+
     // ---- Chromatic circle renderer ----
 
     function renderChromaticCircle(container, root, onNoteClick) {
@@ -356,6 +384,7 @@
         notationSelect.addEventListener('change', () => {
             settings.notationStyle = notationSelect.value;
             saveSettings();
+            applySettingsToCurrentRound();
         });
         notationGroup.appendChild(notationLabel);
         notationGroup.appendChild(notationSelect);
@@ -382,6 +411,7 @@
         colorsSelect.addEventListener('change', () => {
             settings.showColors = colorsSelect.value === 'on';
             saveSettings();
+            applySettingsToCurrentRound();
         });
         colorsGroup.appendChild(colorsLabel);
         colorsGroup.appendChild(colorsSelect);
