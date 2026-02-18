@@ -63,6 +63,13 @@
             if (saved) {
                 const parsed = JSON.parse(saved);
                 settings = { ...settings, ...parsed };
+                // Snap roundCount to nearest valid option
+                const roundOptions = [5, 10, 20, 50, 100];
+                if (!roundOptions.includes(settings.roundCount)) {
+                    settings.roundCount = roundOptions.reduce((prev, curr) =>
+                        Math.abs(curr - settings.roundCount) < Math.abs(prev - settings.roundCount) ? curr : prev
+                    );
+                }
             }
         } catch (e) {
             console.error('Failed to load interval training settings:', e);
@@ -306,15 +313,17 @@
         const roundLabel = document.createElement('label');
         roundLabel.textContent = 'Rounds';
         roundLabel.className = 'game-setting-label';
-        const roundInput = document.createElement('input');
-        roundInput.type = 'number';
-        roundInput.min = '1';
-        roundInput.max = '100';
-        roundInput.value = settings.roundCount;
-        roundInput.className = 'game-setting-input';
+        const roundInput = document.createElement('select');
+        roundInput.className = 'game-setting-select';
+        [5, 10, 20, 50, 100].forEach(n => {
+            const opt = document.createElement('option');
+            opt.value = n;
+            opt.textContent = n;
+            if (n === settings.roundCount) opt.selected = true;
+            roundInput.appendChild(opt);
+        });
         roundInput.addEventListener('change', () => {
-            settings.roundCount = Math.max(1, Math.min(100, parseInt(roundInput.value) || 10));
-            roundInput.value = settings.roundCount;
+            settings.roundCount = parseInt(roundInput.value);
             saveSettings();
         });
         roundGroup.appendChild(roundLabel);
