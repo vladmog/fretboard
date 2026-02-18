@@ -37,7 +37,8 @@
         roundCount: 10,
         enabledIntervals: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
         enabledRoots: [...ALL_ROOTS],
-        notationStyle: 'short'
+        notationStyle: 'short',
+        showColors: true
     };
 
     // Game runtime state
@@ -177,7 +178,10 @@
             const intervalLabel = SIMPLE_LABELS[semitone];
 
             // Get colors from music theory
-            const colors = MusicTheory.getIntervalColor(intervalLabel);
+            let colors = MusicTheory.getIntervalColor(intervalLabel);
+            if (!settings.showColors) {
+                colors = { fill: '#000', border: '#000', text: '#fff' };
+            }
 
             const g = document.createElementNS(svgNS, 'g');
             g.setAttribute('data-note-index', i);
@@ -356,6 +360,32 @@
         notationGroup.appendChild(notationLabel);
         notationGroup.appendChild(notationSelect);
         modalBody.appendChild(notationGroup);
+
+        // Colors toggle
+        const colorsGroup = document.createElement('div');
+        colorsGroup.className = 'game-setting-group';
+        const colorsLabel = document.createElement('label');
+        colorsLabel.textContent = 'Colors';
+        colorsLabel.className = 'game-setting-label';
+        const colorsSelect = document.createElement('select');
+        colorsSelect.className = 'game-setting-select';
+        [
+            { value: 'on', text: 'On' },
+            { value: 'off', text: 'Off' }
+        ].forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.text;
+            if ((opt.value === 'on') === settings.showColors) option.selected = true;
+            colorsSelect.appendChild(option);
+        });
+        colorsSelect.addEventListener('change', () => {
+            settings.showColors = colorsSelect.value === 'on';
+            saveSettings();
+        });
+        colorsGroup.appendChild(colorsLabel);
+        colorsGroup.appendChild(colorsSelect);
+        modalBody.appendChild(colorsGroup);
 
         // Interval checkboxes
         const intervalGroup = document.createElement('div');
