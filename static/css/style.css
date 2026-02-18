@@ -974,7 +974,7 @@ input[name="caged-shape"][value="D"] ~ * {
     font-size: 0.75rem;
     border: 1px solid #000;
     border-radius: 0;
-    background: #fff;
+    background-color: #fff;
     -webkit-appearance: none;
     appearance: none;
 }
