@@ -109,7 +109,7 @@
         let targetOctave = rootOctave;
         if (semitone !== undefined && semitone >= 12) {
             targetOctave += Math.floor(semitone / 12);
-        } else if (targetIndex <= rootIndex) {
+        } else if (targetIndex < rootIndex) {
             targetOctave++;
         }
 

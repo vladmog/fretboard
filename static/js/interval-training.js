@@ -30,6 +30,8 @@
 
     const ALL_ROOTS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
+    const GAME_OCTAVE = 4;
+
     // Game settings (persisted)
     let settings = {
         roundCount: 10,
@@ -576,7 +578,7 @@
         // Auto-play root note only (don't reveal the interval)
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
-            Sound.playNote(gameState.currentRoot);
+            Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
         }
     }
 
@@ -597,7 +599,7 @@
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(clickedNoteIndex, false);
-            Sound.playNote(noteName);
+            Sound.playNote(noteName, GAME_OCTAVE);
         }
 
         // Record stat
@@ -647,11 +649,11 @@
             if (gamesState2 && gamesState2.soundEnabled) {
                 const targetIndex2 = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
                 const targetNote2 = MusicTheory.getNoteName(targetIndex2, MusicTheory.shouldUseFlats(gameState.currentRoot));
-                Sound.playNote(targetNote2);
+                Sound.playNote(targetNote2, GAME_OCTAVE);
 
-                // Play both notes together as confirmation chord at 250ms
+                // Play both notes together as confirmation at 250ms
                 setTimeout(() => {
-                    Sound.playChord([gameState.currentRoot, targetNote2]);
+                    Sound.playInterval(gameState.currentRoot, targetNote2, gameState.currentSemitone, GAME_OCTAVE);
                 }, 250);
             }
 
