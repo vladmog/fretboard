@@ -70,5 +70,53 @@
         });
     }
 
-    window.Sound = { playChord };
+    /**
+     * Play a single note
+     * @param {string} noteName - Note name (e.g. 'C', 'Eb')
+     * @param {number} octave - Octave number (default 4)
+     * @param {number} duration - Duration in seconds (default 0.8)
+     */
+    async function playNote(noteName, octave, duration) {
+        if (octave === undefined) octave = 4;
+        if (duration === undefined) duration = 0.8;
+
+        await Tone.start();
+        ensureSynth();
+
+        const index = MusicTheory.getNoteIndex(noteName);
+        const sharpName = MusicTheory.CHROMATIC_NOTES[index];
+        synth.triggerAttackRelease(sharpName + octave, duration);
+    }
+
+    /**
+     * Play an interval (root + target note)
+     * @param {string} rootName - Root note name
+     * @param {string} targetName - Target note name
+     * @param {number} semitone - Semitone distance (for octave calculation)
+     * @param {number} rootOctave - Root octave (default 3)
+     */
+    async function playInterval(rootName, targetName, semitone, rootOctave) {
+        if (rootOctave === undefined) rootOctave = 3;
+
+        await Tone.start();
+        ensureSynth();
+
+        const rootIndex = MusicTheory.getNoteIndex(rootName);
+        const targetIndex = MusicTheory.getNoteIndex(targetName);
+        const rootSharp = MusicTheory.CHROMATIC_NOTES[rootIndex];
+        const targetSharp = MusicTheory.CHROMATIC_NOTES[targetIndex];
+
+        let targetOctave = rootOctave;
+        if (semitone !== undefined && semitone >= 12) {
+            targetOctave += Math.floor(semitone / 12);
+        } else if (targetIndex <= rootIndex) {
+            targetOctave++;
+        }
+
+        const now = Tone.now();
+        synth.triggerAttackRelease(rootSharp + rootOctave, 0.8, now);
+        synth.triggerAttackRelease(targetSharp + targetOctave, 0.8, now + 0.08);
+    }
+
+    window.Sound = { playChord, playNote, playInterval };
 })();
