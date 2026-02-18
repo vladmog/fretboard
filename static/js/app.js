@@ -678,6 +678,24 @@
      * @param {string} mode - 'scale', 'chord', 'interval', or 'caged'
      */
     function setMode(mode) {
+        // Handle games mode transition
+        if (mode === 'games') {
+            if (window.Games) {
+                window.Games.setPreviousMode(state.mode);
+            }
+            document.getElementById('controls-panel').style.display = 'none';
+            document.getElementById('fretboard-panel').style.display = 'none';
+            if (window.Games) window.Games.activate();
+            return;
+        }
+
+        // Leaving games mode — restore main UI
+        if (state.mode === 'games' || document.getElementById('games-panel').style.display === 'block') {
+            document.getElementById('controls-panel').style.display = '';
+            document.getElementById('fretboard-panel').style.display = '';
+            if (window.Games) window.Games.deactivate();
+        }
+
         state.mode = mode;
         state.selectedChordIndex = -1; // Deselect list item when changing mode
         updateTypeDropdown();

@@ -42,6 +42,10 @@
                             <input type="radio" name="mode" value="modes">
                             Modes
                         </label>
+                        <label class="radio-label">
+                            <input type="radio" name="mode" value="games">
+                            Games
+                        </label>
                     </div>
                 </div>
                 <div class="mode-controls">
@@ -158,11 +162,34 @@
         </div>
     </div>
 
+    <div id="games-panel" style="display: none;">
+        <button id="games-back-btn" class="games-back-btn">&larr; Back</button>
+        <div id="games-controls" class="games-controls">
+            <select id="games-select">
+                <option value="interval-training">Interval Training</option>
+            </select>
+            <button id="games-menu-btn">Menu</button>
+            <button id="games-sound-btn" class="games-sound-on">Sound</button>
+        </div>
+        <div id="game-content" class="game-content"></div>
+        <div id="game-settings-modal" class="game-settings-modal">
+            <div class="game-settings-box">
+                <div class="game-settings-header">
+                    <h3 id="game-settings-title">Settings</h3>
+                    <button id="game-settings-close" class="game-settings-close">&times;</button>
+                </div>
+                <div id="game-settings-body" class="game-settings-body"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/tone/build/Tone.js"></script>
     <script src="{{ url_for('static', filename='js/fretboard.js') }}"></script>
     <script src="{{ url_for('static', filename='js/music-theory.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sound.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/interval-training.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/games.js') }}"></script>
     <script src="{{ url_for('static', filename='js/rotation-toggle.js') }}"></script>
 </body>
 </html>

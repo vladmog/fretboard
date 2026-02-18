@@ -769,3 +769,428 @@ input[name="caged-shape"][value="D"] ~ * {
         margin-bottom: 0.5rem;
     }
 }
+
+/* ========================================
+   GAMES MODE
+   ======================================== */
+
+#games-panel {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    z-index: 100;
+    display: none;
+    overflow-y: auto;
+}
+
+/* Game content area */
+.game-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1rem 5rem;
+}
+
+/* Back button */
+.games-back-btn {
+    position: fixed;
+    z-index: 120;
+    background: #fff;
+    border: 2px solid #000;
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+}
+
+.games-back-btn:hover {
+    background: #000;
+    color: #fff;
+}
+
+/* Controls box */
+.games-controls {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 120;
+    display: flex;
+    gap: 0.5rem;
+    border: 2px solid #000;
+    padding: 0.5rem;
+    background: #fff;
+    align-items: center;
+}
+
+.games-controls select {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.625rem;
+    border: 1px solid #000;
+    min-width: 0;
+    width: auto;
+    background-image: none;
+}
+
+.games-controls button {
+    padding: 0.35rem 0.75rem;
+    font-family: inherit;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.games-controls button:hover {
+    background: #000;
+    color: #fff;
+}
+
+.games-controls button.games-sound-on {
+    background: #000;
+    color: #fff;
+}
+
+/* Modal */
+.game-settings-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.game-settings-box {
+    background: #fff;
+    border: 2px solid #000;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #000;
+}
+
+.game-settings-header h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+}
+
+.game-settings-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0 0.25rem;
+    line-height: 1;
+}
+
+.game-settings-close:hover {
+    opacity: 0.6;
+}
+
+.game-settings-body {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Settings form elements */
+.game-setting-group {
+    margin-bottom: 1rem;
+}
+
+.game-setting-label {
+    display: block;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.game-setting-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.game-setting-header .game-setting-label {
+    margin-bottom: 0;
+}
+
+.game-setting-btns {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.game-setting-btn {
+    padding: 0.2rem 0.5rem;
+    font-family: inherit;
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+}
+
+.game-setting-btn:hover {
+    background: #000;
+    color: #fff;
+}
+
+.game-setting-input {
+    width: 100%;
+    padding: 0.5rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    border: 1px solid #000;
+    border-radius: 0;
+}
+
+.game-setting-select {
+    width: 100%;
+    padding: 0.5rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    border: 1px solid #000;
+    border-radius: 0;
+    background: #fff;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.game-setting-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.game-setting-check-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.625rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.game-setting-check-label:hover {
+    border-color: #000;
+}
+
+.game-setting-check-label input[type="checkbox"] {
+    margin: 0;
+    width: 12px;
+    height: 12px;
+}
+
+/* Title page */
+.game-title-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1rem 5rem;
+    gap: 1.5rem;
+}
+
+.game-title {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    text-align: center;
+}
+
+.game-explanation {
+    font-size: 0.75rem;
+    color: #444;
+    max-width: 500px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.game-start-btn {
+    padding: 1rem 3rem;
+    font-family: inherit;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    border: 2px solid #000;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+}
+
+.game-start-btn:hover {
+    background: #fff;
+    color: #000;
+}
+
+.game-btn-secondary {
+    background: #fff;
+    color: #000;
+}
+
+.game-btn-secondary:hover {
+    background: #000;
+    color: #fff;
+}
+
+.game-btn-row {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Game play area */
+.game-play-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1rem 5rem;
+    gap: 1rem;
+}
+
+.game-round-counter {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #666;
+}
+
+.game-circle-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+.game-next-btn {
+    padding: 0.75rem 2rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    border: 2px solid #000;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+}
+
+.game-next-btn:hover {
+    background: #fff;
+    color: #000;
+}
+
+/* Score display */
+.game-score {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.game-score-pct {
+    font-size: 1rem;
+    color: #666;
+    letter-spacing: 0.1em;
+}
+
+/* Stats grid */
+.stats-table {
+    width: 100%;
+    max-width: 600px;
+    overflow-x: auto;
+}
+
+.stats-row {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 2px;
+}
+
+.stats-root-label {
+    flex: 0 0 2rem;
+    text-align: right;
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0.25rem;
+    font-weight: 700;
+}
+
+.stats-cell {
+    flex: 1;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.5rem;
+    border: 1px solid #e0e0e0;
+    min-width: 2rem;
+}
+
+.stats-cell-header {
+    background: none !important;
+    border: none;
+    font-weight: 700;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Games responsive: back button position */
+@media (max-width: 768px) {
+    .games-back-btn {
+        top: 0.75rem;
+        right: 0.75rem;
+    }
+
+    .game-title {
+        font-size: 1.125rem;
+        margin-top: 2.5rem;
+    }
+
+    .games-controls {
+        bottom: 0.5rem;
+        right: 0.5rem;
+    }
+}
+
+@media (min-width: 769px) {
+    .games-back-btn {
+        bottom: 1rem;
+        left: 1rem;
+    }
+}
