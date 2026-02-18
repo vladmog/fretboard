@@ -573,12 +573,10 @@
 
         content.appendChild(wrapper);
 
-        // Auto-play interval sound
+        // Auto-play root note only (don't reveal the interval)
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
-            const targetIndex = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
-            const targetNote = MusicTheory.getNoteName(targetIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
-            Sound.playInterval(gameState.currentRoot, targetNote, gameState.currentSemitone, 3);
+            Sound.playNote(gameState.currentRoot);
         }
     }
 
@@ -644,15 +642,18 @@
                 }
             });
 
-            // Play interval chord at 250ms
-            setTimeout(() => {
-                const gamesState = window.Games ? window.Games.getState() : null;
-                if (gamesState && gamesState.soundEnabled) {
-                    const targetIndex = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
-                    const targetNote = MusicTheory.getNoteName(targetIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
-                    Sound.playInterval(gameState.currentRoot, targetNote, gameState.currentSemitone, 3);
-                }
-            }, 250);
+            // Play the correct interval note immediately
+            const gamesState2 = window.Games ? window.Games.getState() : null;
+            if (gamesState2 && gamesState2.soundEnabled) {
+                const targetIndex2 = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
+                const targetNote2 = MusicTheory.getNoteName(targetIndex2, MusicTheory.shouldUseFlats(gameState.currentRoot));
+                Sound.playNote(targetNote2);
+
+                // Play both notes together as confirmation chord at 250ms
+                setTimeout(() => {
+                    Sound.playChord([gameState.currentRoot, targetNote2]);
+                }, 250);
+            }
 
             // Show next button at 500ms
             setTimeout(() => {
