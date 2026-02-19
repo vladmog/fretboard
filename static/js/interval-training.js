@@ -32,8 +32,11 @@
 
     const GAME_OCTAVE = 4;
 
+    const VALID_GAME_MODES = ['root-to-interval', 'interval-to-root', 'interval-to-interval'];
+
     // Game settings (persisted)
     let settings = {
+        gameMode: 'root-to-interval',
         roundCount: 10,
         enabledIntervals: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
         enabledRoots: [...ALL_ROOTS],
@@ -44,6 +47,7 @@
 
     // Game runtime state
     let gameState = {
+        activeMode: 'root-to-interval',
         currentRound: 0,
         totalRounds: 0,
         currentRoot: null,
@@ -51,7 +55,10 @@
         currentSemitone: 0,
         correctCount: 0,
         answered: false,
-        circleApi: null
+        circleApi: null,
+        givenNoteIndex: 0,
+        givenSemitone: 0,
+        targetSemitone: 0
     };
 
     // Stats
@@ -71,6 +78,9 @@
                     settings.roundCount = roundOptions.reduce((prev, curr) =>
                         Math.abs(curr - settings.roundCount) < Math.abs(prev - settings.roundCount) ? curr : prev
                     );
+                }
+                if (!VALID_GAME_MODES.includes(settings.gameMode)) {
+                    settings.gameMode = 'root-to-interval';
                 }
             }
         } catch (e) {
@@ -108,19 +118,25 @@
         }
     }
 
+    function getStatsKey() {
+        if (gameState.activeMode === 'root-to-interval') return 'interval-training';
+        return gameState.activeMode;
+    }
+
     function recordStat(root, semitone, isCorrect) {
-        if (!stats['interval-training']) {
-            stats['interval-training'] = {};
+        const key = getStatsKey();
+        if (!stats[key]) {
+            stats[key] = {};
         }
-        if (!stats['interval-training'][root]) {
-            stats['interval-training'][root] = {};
+        if (!stats[key][root]) {
+            stats[key][root] = {};
         }
-        if (!stats['interval-training'][root][semitone]) {
-            stats['interval-training'][root][semitone] = { tested: 0, correct: 0 };
+        if (!stats[key][root][semitone]) {
+            stats[key][root][semitone] = { tested: 0, correct: 0 };
         }
-        stats['interval-training'][root][semitone].tested++;
+        stats[key][root][semitone].tested++;
         if (isCorrect) {
-            stats['interval-training'][root][semitone].correct++;
+            stats[key][root][semitone].correct++;
         }
         saveStats();
     }
@@ -140,35 +156,76 @@
         return COMPOUND_LABELS[semitone - 12] || '';
     }
 
+    // ---- Helper functions ----
+
+    function getDisplayNoteName(noteIndex) {
+        if (MusicTheory.isAccidentalNote(noteIndex)) {
+            const sharp = MusicTheory.CHROMATIC_NOTES[noteIndex];
+            const flat = MusicTheory.FLAT_NOTES[noteIndex];
+            return sharp + '/' + flat;
+        }
+        return MusicTheory.CHROMATIC_NOTES[noteIndex];
+    }
+
+    function updateQuestionText() {
+        const api = gameState.circleApi;
+        if (!api) return;
+
+        const intervalText = api.questionGroup.querySelector('.question-interval');
+        const rootText = api.questionGroup.querySelector('.question-root');
+        if (!intervalText || !rootText) return;
+
+        const mode = gameState.activeMode;
+        if (mode === 'root-to-interval') {
+            intervalText.textContent = formatIntervalName(gameState.currentSemitone, settings.notationStyle);
+            rootText.textContent = 'from ' + gameState.currentRoot;
+        } else if (mode === 'interval-to-root') {
+            intervalText.textContent = getDisplayNoteName(gameState.givenNoteIndex);
+            rootText.textContent = 'is the ' + formatIntervalName(gameState.givenSemitone, settings.notationStyle);
+        } else if (mode === 'interval-to-interval') {
+            intervalText.textContent = 'find the ' + formatIntervalName(gameState.targetSemitone, settings.notationStyle);
+            rootText.textContent = getDisplayNoteName(gameState.givenNoteIndex) + ' is the ' + formatIntervalName(gameState.givenSemitone, settings.notationStyle);
+        }
+    }
+
+    function getRecordSemitone() {
+        if (gameState.activeMode === 'interval-to-root') return gameState.givenSemitone;
+        if (gameState.activeMode === 'interval-to-interval') return gameState.targetSemitone;
+        return gameState.currentSemitone;
+    }
+
     // ---- Apply settings to current round without re-render ----
 
     function applySettingsToCurrentRound() {
         const api = gameState.circleApi;
         if (!api) return;
 
+        const mode = gameState.activeMode;
+        const useNeutralColors = mode !== 'root-to-interval';
+
         // Update circle colors
         api.noteGroups.forEach(g => {
+            const noteIndex = parseInt(g.getAttribute('data-note-index'));
             const semitone = parseInt(g.getAttribute('data-semitone'));
-            const intervalLabel = SIMPLE_LABELS[semitone];
-            let colors = MusicTheory.getIntervalColor(intervalLabel);
-            if (!settings.showColors) {
-                const noteIndex = parseInt(g.getAttribute('data-note-index'));
+            let colors;
+            if (useNeutralColors || !settings.showColors) {
                 const fill = noteIndex % 2 === 0 ? '#000' : '#777';
                 colors = { fill, border: fill, text: '#fff' };
+            } else {
+                const intervalLabel = SIMPLE_LABELS[semitone];
+                colors = MusicTheory.getIntervalColor(intervalLabel);
             }
             const circle = g.querySelector('circle');
             const text = g.querySelector('text');
             circle.setAttribute('fill', colors.fill);
             circle.setAttribute('stroke', colors.border);
             text.setAttribute('fill', colors.text);
-            text.setAttribute('visibility', settings.showLabels ? 'visible' : 'hidden');
+            const showLabel = settings.showLabels || (useNeutralColors && noteIndex === gameState.givenNoteIndex);
+            text.setAttribute('visibility', showLabel ? 'visible' : 'hidden');
         });
 
-        // Update notation text
-        const intervalText = api.questionGroup.querySelector('.question-interval');
-        if (intervalText) {
-            intervalText.textContent = formatIntervalName(gameState.currentSemitone, settings.notationStyle);
-        }
+        // Update question text
+        updateQuestionText();
     }
 
     // ---- Marker note text helper ----
@@ -202,7 +259,8 @@
 
     // ---- Chromatic circle renderer ----
 
-    function renderChromaticCircle(container, root, onNoteClick) {
+    function renderChromaticCircle(container, root, onNoteClick, options) {
+        options = options || {};
         const rootIndex = MusicTheory.getNoteIndex(root);
         const useFlats = MusicTheory.shouldUseFlats(root);
 
@@ -239,10 +297,12 @@
             const intervalLabel = SIMPLE_LABELS[semitone];
 
             // Get colors from music theory
-            let colors = MusicTheory.getIntervalColor(intervalLabel);
-            if (!settings.showColors) {
+            let colors;
+            if (options.neutralColors || !settings.showColors) {
                 const fill = i % 2 === 0 ? '#000' : '#777';
                 colors = { fill, border: fill, text: '#fff' };
+            } else {
+                colors = MusicTheory.getIntervalColor(intervalLabel);
             }
 
             const g = document.createElementNS(svgNS, 'g');
@@ -257,7 +317,13 @@
             circle.setAttribute('r', markerRadius);
             circle.setAttribute('fill', colors.fill);
             circle.setAttribute('stroke', colors.border);
-            circle.setAttribute('stroke-width', semitone === 0 ? 3 : 2);
+            let strokeWidth = 2;
+            if (options.highlightNoteIndex !== undefined && i === options.highlightNoteIndex) {
+                strokeWidth = 4;
+            } else if (!options.neutralColors && semitone === 0) {
+                strokeWidth = 3;
+            }
+            circle.setAttribute('stroke-width', strokeWidth);
 
             const text = document.createElementNS(svgNS, 'text');
             text.setAttribute('x', x);
@@ -268,7 +334,8 @@
             text.setAttribute('font-family', "'Helvetica Neue', Helvetica, Arial, sans-serif");
             text.setAttribute('font-weight', '700');
             setMarkerNoteText(text, i, x, y, markerRadius);
-            if (!settings.showLabels) text.setAttribute('visibility', 'hidden');
+            const forceShow = options.forceShowLabelIndex !== undefined && i === options.forceShowLabelIndex;
+            if (!settings.showLabels && !forceShow) text.setAttribute('visibility', 'hidden');
 
             g.appendChild(circle);
             g.appendChild(text);
@@ -334,7 +401,12 @@
 
         const explanation = document.createElement('p');
         explanation.className = 'game-explanation';
-        explanation.textContent = 'Train your ear and theory knowledge by identifying intervals on the chromatic circle. You\'ll be given a root note and an interval \u2014 click the correct note on the circle.';
+        const modeDescriptions = {
+            'root-to-interval': 'You\'ll be given a root note and an interval \u2014 click the correct note on the circle.',
+            'interval-to-root': 'You\'ll be given a note and its interval from an unknown root \u2014 click the root note on the circle.',
+            'interval-to-interval': 'You\'ll be given a note with its interval and a target interval \u2014 find the note that matches the target interval.'
+        };
+        explanation.textContent = 'Train your ear and theory knowledge by identifying intervals on the chromatic circle. ' + modeDescriptions[settings.gameMode];
         wrapper.appendChild(explanation);
 
         const statsContainer = document.createElement('div');
@@ -364,6 +436,13 @@
             alert('Please enable at least one root note in settings.');
             return false;
         }
+        if (settings.gameMode === 'interval-to-interval') {
+            const distinctPositions = new Set(settings.enabledIntervals.map(i => i % 12));
+            if (distinctPositions.size < 2) {
+                alert('Interval \u2192 Interval mode requires at least 2 intervals that land on different circle positions.');
+                return false;
+            }
+        }
         return true;
     }
 
@@ -371,6 +450,33 @@
 
     function renderSettings(modalBody) {
         modalBody.innerHTML = '';
+
+        // Game Mode
+        const modeGroup = document.createElement('div');
+        modeGroup.className = 'game-setting-group';
+        const modeLabel = document.createElement('label');
+        modeLabel.textContent = 'Game Mode';
+        modeLabel.className = 'game-setting-label';
+        const modeSelect = document.createElement('select');
+        modeSelect.className = 'game-setting-select';
+        [
+            { value: 'root-to-interval', text: 'Root \u2192 Interval' },
+            { value: 'interval-to-root', text: 'Interval \u2192 Root' },
+            { value: 'interval-to-interval', text: 'Interval \u2192 Interval' }
+        ].forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.text;
+            if (opt.value === settings.gameMode) option.selected = true;
+            modeSelect.appendChild(option);
+        });
+        modeSelect.addEventListener('change', () => {
+            settings.gameMode = modeSelect.value;
+            saveSettings();
+        });
+        modeGroup.appendChild(modeLabel);
+        modeGroup.appendChild(modeSelect);
+        modalBody.appendChild(modeGroup);
 
         // Round count
         const roundGroup = document.createElement('div');
@@ -618,8 +724,14 @@
         clearBtn.style.color = '#000';
         clearBtn.textContent = 'Clear Stats';
         clearBtn.addEventListener('click', () => {
-            if (confirm('Clear all interval training stats?')) {
-                delete stats['interval-training'];
+            const key = getStatsKey();
+            const modeNames = {
+                'interval-training': 'Root \u2192 Interval',
+                'interval-to-root': 'Interval \u2192 Root',
+                'interval-to-interval': 'Interval \u2192 Interval'
+            };
+            if (confirm('Clear stats for ' + modeNames[key] + ' mode?')) {
+                delete stats[key];
                 saveStats();
             }
         });
@@ -639,6 +751,7 @@
     function nextQuestion() {
         gameState.currentRound++;
         gameState.answered = false;
+        gameState.activeMode = settings.gameMode;
 
         if (gameState.currentRound > gameState.totalRounds) {
             showResults();
@@ -652,6 +765,19 @@
 
         const intIdx = Math.floor(Math.random() * settings.enabledIntervals.length);
         gameState.currentSemitone = settings.enabledIntervals[intIdx];
+
+        const mode = gameState.activeMode;
+        if (mode === 'interval-to-root') {
+            gameState.givenSemitone = gameState.currentSemitone;
+            gameState.givenNoteIndex = (gameState.currentRootIndex + gameState.givenSemitone) % 12;
+        } else if (mode === 'interval-to-interval') {
+            gameState.givenSemitone = gameState.currentSemitone;
+            gameState.givenNoteIndex = (gameState.currentRootIndex + gameState.givenSemitone) % 12;
+            // Pick a second interval that lands on a different circle position
+            const givenPos = gameState.givenSemitone % 12;
+            const candidates = settings.enabledIntervals.filter(i => i % 12 !== givenPos);
+            gameState.targetSemitone = candidates[Math.floor(Math.random() * candidates.length)];
+        }
 
         renderGameView();
     }
@@ -675,21 +801,23 @@
         const circleContainer = document.createElement('div');
         circleContainer.className = 'game-circle-container';
 
+        const mode = gameState.activeMode;
+        const circleOptions = {};
+        if (mode !== 'root-to-interval') {
+            circleOptions.neutralColors = true;
+            circleOptions.highlightNoteIndex = gameState.givenNoteIndex;
+            circleOptions.forceShowLabelIndex = gameState.givenNoteIndex;
+        }
+
         gameState.circleApi = renderChromaticCircle(
             circleContainer,
             gameState.currentRoot,
-            handleNoteClick
+            handleNoteClick,
+            circleOptions
         );
 
-        // Set question text in the center
-        const intervalText = gameState.circleApi.questionGroup.querySelector('.question-interval');
-        const rootText = gameState.circleApi.questionGroup.querySelector('.question-root');
-        if (intervalText) {
-            intervalText.textContent = formatIntervalName(gameState.currentSemitone, settings.notationStyle);
-        }
-        if (rootText) {
-            rootText.textContent = 'from ' + gameState.currentRoot;
-        }
+        // Set question text
+        updateQuestionText();
 
         wrapper.appendChild(circleContainer);
 
@@ -704,17 +832,30 @@
 
         content.appendChild(wrapper);
 
-        // Auto-play root note only (don't reveal the interval)
+        // Auto-play: root note for root-to-interval, given note for other modes
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
-            Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
+            if (mode === 'root-to-interval') {
+                Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
+            } else {
+                const givenNoteName = MusicTheory.getNoteName(gameState.givenNoteIndex, false);
+                Sound.playNote(givenNoteName, GAME_OCTAVE);
+            }
         }
     }
 
     function handleNoteClick(noteIndex, semitone) {
         if (gameState.answered) return;
 
-        const correctNoteIndex = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
+        const mode = gameState.activeMode;
+        let correctNoteIndex;
+        if (mode === 'interval-to-root') {
+            correctNoteIndex = gameState.currentRootIndex;
+        } else if (mode === 'interval-to-interval') {
+            correctNoteIndex = (gameState.currentRootIndex + gameState.targetSemitone) % 12;
+        } else {
+            correctNoteIndex = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
+        }
 
         if (noteIndex === correctNoteIndex) {
             handleCorrectAnswer(noteIndex);
@@ -732,7 +873,7 @@
         }
 
         // Record stat
-        recordStat(gameState.currentRoot, gameState.currentSemitone, false);
+        recordStat(gameState.currentRoot, getRecordSemitone(), false);
 
         // Flash red
         const api = gameState.circleApi;
@@ -759,57 +900,105 @@
         gameState.correctCount++;
 
         // Record stat
-        recordStat(gameState.currentRoot, gameState.currentSemitone, true);
+        recordStat(gameState.currentRoot, getRecordSemitone(), true);
 
         const api = gameState.circleApi;
         if (api) {
-            // Fade out non-root, non-correct notes
-            const correctNoteIndex = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
+            const mode = gameState.activeMode;
+            const rootIndex = gameState.currentRootIndex;
+
+            // Determine which note indices to keep visible
+            const keepVisible = new Set();
+            if (mode === 'root-to-interval') {
+                const correctNoteIndex = (rootIndex + gameState.currentSemitone) % 12;
+                keepVisible.add(rootIndex);
+                keepVisible.add(correctNoteIndex);
+            } else if (mode === 'interval-to-root') {
+                keepVisible.add(rootIndex);
+                keepVisible.add(gameState.givenNoteIndex);
+            } else if (mode === 'interval-to-interval') {
+                const answerIndex = (rootIndex + gameState.targetSemitone) % 12;
+                keepVisible.add(rootIndex);
+                keepVisible.add(gameState.givenNoteIndex);
+                keepVisible.add(answerIndex);
+            }
+
+            // Fade out non-kept notes
             api.noteGroups.forEach(g => {
                 const idx = parseInt(g.getAttribute('data-note-index'));
-                const sem = parseInt(g.getAttribute('data-semitone'));
-                if (idx !== correctNoteIndex && sem !== 0) {
+                if (!keepVisible.has(idx)) {
                     g.style.opacity = '0.1';
                 }
             });
 
-            // Reveal labels on root and correct answer markers (even if showLabels is off)
+            // Reveal labels and optionally apply interval colors on kept notes
             api.noteGroups.forEach(g => {
                 const idx = parseInt(g.getAttribute('data-note-index'));
-                const sem = parseInt(g.getAttribute('data-semitone'));
-                if (idx === correctNoteIndex || sem === 0) {
+                if (keepVisible.has(idx)) {
                     const text = g.querySelector('text');
                     if (text) text.setAttribute('visibility', 'visible');
+                    // Apply interval colors on reveal for new modes
+                    if (mode !== 'root-to-interval' && settings.showColors) {
+                        const sem = ((idx - rootIndex) + 12) % 12;
+                        const intervalLabel = SIMPLE_LABELS[sem];
+                        const colors = MusicTheory.getIntervalColor(intervalLabel);
+                        const circle = g.querySelector('circle');
+                        circle.setAttribute('fill', colors.fill);
+                        circle.setAttribute('stroke', colors.border);
+                        text.setAttribute('fill', colors.text);
+                    }
                 }
             });
 
-            // Compute the target note name (used for label update and sound)
-            const targetIndex2 = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
-            const targetNote2 = MusicTheory.getNoteName(targetIndex2, MusicTheory.shouldUseFlats(gameState.currentRoot));
-
-            // Update the center label to reveal the answer
-            let targetDisplay;
-            if (MusicTheory.isAccidentalNote(targetIndex2)) {
-                const flat = MusicTheory.FLAT_NOTES[targetIndex2];
-                const sharp = MusicTheory.CHROMATIC_NOTES[targetIndex2];
-                targetDisplay = flat + '/' + sharp;
-            } else {
-                targetDisplay = targetNote2;
-            }
+            // Update center text based on mode
+            const intervalText = api.questionGroup.querySelector('.question-interval');
             const rootText = api.questionGroup.querySelector('.question-root');
-            if (rootText) {
-                rootText.textContent = 'from ' + gameState.currentRoot + ' is ' + targetDisplay;
+
+            if (mode === 'root-to-interval') {
+                const targetIndex = (rootIndex + gameState.currentSemitone) % 12;
+                const targetDisplay = getDisplayNoteName(targetIndex);
+                if (rootText) {
+                    rootText.textContent = 'from ' + gameState.currentRoot + ' is ' + targetDisplay;
+                }
+            } else if (mode === 'interval-to-root') {
+                if (rootText) {
+                    rootText.textContent = 'root is ' + gameState.currentRoot;
+                }
+            } else if (mode === 'interval-to-interval') {
+                const answerIndex = (rootIndex + gameState.targetSemitone) % 12;
+                const answerDisplay = getDisplayNoteName(answerIndex);
+                if (intervalText) {
+                    intervalText.textContent = formatIntervalName(gameState.targetSemitone, settings.notationStyle) + ' is ' + answerDisplay;
+                }
+                if (rootText) {
+                    rootText.textContent = 'root is ' + gameState.currentRoot;
+                }
             }
 
-            // Play the correct interval note immediately
+            // Sound
             const gamesState2 = window.Games ? window.Games.getState() : null;
             if (gamesState2 && gamesState2.soundEnabled) {
-                Sound.playNote(targetNote2, GAME_OCTAVE);
-
-                // Play both notes together as confirmation at 250ms
-                setTimeout(() => {
-                    Sound.playInterval(gameState.currentRoot, targetNote2, gameState.currentSemitone, GAME_OCTAVE);
-                }, 250);
+                if (mode === 'root-to-interval') {
+                    const targetIndex = (rootIndex + gameState.currentSemitone) % 12;
+                    const targetNote = MusicTheory.getNoteName(targetIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
+                    Sound.playNote(targetNote, GAME_OCTAVE);
+                    setTimeout(() => {
+                        Sound.playInterval(gameState.currentRoot, targetNote, gameState.currentSemitone, GAME_OCTAVE);
+                    }, 250);
+                } else if (mode === 'interval-to-root') {
+                    Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
+                    const givenNoteName = MusicTheory.getNoteName(gameState.givenNoteIndex, false);
+                    setTimeout(() => {
+                        Sound.playInterval(gameState.currentRoot, givenNoteName, gameState.givenSemitone, GAME_OCTAVE);
+                    }, 250);
+                } else if (mode === 'interval-to-interval') {
+                    const answerIndex = (rootIndex + gameState.targetSemitone) % 12;
+                    const answerNote = MusicTheory.getNoteName(answerIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
+                    Sound.playNote(answerNote, GAME_OCTAVE);
+                    setTimeout(() => {
+                        Sound.playInterval(gameState.currentRoot, answerNote, gameState.targetSemitone, GAME_OCTAVE);
+                    }, 250);
+                }
             }
 
             // Show next button at 500ms
@@ -897,7 +1086,7 @@
     function renderStats(container) {
         container.innerHTML = '';
 
-        const gameStats = stats['interval-training'];
+        const gameStats = stats[getStatsKey()];
         if (!gameStats || Object.keys(gameStats).length === 0) {
             const msg = document.createElement('p');
             msg.className = 'game-explanation';
