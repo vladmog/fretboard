@@ -773,6 +773,16 @@
                 }
             });
 
+            // Reveal labels on root and correct answer markers (even if showLabels is off)
+            api.noteGroups.forEach(g => {
+                const idx = parseInt(g.getAttribute('data-note-index'));
+                const sem = parseInt(g.getAttribute('data-semitone'));
+                if (idx === correctNoteIndex || sem === 0) {
+                    const text = g.querySelector('text');
+                    if (text) text.setAttribute('visibility', 'visible');
+                }
+            });
+
             // Compute the target note name (used for label update and sound)
             const targetIndex2 = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
             const targetNote2 = MusicTheory.getNoteName(targetIndex2, MusicTheory.shouldUseFlats(gameState.currentRoot));
