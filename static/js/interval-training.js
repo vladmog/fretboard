@@ -151,7 +151,9 @@
             const intervalLabel = SIMPLE_LABELS[semitone];
             let colors = MusicTheory.getIntervalColor(intervalLabel);
             if (!settings.showColors) {
-                colors = { fill: '#000', border: '#000', text: '#fff' };
+                const noteIndex = parseInt(g.getAttribute('data-note-index'));
+                const fill = noteIndex % 2 === 0 ? '#000' : '#777';
+                colors = { fill, border: fill, text: '#fff' };
             }
             const circle = g.querySelector('circle');
             const text = g.querySelector('text');
@@ -208,7 +210,8 @@
             // Get colors from music theory
             let colors = MusicTheory.getIntervalColor(intervalLabel);
             if (!settings.showColors) {
-                colors = { fill: '#000', border: '#000', text: '#fff' };
+                const fill = i % 2 === 0 ? '#000' : '#777';
+                colors = { fill, border: fill, text: '#fff' };
             }
 
             const g = document.createElementNS(svgNS, 'g');
