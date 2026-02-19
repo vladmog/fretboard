@@ -10,7 +10,7 @@
     const STORAGE_KEY_SETTINGS = 'fretboard-chromatic-drills-settings';
     const STORAGE_KEY_STATS = 'fretboard-games-stats';
 
-    const ALL_NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+    const ALL_NOTES = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'];
     const SIMPLE_LABELS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
 
     const GAME_OCTAVE = 4;
