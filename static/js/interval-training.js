@@ -207,20 +207,23 @@
         api.noteGroups.forEach(g => {
             const noteIndex = parseInt(g.getAttribute('data-note-index'));
             const semitone = parseInt(g.getAttribute('data-semitone'));
-            let colors;
-            if (useNeutralColors || !settings.showColors) {
-                const fill = noteIndex % 2 === 0 ? '#000' : '#777';
-                colors = { fill, border: fill, text: '#fff' };
-            } else {
-                const intervalLabel = SIMPLE_LABELS[semitone];
-                colors = MusicTheory.getIntervalColor(intervalLabel);
+            if (!gameState.answered) {
+                let colors;
+                if (useNeutralColors || !settings.showColors) {
+                    const fill = noteIndex % 2 === 0 ? '#000' : '#777';
+                    colors = { fill, border: fill, text: '#fff' };
+                } else {
+                    const intervalLabel = SIMPLE_LABELS[semitone];
+                    colors = MusicTheory.getIntervalColor(intervalLabel);
+                }
+                const circle = g.querySelector('circle');
+                const text = g.querySelector('text');
+                circle.setAttribute('fill', colors.fill);
+                circle.setAttribute('stroke', colors.border);
+                text.setAttribute('fill', colors.text);
             }
-            const circle = g.querySelector('circle');
-            const text = g.querySelector('text');
-            circle.setAttribute('fill', colors.fill);
-            circle.setAttribute('stroke', colors.border);
-            text.setAttribute('fill', colors.text);
             const showLabel = settings.showLabels;
+            const text = g.querySelector('text');
             text.setAttribute('visibility', showLabel ? 'visible' : 'hidden');
         });
 
@@ -939,16 +942,14 @@
                 if (keepVisible.has(idx)) {
                     const text = g.querySelector('text');
                     if (text) text.setAttribute('visibility', 'visible');
-                    // Apply interval colors on reveal for new modes
-                    if (mode !== 'root-to-interval' && settings.showColors) {
-                        const sem = ((idx - rootIndex) + 12) % 12;
-                        const intervalLabel = SIMPLE_LABELS[sem];
-                        const colors = MusicTheory.getIntervalColor(intervalLabel);
-                        const circle = g.querySelector('circle');
-                        circle.setAttribute('fill', colors.fill);
-                        circle.setAttribute('stroke', colors.border);
-                        text.setAttribute('fill', colors.text);
-                    }
+                    // Always show interval colors on correct answer, regardless of toggle
+                    const sem = ((idx - rootIndex) + 12) % 12;
+                    const intervalLabel = SIMPLE_LABELS[sem];
+                    const colors = MusicTheory.getIntervalColor(intervalLabel);
+                    const circle = g.querySelector('circle');
+                    circle.setAttribute('fill', colors.fill);
+                    circle.setAttribute('stroke', colors.border);
+                    text.setAttribute('fill', colors.text);
                 }
             });
 
