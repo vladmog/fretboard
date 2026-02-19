@@ -313,6 +313,16 @@ function shouldUseFlats(root) {
 }
 
 /**
+ * Check if a chromatic index is an accidental (has both sharp and flat names)
+ * @param {number} index - Chromatic note index
+ * @returns {boolean}
+ */
+function isAccidentalNote(index) {
+    const normalizedIndex = ((index % 12) + 12) % 12;
+    return CHROMATIC_NOTES[normalizedIndex] !== FLAT_NOTES[normalizedIndex];
+}
+
+/**
  * Spell a note correctly for a given scale/chord degree letter
  * @param {number} noteIndex - Semitone index (0-11)
  * @param {string} degreeLetter - Expected letter name (e.g., 'E' for 3rd degree of C)
@@ -788,6 +798,7 @@ window.MusicTheory = {
     getModeRoot,
     getCagedPositions,
     shouldUseFlats,
+    isAccidentalNote,
     lightenColor,
     spellNoteForDegree,
     getDegreeNumber
