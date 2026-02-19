@@ -220,7 +220,7 @@
             circle.setAttribute('fill', colors.fill);
             circle.setAttribute('stroke', colors.border);
             text.setAttribute('fill', colors.text);
-            const showLabel = settings.showLabels || (useNeutralColors && noteIndex === gameState.givenNoteIndex);
+            const showLabel = settings.showLabels;
             text.setAttribute('visibility', showLabel ? 'visible' : 'hidden');
         });
 
@@ -806,7 +806,9 @@
         if (mode !== 'root-to-interval') {
             circleOptions.neutralColors = true;
             circleOptions.highlightNoteIndex = gameState.givenNoteIndex;
-            circleOptions.forceShowLabelIndex = gameState.givenNoteIndex;
+            if (settings.showLabels) {
+                circleOptions.forceShowLabelIndex = gameState.givenNoteIndex;
+            }
         }
 
         gameState.circleApi = renderChromaticCircle(
