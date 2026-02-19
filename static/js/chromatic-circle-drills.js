@@ -120,6 +120,35 @@
         });
     }
 
+    // ---- Marker note text helper ----
+
+    function setMarkerNoteText(textEl, noteIndex, x, y, markerRadius) {
+        textEl.textContent = '';
+        if (MusicTheory.isAccidentalNote(noteIndex)) {
+            const svgNS = 'http://www.w3.org/2000/svg';
+            const sharp = MusicTheory.CHROMATIC_NOTES[noteIndex];
+            const flat = MusicTheory.FLAT_NOTES[noteIndex];
+            const fontSize = markerRadius * 0.65;
+            textEl.setAttribute('font-size', fontSize);
+            const lineHeight = fontSize * 1.15;
+            const t1 = document.createElementNS(svgNS, 'tspan');
+            t1.setAttribute('x', x);
+            t1.setAttribute('y', y - lineHeight / 2);
+            t1.setAttribute('dominant-baseline', 'central');
+            t1.textContent = sharp;
+            const t2 = document.createElementNS(svgNS, 'tspan');
+            t2.setAttribute('x', x);
+            t2.setAttribute('y', y + lineHeight / 2);
+            t2.setAttribute('dominant-baseline', 'central');
+            t2.textContent = flat;
+            textEl.appendChild(t1);
+            textEl.appendChild(t2);
+        } else {
+            textEl.setAttribute('font-size', markerRadius * 0.9);
+            textEl.textContent = MusicTheory.CHROMATIC_NOTES[noteIndex];
+        }
+    }
+
     // ---- Chromatic circle renderer ----
 
     function renderChromaticCircle(container, onNoteClick) {
@@ -560,7 +589,11 @@
             if (correctGroup) {
                 const text = correctGroup.querySelector('text');
                 if (text) {
-                    text.textContent = gameState.currentTargetNote;
+                    const circleEl = correctGroup.querySelector('circle');
+                    const x = parseFloat(circleEl.getAttribute('cx'));
+                    const y = parseFloat(circleEl.getAttribute('cy'));
+                    const markerRadius = parseFloat(circleEl.getAttribute('r'));
+                    setMarkerNoteText(text, noteIndex, x, y, markerRadius);
                 }
             }
 
