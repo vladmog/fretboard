@@ -38,7 +38,8 @@
         enabledIntervals: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
         enabledRoots: [...ALL_ROOTS],
         notationStyle: 'short',
-        showColors: true
+        showColors: true,
+        showLabels: true
     };
 
     // Game runtime state
@@ -160,6 +161,7 @@
             circle.setAttribute('fill', colors.fill);
             circle.setAttribute('stroke', colors.border);
             text.setAttribute('fill', colors.text);
+            text.setAttribute('visibility', settings.showLabels ? 'visible' : 'hidden');
         });
 
         // Update notation text
@@ -266,6 +268,7 @@
             text.setAttribute('font-family', "'Helvetica Neue', Helvetica, Arial, sans-serif");
             text.setAttribute('font-weight', '700');
             setMarkerNoteText(text, i, x, y, markerRadius);
+            if (!settings.showLabels) text.setAttribute('visibility', 'hidden');
 
             g.appendChild(circle);
             g.appendChild(text);
@@ -446,6 +449,33 @@
         colorsGroup.appendChild(colorsLabel);
         colorsGroup.appendChild(colorsSelect);
         modalBody.appendChild(colorsGroup);
+
+        // Labels toggle
+        const labelsGroup = document.createElement('div');
+        labelsGroup.className = 'game-setting-group';
+        const labelsLabel = document.createElement('label');
+        labelsLabel.textContent = 'Labels';
+        labelsLabel.className = 'game-setting-label';
+        const labelsSelect = document.createElement('select');
+        labelsSelect.className = 'game-setting-select';
+        [
+            { value: 'on', text: 'On' },
+            { value: 'off', text: 'Off' }
+        ].forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.text;
+            if ((opt.value === 'on') === settings.showLabels) option.selected = true;
+            labelsSelect.appendChild(option);
+        });
+        labelsSelect.addEventListener('change', () => {
+            settings.showLabels = labelsSelect.value === 'on';
+            saveSettings();
+            applySettingsToCurrentRound();
+        });
+        labelsGroup.appendChild(labelsLabel);
+        labelsGroup.appendChild(labelsSelect);
+        modalBody.appendChild(labelsGroup);
 
         // Interval checkboxes
         const intervalGroup = document.createElement('div');
@@ -748,9 +778,17 @@
             const targetNote2 = MusicTheory.getNoteName(targetIndex2, MusicTheory.shouldUseFlats(gameState.currentRoot));
 
             // Update the center label to reveal the answer
+            let targetDisplay;
+            if (MusicTheory.isAccidentalNote(targetIndex2)) {
+                const flat = MusicTheory.FLAT_NOTES[targetIndex2];
+                const sharp = MusicTheory.CHROMATIC_NOTES[targetIndex2];
+                targetDisplay = flat + '/' + sharp;
+            } else {
+                targetDisplay = targetNote2;
+            }
             const rootText = api.questionGroup.querySelector('.question-root');
             if (rootText) {
-                rootText.textContent = 'from ' + gameState.currentRoot + ' is ' + targetNote2;
+                rootText.textContent = 'from ' + gameState.currentRoot + ' is ' + targetDisplay;
             }
 
             // Play the correct interval note immediately
