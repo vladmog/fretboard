@@ -183,8 +183,8 @@
             intervalText.textContent = getDisplayNoteName(gameState.givenNoteIndex);
             rootText.textContent = 'is the ' + formatIntervalName(gameState.givenSemitone, settings.notationStyle);
         } else if (mode === 'interval-to-interval') {
-            intervalText.textContent = 'find the ' + formatIntervalName(gameState.targetSemitone, settings.notationStyle);
-            rootText.textContent = getDisplayNoteName(gameState.givenNoteIndex) + ' is the ' + formatIntervalName(gameState.givenSemitone, settings.notationStyle);
+            intervalText.textContent = getDisplayNoteName(gameState.givenNoteIndex) + ' is the ' + formatIntervalName(gameState.givenSemitone, settings.notationStyle);
+            rootText.textContent = 'find the ' + formatIntervalName(gameState.targetSemitone, settings.notationStyle);
         }
     }
 
