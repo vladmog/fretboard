@@ -201,7 +201,7 @@
         if (!api) return;
 
         const mode = gameState.activeMode;
-        const useNeutralColors = mode !== 'root-to-interval';
+        const useNeutralColors = mode !== 'root-to-interval' && !settings.showColors;
 
         // Update circle colors
         api.noteGroups.forEach(g => {
@@ -804,7 +804,7 @@
         const mode = gameState.activeMode;
         const circleOptions = {};
         if (mode !== 'root-to-interval') {
-            circleOptions.neutralColors = true;
+            circleOptions.neutralColors = !settings.showColors;
             circleOptions.highlightNoteIndex = gameState.givenNoteIndex;
             if (settings.showLabels) {
                 circleOptions.forceShowLabelIndex = gameState.givenNoteIndex;
