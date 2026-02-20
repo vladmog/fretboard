@@ -8,7 +8,7 @@
 
     // Application state
     const state = {
-        mode: 'scale',          // 'scale', 'chord', 'interval', 'caged', 'modes', or 'find'
+        mode: 'scale',          // 'scale', 'chord', 'interval', 'caged', 'modes', 'f.chord', 'f.scale', or 'games'
         root: 'C',
         scaleType: 'major',
         chordType: 'maj',
@@ -21,13 +21,22 @@
         showNoteNames: false,   // Toggle for note names vs intervals on markers
         soundEnabled: true,     // Toggle for chord list sound playback
         fretboard: null,        // Fretboard API instance
-        findMarkers: {},        // Find mode: map keyed by string (1-6) → {fret, noteIndex}
+        findMarkers: {},        // Find mode: map keyed by "string-fret" → { string, fret, noteIndex }
         findResults: [],        // Find mode: results from MusicTheory.findChords()
         findSelectedIndex: -1   // Find mode: index in findResults, -1 = user markers view
     };
 
     // Storage key for chord list persistence
     const STORAGE_KEY = 'fretboard-chord-list';
+
+    /**
+     * Check if the current mode is a find mode (f.chord or f.scale)
+     * @param {string} mode - Mode string
+     * @returns {boolean}
+     */
+    function isFindMode(mode) {
+        return mode === 'f.chord' || mode === 'f.scale';
+    }
 
     /**
      * Load chord list from localStorage
@@ -361,13 +370,25 @@
                 state.findSelectedIndex = -1;
             }
 
-            // Toggle marker: same string+fret removes, different fret replaces, new string adds
-            if (state.findMarkers[string] && state.findMarkers[string].fret === fret) {
-                delete state.findMarkers[string];
+            const key = string + '-' + fret;
+
+            if (state.findMarkers[key]) {
+                // Same position — toggle off
+                delete state.findMarkers[key];
             } else {
+                // In f.chord mode, remove any existing marker on this string first
+                if (state.mode === 'f.chord') {
+                    for (const k of Object.keys(state.findMarkers)) {
+                        if (state.findMarkers[k].string === string) {
+                            delete state.findMarkers[k];
+                        }
+                    }
+                }
+
                 const stringIndex = 6 - string;
                 const noteIndex = MusicTheory.getNoteAt(stringIndex, fret);
-                state.findMarkers[string] = { fret, noteIndex };
+                state.findMarkers[key] = { string, fret, noteIndex };
+
                 if (state.soundEnabled) {
                     const noteName = MusicTheory.getNoteName(noteIndex, false);
                     const octave = MusicTheory.getOctaveAt(stringIndex, fret);
@@ -388,7 +409,9 @@
         for (const marker of Object.values(state.findMarkers)) {
             noteSet.add(marker.noteIndex);
         }
-        state.findResults = MusicTheory.findChords(noteSet);
+        state.findResults = state.mode === 'f.chord'
+            ? MusicTheory.findChords(noteSet)
+            : MusicTheory.findScales(noteSet);
         state.findSelectedIndex = -1;
         renderFindResults();
     }
@@ -401,11 +424,10 @@
         state.fretboard.clearMarkers();
 
         const notes = [];
-        for (const [stringStr, marker] of Object.entries(state.findMarkers)) {
-            const string = parseInt(stringStr);
+        for (const marker of Object.values(state.findMarkers)) {
             const noteName = MusicTheory.getNoteName(marker.noteIndex, false);
             notes.push(noteName);
-            state.fretboard.setMarker(string, marker.fret, {
+            state.fretboard.setMarker(marker.string, marker.fret, {
                 color: '#555',
                 borderColor: '#000',
                 text: noteName,
@@ -418,8 +440,9 @@
             window.RotationToggle.applyCurrentRotation();
         }
 
+        const modeLabel = state.mode === 'f.scale' ? 'f.scale' : 'f.chord';
         updateInfoPanel({
-            title: notes.length > 0 ? 'Find: ' + notes.join(' ') : 'Find Mode',
+            title: notes.length > 0 ? modeLabel + ': ' + notes.join(' ') : modeLabel,
             notes: notes.length > 0 ? notes : ['Tap fretboard to place notes'],
             intervals: []
         });
@@ -436,10 +459,13 @@
 
         const addBtn = document.getElementById('find-add-btn');
 
+        const isScaleMode = state.mode === 'f.scale';
+        const thingName = isScaleMode ? 'scales' : 'chords';
+
         if (Object.keys(state.findMarkers).length < 2) {
             const li = document.createElement('li');
             li.className = 'find-result-placeholder';
-            li.textContent = 'Place 2+ notes to find chords';
+            li.textContent = 'Place 2+ notes to find ' + thingName;
             listEl.appendChild(li);
             if (addBtn) addBtn.disabled = true;
             return;
@@ -448,13 +474,13 @@
         if (state.findResults.length === 0) {
             const li = document.createElement('li');
             li.className = 'find-result-placeholder';
-            li.textContent = 'No matching chords';
+            li.textContent = 'No matching ' + thingName;
             listEl.appendChild(li);
             if (addBtn) addBtn.disabled = true;
             return;
         }
 
-        state.findResults.forEach((chord, index) => {
+        state.findResults.forEach((result, index) => {
             const li = document.createElement('li');
             li.className = 'find-result-item';
             if (index === state.findSelectedIndex) {
@@ -463,11 +489,13 @@
 
             const symbolSpan = document.createElement('span');
             symbolSpan.className = 'find-result-symbol';
-            symbolSpan.textContent = chord.symbol;
+            symbolSpan.textContent = isScaleMode
+                ? result.root + ' ' + result.name
+                : result.symbol;
 
             const notesSpan = document.createElement('span');
             notesSpan.className = 'find-result-notes';
-            notesSpan.textContent = chord.notes.join(' ');
+            notesSpan.textContent = result.notes.join(' ');
 
             li.appendChild(symbolSpan);
             li.appendChild(notesSpan);
@@ -489,10 +517,17 @@
             displayFindMarkers();
         } else {
             state.findSelectedIndex = index;
-            const chord = state.findResults[index];
-            displayChord(chord);
-            if (state.soundEnabled) {
-                Sound.playChord(chord.notes);
+            const result = state.findResults[index];
+            if (state.mode === 'f.scale') {
+                displayScale(result);
+                if (state.soundEnabled) {
+                    Sound.playArpeggio(result.notes);
+                }
+            } else {
+                displayChord(result);
+                if (state.soundEnabled) {
+                    Sound.playChord(result.notes);
+                }
             }
         }
         renderFindResults();
@@ -550,12 +585,16 @@
                 const chord = MusicTheory.buildChord(item.root, item.type);
                 displayChord(chord);
             }
-        } else if (state.mode === 'find') {
+        } else if (isFindMode(state.mode)) {
             if (state.findSelectedIndex < 0) {
                 displayFindMarkers();
             } else {
-                const chord = state.findResults[state.findSelectedIndex];
-                displayChord(chord);
+                const result = state.findResults[state.findSelectedIndex];
+                if (state.mode === 'f.scale') {
+                    displayScale(result);
+                } else {
+                    displayChord(result);
+                }
             }
             return;
         } else if (state.mode === 'caged') {
@@ -880,7 +919,7 @@
         }
 
         // Leaving Find mode — clean up
-        if (state.mode === 'find') {
+        if (isFindMode(state.mode)) {
             if (state.fretboard) state.fretboard.onFretClick(null);
             state.findMarkers = {};
             state.findResults = [];
@@ -896,7 +935,7 @@
         // Show/hide type selector based on mode (hide for interval and find)
         const typeGroup = document.querySelector('.control-group:has(#type-select)');
         if (typeGroup) {
-            typeGroup.style.display = (mode === 'interval' || mode === 'find') ? 'none' : 'block';
+            typeGroup.style.display = (mode === 'interval' || isFindMode(mode)) ? 'none' : 'block';
         }
 
         // When entering CAGED mode, ensure chordType is a valid CAGED type
@@ -926,7 +965,7 @@
         // Show/hide root note selector (hide in find mode)
         const rootGroup = document.querySelector('.control-group:has(#root-note)');
         if (rootGroup) {
-            rootGroup.style.display = mode === 'find' ? 'none' : 'block';
+            rootGroup.style.display = isFindMode(mode) ? 'none' : 'block';
         }
 
         // Show/hide CAGED shape selector
@@ -944,7 +983,7 @@
         // Show/hide find controls
         const findControls = document.getElementById('find-controls');
         if (findControls) {
-            findControls.style.display = mode === 'find' ? 'block' : 'none';
+            findControls.style.display = isFindMode(mode) ? 'block' : 'none';
         }
 
         // Show/hide Add button based on mode
@@ -958,8 +997,17 @@
         }
 
         // Enter Find mode
-        if (mode === 'find') {
+        if (isFindMode(mode)) {
             document.body.classList.add('find-mode-active');
+            // Set label and Add button visibility based on sub-mode
+            const findLabel = document.querySelector('#find-controls > label');
+            if (findLabel) {
+                findLabel.textContent = mode === 'f.chord' ? 'Matching Chords' : 'Matching Scales';
+            }
+            const findAddBtn = document.getElementById('find-add-btn');
+            if (findAddBtn) {
+                findAddBtn.style.display = mode === 'f.scale' ? 'none' : '';
+            }
             registerFindClickHandler();
             renderFindResults();
             displayFindMarkers();
@@ -1174,7 +1222,7 @@
         // Hide type selector in interval/find mode
         const typeGroup = document.querySelector('.control-group:has(#type-select)');
         if (typeGroup) {
-            typeGroup.style.display = (state.mode === 'interval' || state.mode === 'find') ? 'none' : 'block';
+            typeGroup.style.display = (state.mode === 'interval' || isFindMode(state.mode)) ? 'none' : 'block';
         }
 
         // Initial display
@@ -1187,7 +1235,7 @@
                 tuning: MusicTheory.STANDARD_TUNING,
                 frets: 15
             });
-            if (state.mode === 'find') {
+            if (isFindMode(state.mode)) {
                 registerFindClickHandler();
             }
             updateDisplay();
