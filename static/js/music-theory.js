@@ -213,6 +213,9 @@ const STANDARD_TUNING = ['E', 'A', 'D', 'G', 'B', 'E'];
 // Open string notes as semitone indices (E=4, A=9, D=2, G=7, B=11, E=4)
 const STRING_ROOTS = [4, 9, 2, 7, 11, 4];
 
+// MIDI note numbers for open strings (E2=40, A2=45, D3=50, G3=55, B3=59, E4=64)
+const STRING_MIDI_BASES = [40, 45, 50, 55, 59, 64];
+
 // CAGED chord shapes - positions relative to root note
 // Each shape has a rootString (which string the root note is on, 1-6 where 1=high E)
 // and positions array with { string (1-6), offset (fret distance from root), interval }
@@ -357,6 +360,16 @@ function getDegreeNumber(interval) {
  */
 function getNoteAt(stringIndex, fret) {
     return (STRING_ROOTS[stringIndex] + fret) % 12;
+}
+
+/**
+ * Get the octave number at a specific fret position
+ * @param {number} stringIndex - String index (0-5, 0 = low E)
+ * @param {number} fret - Fret number (0 = open)
+ * @returns {number} Octave number (e.g., 2 for low E open, 4 for high E open)
+ */
+function getOctaveAt(stringIndex, fret) {
+    return Math.floor((STRING_MIDI_BASES[stringIndex] + fret) / 12) - 1;
 }
 
 /**
@@ -838,5 +851,6 @@ window.MusicTheory = {
     lightenColor,
     spellNoteForDegree,
     getDegreeNumber,
-    findChords
+    findChords,
+    getOctaveAt
 };

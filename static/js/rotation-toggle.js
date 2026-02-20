@@ -26,6 +26,7 @@
      * Toggle rotation between 0 and 90 degrees
      */
     function toggleRotation() {
+        if (window.FretboardApp && window.FretboardApp.getState().mode === 'find') return;
         currentRotation = currentRotation === 0 ? 90 : 0;
         rotateMarkerText(currentRotation);
     }
