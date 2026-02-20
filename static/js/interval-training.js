@@ -32,7 +32,9 @@
 
     const GAME_OCTAVE = 4;
 
-    const VALID_GAME_MODES = ['root-to-interval', 'interval-to-root', 'interval-to-interval'];
+    const VALID_GAME_MODES = ['root-to-interval', 'interval-to-root', 'interval-to-interval', 'scale-builder'];
+
+    const ALL_SCALE_TYPES = Object.keys(MusicTheory.SCALES);
 
     // Game settings (persisted)
     let settings = {
@@ -42,7 +44,8 @@
         enabledRoots: [...ALL_ROOTS],
         notationStyle: 'short',
         showColors: true,
-        showLabels: true
+        showLabels: true,
+        enabledScales: [...ALL_SCALE_TYPES]
     };
 
     // Game runtime state
@@ -58,7 +61,12 @@
         circleApi: null,
         givenNoteIndex: 0,
         givenSemitone: 0,
-        targetSemitone: 0
+        targetSemitone: 0,
+        currentScaleType: null,
+        scaleNotes: [],
+        scaleDegrees: [],
+        currentDegreeIndex: 0,
+        hadMistake: false
     };
 
     // Stats
@@ -120,6 +128,7 @@
 
     function getStatsKey() {
         if (gameState.activeMode === 'root-to-interval') return 'interval-training';
+        if (gameState.activeMode === 'scale-builder') return 'scale-builder';
         return gameState.activeMode;
     }
 
@@ -137,6 +146,24 @@
         stats[key][root][semitone].tested++;
         if (isCorrect) {
             stats[key][root][semitone].correct++;
+        }
+        saveStats();
+    }
+
+    function recordScaleStat(root, scaleType, isCorrect) {
+        const key = 'scale-builder';
+        if (!stats[key]) {
+            stats[key] = {};
+        }
+        if (!stats[key][root]) {
+            stats[key][root] = {};
+        }
+        if (!stats[key][root][scaleType]) {
+            stats[key][root][scaleType] = { tested: 0, correct: 0 };
+        }
+        stats[key][root][scaleType].tested++;
+        if (isCorrect) {
+            stats[key][root][scaleType].correct++;
         }
         saveStats();
     }
@@ -185,6 +212,10 @@
         } else if (mode === 'interval-to-interval') {
             intervalText.textContent = getDisplayNoteName(gameState.givenNoteIndex) + ' is the ' + formatIntervalName(gameState.givenSemitone, settings.notationStyle);
             rootText.textContent = 'find the ' + formatIntervalName(gameState.targetSemitone, settings.notationStyle);
+        } else if (mode === 'scale-builder') {
+            const scaleName = MusicTheory.SCALES[gameState.currentScaleType].name;
+            intervalText.textContent = scaleName;
+            rootText.textContent = 'from ' + gameState.currentRoot;
         }
     }
 
@@ -201,6 +232,30 @@
         if (!api) return;
 
         const mode = gameState.activeMode;
+
+        if (mode === 'scale-builder') {
+            api.noteGroups.forEach(g => {
+                const noteIndex = parseInt(g.getAttribute('data-note-index'));
+                if (!gameState.answered) {
+                    // Preserve already-highlighted correct notes
+                    const isHighlighted = noteIndex < gameState.scaleNotes.length &&
+                        gameState.currentDegreeIndex > 0 &&
+                        gameState.scaleNotes.slice(0, gameState.currentDegreeIndex).includes(noteIndex);
+                    if (!isHighlighted) {
+                        const fill = noteIndex % 2 === 0 ? '#000' : '#777';
+                        const circle = g.querySelector('circle');
+                        const text = g.querySelector('text');
+                        circle.setAttribute('fill', fill);
+                        circle.setAttribute('stroke', fill);
+                        text.setAttribute('fill', '#fff');
+                        text.setAttribute('visibility', settings.showLabels ? 'visible' : 'hidden');
+                    }
+                }
+            });
+            updateQuestionText();
+            return;
+        }
+
         const useNeutralColors = mode !== 'root-to-interval' && !settings.showColors;
 
         // Update circle colors
@@ -407,7 +462,8 @@
         const modeDescriptions = {
             'root-to-interval': 'You\'ll be given a root note and an interval \u2014 click the correct note on the circle.',
             'interval-to-root': 'You\'ll be given a note and its interval from an unknown root \u2014 click the root note on the circle.',
-            'interval-to-interval': 'You\'ll be given a note with its interval and a target interval \u2014 find the note that matches the target interval.'
+            'interval-to-interval': 'You\'ll be given a note with its interval and a target interval \u2014 find the note that matches the target interval.',
+            'scale-builder': 'You\'ll be given a scale \u2014 click the notes on the chromatic circle in order, from root to the last degree.'
         };
         explanation.textContent = 'Train your ear and theory knowledge by identifying intervals on the chromatic circle. ' + modeDescriptions[settings.gameMode];
         wrapper.appendChild(explanation);
@@ -431,6 +487,17 @@
     }
 
     function validateSettings() {
+        if (settings.gameMode === 'scale-builder') {
+            if (settings.enabledScales.length === 0) {
+                alert('Please enable at least one scale type in settings.');
+                return false;
+            }
+            if (settings.enabledRoots.length === 0) {
+                alert('Please enable at least one root note in settings.');
+                return false;
+            }
+            return true;
+        }
         if (settings.enabledIntervals.length === 0) {
             alert('Please enable at least one interval in settings.');
             return false;
@@ -465,7 +532,8 @@
         [
             { value: 'root-to-interval', text: 'Root \u2192 Interval' },
             { value: 'interval-to-root', text: 'Interval \u2192 Root' },
-            { value: 'interval-to-interval', text: 'Interval \u2192 Interval' }
+            { value: 'interval-to-interval', text: 'Interval \u2192 Interval' },
+            { value: 'scale-builder', text: 'Scale Builder' }
         ].forEach(opt => {
             const option = document.createElement('option');
             option.value = opt.value;
@@ -476,6 +544,7 @@
         modeSelect.addEventListener('change', () => {
             settings.gameMode = modeSelect.value;
             saveSettings();
+            renderSettings(modalBody);
         });
         modeGroup.appendChild(modeLabel);
         modeGroup.appendChild(modeSelect);
@@ -504,33 +573,35 @@
         roundGroup.appendChild(roundInput);
         modalBody.appendChild(roundGroup);
 
-        // Notation style
-        const notationGroup = document.createElement('div');
-        notationGroup.className = 'game-setting-group';
-        const notationLabel = document.createElement('label');
-        notationLabel.textContent = 'Notation';
-        notationLabel.className = 'game-setting-label';
-        const notationSelect = document.createElement('select');
-        notationSelect.className = 'game-setting-select';
-        [
-            { value: 'short', text: 'Short (b3)' },
-            { value: 'long', text: 'Long (Minor 3rd)' },
-            { value: 'symbol', text: 'Symbol (m3)' }
-        ].forEach(opt => {
-            const option = document.createElement('option');
-            option.value = opt.value;
-            option.textContent = opt.text;
-            if (opt.value === settings.notationStyle) option.selected = true;
-            notationSelect.appendChild(option);
-        });
-        notationSelect.addEventListener('change', () => {
-            settings.notationStyle = notationSelect.value;
-            saveSettings();
-            applySettingsToCurrentRound();
-        });
-        notationGroup.appendChild(notationLabel);
-        notationGroup.appendChild(notationSelect);
-        modalBody.appendChild(notationGroup);
+        // Notation style (hidden in scale-builder mode)
+        if (settings.gameMode !== 'scale-builder') {
+            const notationGroup = document.createElement('div');
+            notationGroup.className = 'game-setting-group';
+            const notationLabel = document.createElement('label');
+            notationLabel.textContent = 'Notation';
+            notationLabel.className = 'game-setting-label';
+            const notationSelect = document.createElement('select');
+            notationSelect.className = 'game-setting-select';
+            [
+                { value: 'short', text: 'Short (b3)' },
+                { value: 'long', text: 'Long (Minor 3rd)' },
+                { value: 'symbol', text: 'Symbol (m3)' }
+            ].forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.textContent = opt.text;
+                if (opt.value === settings.notationStyle) option.selected = true;
+                notationSelect.appendChild(option);
+            });
+            notationSelect.addEventListener('change', () => {
+                settings.notationStyle = notationSelect.value;
+                saveSettings();
+                applySettingsToCurrentRound();
+            });
+            notationGroup.appendChild(notationLabel);
+            notationGroup.appendChild(notationSelect);
+            modalBody.appendChild(notationGroup);
+        }
 
         // Colors toggle
         const colorsGroup = document.createElement('div');
@@ -586,70 +657,137 @@
         labelsGroup.appendChild(labelsSelect);
         modalBody.appendChild(labelsGroup);
 
-        // Interval checkboxes
-        const intervalGroup = document.createElement('div');
-        intervalGroup.className = 'game-setting-group';
-        const intervalHeader = document.createElement('div');
-        intervalHeader.className = 'game-setting-header';
-        const intervalLabel = document.createElement('label');
-        intervalLabel.textContent = 'Intervals';
-        intervalLabel.className = 'game-setting-label';
-        intervalHeader.appendChild(intervalLabel);
+        if (settings.gameMode === 'scale-builder') {
+            // Scale type checkboxes
+            const scaleGroup = document.createElement('div');
+            scaleGroup.className = 'game-setting-group';
+            const scaleHeader = document.createElement('div');
+            scaleHeader.className = 'game-setting-header';
+            const scaleLabel = document.createElement('label');
+            scaleLabel.textContent = 'Scale Types';
+            scaleLabel.className = 'game-setting-label';
+            scaleHeader.appendChild(scaleLabel);
 
-        const intervalBtns = document.createElement('div');
-        intervalBtns.className = 'game-setting-btns';
-        const selectAllInt = document.createElement('button');
-        selectAllInt.textContent = 'All';
-        selectAllInt.className = 'game-setting-btn';
-        const deselectAllInt = document.createElement('button');
-        deselectAllInt.textContent = 'None';
-        deselectAllInt.className = 'game-setting-btn';
-        intervalBtns.appendChild(selectAllInt);
-        intervalBtns.appendChild(deselectAllInt);
-        intervalHeader.appendChild(intervalBtns);
-        intervalGroup.appendChild(intervalHeader);
+            const scaleBtns = document.createElement('div');
+            scaleBtns.className = 'game-setting-btns';
+            const selectAllScales = document.createElement('button');
+            selectAllScales.textContent = 'All';
+            selectAllScales.className = 'game-setting-btn';
+            const deselectAllScales = document.createElement('button');
+            deselectAllScales.textContent = 'None';
+            deselectAllScales.className = 'game-setting-btn';
+            scaleBtns.appendChild(selectAllScales);
+            scaleBtns.appendChild(deselectAllScales);
+            scaleHeader.appendChild(scaleBtns);
+            scaleGroup.appendChild(scaleHeader);
 
-        const intervalChecks = document.createElement('div');
-        intervalChecks.className = 'game-setting-checks';
+            const scaleChecks = document.createElement('div');
+            scaleChecks.className = 'game-setting-checks';
 
-        const intervalCheckboxes = [];
-        for (let s = 0; s <= 24; s++) {
-            const label = document.createElement('label');
-            label.className = 'game-setting-check-label';
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.checked = settings.enabledIntervals.includes(s);
-            cb.addEventListener('change', () => {
-                if (cb.checked) {
-                    if (!settings.enabledIntervals.includes(s)) {
-                        settings.enabledIntervals.push(s);
+            const scaleCheckboxes = [];
+            ALL_SCALE_TYPES.forEach(key => {
+                const label = document.createElement('label');
+                label.className = 'game-setting-check-label';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = settings.enabledScales.includes(key);
+                cb.addEventListener('change', () => {
+                    if (cb.checked) {
+                        if (!settings.enabledScales.includes(key)) {
+                            settings.enabledScales.push(key);
+                        }
+                    } else {
+                        settings.enabledScales = settings.enabledScales.filter(v => v !== key);
                     }
-                } else {
-                    settings.enabledIntervals = settings.enabledIntervals.filter(v => v !== s);
-                }
+                    saveSettings();
+                });
+                scaleCheckboxes.push(cb);
+                const span = document.createElement('span');
+                span.textContent = MusicTheory.SCALES[key].name;
+                label.appendChild(cb);
+                label.appendChild(span);
+                scaleChecks.appendChild(label);
+            });
+
+            selectAllScales.addEventListener('click', () => {
+                settings.enabledScales = [...ALL_SCALE_TYPES];
+                scaleCheckboxes.forEach(cb => cb.checked = true);
                 saveSettings();
             });
-            intervalCheckboxes.push(cb);
-            const span = document.createElement('span');
-            span.textContent = getIntervalLabel(s);
-            label.appendChild(cb);
-            label.appendChild(span);
-            intervalChecks.appendChild(label);
+            deselectAllScales.addEventListener('click', () => {
+                settings.enabledScales = [];
+                scaleCheckboxes.forEach(cb => cb.checked = false);
+                saveSettings();
+            });
+
+            scaleGroup.appendChild(scaleChecks);
+            modalBody.appendChild(scaleGroup);
+        } else {
+            // Interval checkboxes
+            const intervalGroup = document.createElement('div');
+            intervalGroup.className = 'game-setting-group';
+            const intervalHeader = document.createElement('div');
+            intervalHeader.className = 'game-setting-header';
+            const intervalLabel = document.createElement('label');
+            intervalLabel.textContent = 'Intervals';
+            intervalLabel.className = 'game-setting-label';
+            intervalHeader.appendChild(intervalLabel);
+
+            const intervalBtns = document.createElement('div');
+            intervalBtns.className = 'game-setting-btns';
+            const selectAllInt = document.createElement('button');
+            selectAllInt.textContent = 'All';
+            selectAllInt.className = 'game-setting-btn';
+            const deselectAllInt = document.createElement('button');
+            deselectAllInt.textContent = 'None';
+            deselectAllInt.className = 'game-setting-btn';
+            intervalBtns.appendChild(selectAllInt);
+            intervalBtns.appendChild(deselectAllInt);
+            intervalHeader.appendChild(intervalBtns);
+            intervalGroup.appendChild(intervalHeader);
+
+            const intervalChecks = document.createElement('div');
+            intervalChecks.className = 'game-setting-checks';
+
+            const intervalCheckboxes = [];
+            for (let s = 0; s <= 24; s++) {
+                const label = document.createElement('label');
+                label.className = 'game-setting-check-label';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = settings.enabledIntervals.includes(s);
+                cb.addEventListener('change', () => {
+                    if (cb.checked) {
+                        if (!settings.enabledIntervals.includes(s)) {
+                            settings.enabledIntervals.push(s);
+                        }
+                    } else {
+                        settings.enabledIntervals = settings.enabledIntervals.filter(v => v !== s);
+                    }
+                    saveSettings();
+                });
+                intervalCheckboxes.push(cb);
+                const span = document.createElement('span');
+                span.textContent = getIntervalLabel(s);
+                label.appendChild(cb);
+                label.appendChild(span);
+                intervalChecks.appendChild(label);
+            }
+
+            selectAllInt.addEventListener('click', () => {
+                settings.enabledIntervals = Array.from({ length: 25 }, (_, i) => i);
+                intervalCheckboxes.forEach(cb => cb.checked = true);
+                saveSettings();
+            });
+            deselectAllInt.addEventListener('click', () => {
+                settings.enabledIntervals = [];
+                intervalCheckboxes.forEach(cb => cb.checked = false);
+                saveSettings();
+            });
+
+            intervalGroup.appendChild(intervalChecks);
+            modalBody.appendChild(intervalGroup);
         }
-
-        selectAllInt.addEventListener('click', () => {
-            settings.enabledIntervals = Array.from({ length: 25 }, (_, i) => i);
-            intervalCheckboxes.forEach(cb => cb.checked = true);
-            saveSettings();
-        });
-        deselectAllInt.addEventListener('click', () => {
-            settings.enabledIntervals = [];
-            intervalCheckboxes.forEach(cb => cb.checked = false);
-            saveSettings();
-        });
-
-        intervalGroup.appendChild(intervalChecks);
-        modalBody.appendChild(intervalGroup);
 
         // Root note checkboxes
         const rootGroup = document.createElement('div');
@@ -731,7 +869,8 @@
             const modeNames = {
                 'interval-training': 'Root \u2192 Interval',
                 'interval-to-root': 'Interval \u2192 Root',
-                'interval-to-interval': 'Interval \u2192 Interval'
+                'interval-to-interval': 'Interval \u2192 Interval',
+                'scale-builder': 'Scale Builder'
             };
             if (confirm('Clear stats for ' + modeNames[key] + ' mode?')) {
                 delete stats[key];
@@ -761,25 +900,39 @@
             return;
         }
 
-        // Pick random root and interval
+        // Pick random root
         const rootIdx = Math.floor(Math.random() * settings.enabledRoots.length);
         gameState.currentRoot = settings.enabledRoots[rootIdx];
         gameState.currentRootIndex = MusicTheory.getNoteIndex(gameState.currentRoot);
 
-        const intIdx = Math.floor(Math.random() * settings.enabledIntervals.length);
-        gameState.currentSemitone = settings.enabledIntervals[intIdx];
-
         const mode = gameState.activeMode;
-        if (mode === 'interval-to-root') {
-            gameState.givenSemitone = gameState.currentSemitone;
-            gameState.givenNoteIndex = (gameState.currentRootIndex + gameState.givenSemitone) % 12;
-        } else if (mode === 'interval-to-interval') {
-            gameState.givenSemitone = gameState.currentSemitone;
-            gameState.givenNoteIndex = (gameState.currentRootIndex + gameState.givenSemitone) % 12;
-            // Pick a second interval that lands on a different circle position
-            const givenPos = gameState.givenSemitone % 12;
-            const candidates = settings.enabledIntervals.filter(i => i % 12 !== givenPos);
-            gameState.targetSemitone = candidates[Math.floor(Math.random() * candidates.length)];
+
+        if (mode === 'scale-builder') {
+            const scaleIdx = Math.floor(Math.random() * settings.enabledScales.length);
+            gameState.currentScaleType = settings.enabledScales[scaleIdx];
+            const scale = MusicTheory.buildScale(gameState.currentRoot, gameState.currentScaleType);
+            const scaleFormula = MusicTheory.SCALES[gameState.currentScaleType];
+            gameState.scaleNotes = scaleFormula.intervals.map(interval =>
+                (gameState.currentRootIndex + MusicTheory.INTERVALS[interval]) % 12
+            );
+            gameState.scaleDegrees = scale.degrees;
+            gameState.currentDegreeIndex = 0;
+            gameState.hadMistake = false;
+        } else {
+            const intIdx = Math.floor(Math.random() * settings.enabledIntervals.length);
+            gameState.currentSemitone = settings.enabledIntervals[intIdx];
+
+            if (mode === 'interval-to-root') {
+                gameState.givenSemitone = gameState.currentSemitone;
+                gameState.givenNoteIndex = (gameState.currentRootIndex + gameState.givenSemitone) % 12;
+            } else if (mode === 'interval-to-interval') {
+                gameState.givenSemitone = gameState.currentSemitone;
+                gameState.givenNoteIndex = (gameState.currentRootIndex + gameState.givenSemitone) % 12;
+                // Pick a second interval that lands on a different circle position
+                const givenPos = gameState.givenSemitone % 12;
+                const candidates = settings.enabledIntervals.filter(i => i % 12 !== givenPos);
+                gameState.targetSemitone = candidates[Math.floor(Math.random() * candidates.length)];
+            }
         }
 
         renderGameView();
@@ -806,7 +959,9 @@
 
         const mode = gameState.activeMode;
         const circleOptions = {};
-        if (mode !== 'root-to-interval') {
+        if (mode === 'scale-builder') {
+            circleOptions.neutralColors = true;
+        } else if (mode !== 'root-to-interval') {
             circleOptions.neutralColors = !settings.showColors;
             circleOptions.highlightNoteIndex = gameState.givenNoteIndex;
             if (settings.showLabels) {
@@ -837,10 +992,10 @@
 
         content.appendChild(wrapper);
 
-        // Auto-play: root note for root-to-interval, given note for other modes
+        // Auto-play: root note for root-to-interval and scale-builder, given note for other modes
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
-            if (mode === 'root-to-interval') {
+            if (mode === 'root-to-interval' || mode === 'scale-builder') {
                 Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
             } else {
                 const givenNoteName = MusicTheory.getNoteName(gameState.givenNoteIndex, false);
@@ -853,6 +1008,17 @@
         if (gameState.answered) return;
 
         const mode = gameState.activeMode;
+
+        if (mode === 'scale-builder') {
+            const expectedIndex = gameState.scaleNotes[gameState.currentDegreeIndex];
+            if (noteIndex === expectedIndex) {
+                handleScaleCorrectStep(noteIndex);
+            } else {
+                handleScaleWrongStep(noteIndex);
+            }
+            return;
+        }
+
         let correctNoteIndex;
         if (mode === 'interval-to-root') {
             correctNoteIndex = gameState.currentRootIndex;
@@ -1014,6 +1180,181 @@
         }
     }
 
+    function handleScaleCorrectStep(noteIndex) {
+        const api = gameState.circleApi;
+        if (!api) return;
+
+        // Play clicked note sound
+        const gamesState = window.Games ? window.Games.getState() : null;
+        if (gamesState && gamesState.soundEnabled) {
+            const noteName = MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
+            Sound.playNote(noteName, GAME_OCTAVE);
+        }
+
+        // Flash green
+        const group = api.noteGroups.find(g =>
+            parseInt(g.getAttribute('data-note-index')) === noteIndex
+        );
+        if (group) {
+            const circle = group.querySelector('circle');
+            const text = group.querySelector('text');
+            circle.setAttribute('fill', '#00CC00');
+            circle.setAttribute('stroke', '#009900');
+
+            const degreeLabel = gameState.scaleDegrees[gameState.currentDegreeIndex];
+
+            setTimeout(() => {
+                // Apply interval color
+                if (settings.showColors) {
+                    const colors = MusicTheory.getIntervalColor(degreeLabel);
+                    circle.setAttribute('fill', colors.fill);
+                    circle.setAttribute('stroke', colors.border);
+                    text.setAttribute('fill', colors.text);
+                } else {
+                    const fill = noteIndex % 2 === 0 ? '#000' : '#777';
+                    circle.setAttribute('fill', fill);
+                    circle.setAttribute('stroke', fill);
+                    text.setAttribute('fill', '#fff');
+                }
+                // Force-show label
+                if (settings.showLabels) {
+                    text.setAttribute('visibility', 'visible');
+                }
+            }, 300);
+        }
+
+        gameState.currentDegreeIndex++;
+
+        // Update progress text
+        const rootText = api.questionGroup.querySelector('.question-root');
+        if (rootText) {
+            rootText.textContent = 'from ' + gameState.currentRoot + ' (' + gameState.currentDegreeIndex + '/' + gameState.scaleNotes.length + ')';
+        }
+
+        if (gameState.currentDegreeIndex === gameState.scaleNotes.length) {
+            handleScaleComplete();
+        }
+    }
+
+    function handleScaleWrongStep(noteIndex) {
+        const api = gameState.circleApi;
+        if (!api) return;
+
+        // Play clicked note sound
+        const gamesState = window.Games ? window.Games.getState() : null;
+        if (gamesState && gamesState.soundEnabled) {
+            const noteName = MusicTheory.getNoteName(noteIndex, false);
+            Sound.playNote(noteName, GAME_OCTAVE);
+        }
+
+        gameState.hadMistake = true;
+
+        // Flash ALL 12 markers red
+        const origColors = [];
+        api.noteGroups.forEach(g => {
+            const circle = g.querySelector('circle');
+            origColors.push({
+                fill: circle.getAttribute('fill'),
+                stroke: circle.getAttribute('stroke')
+            });
+            circle.setAttribute('fill', '#FF0000');
+            circle.setAttribute('stroke', '#CC0000');
+        });
+
+        setTimeout(() => {
+            // Restore all markers to neutral colors
+            api.noteGroups.forEach((g, i) => {
+                const idx = parseInt(g.getAttribute('data-note-index'));
+                const circle = g.querySelector('circle');
+                const text = g.querySelector('text');
+                const fill = idx % 2 === 0 ? '#000' : '#777';
+                circle.setAttribute('fill', fill);
+                circle.setAttribute('stroke', fill);
+                text.setAttribute('fill', '#fff');
+            });
+
+            // Reset sequence
+            gameState.currentDegreeIndex = 0;
+
+            // Reset progress text
+            const rootText = api.questionGroup.querySelector('.question-root');
+            if (rootText) {
+                rootText.textContent = 'from ' + gameState.currentRoot;
+            }
+        }, 400);
+    }
+
+    function handleScaleComplete() {
+        gameState.answered = true;
+        if (!gameState.hadMistake) {
+            gameState.correctCount++;
+        }
+
+        // Record stat
+        recordScaleStat(gameState.currentRoot, gameState.currentScaleType, !gameState.hadMistake);
+
+        const api = gameState.circleApi;
+        if (!api) return;
+
+        const rootIndex = gameState.currentRootIndex;
+        const scaleNoteSet = new Set(gameState.scaleNotes);
+
+        // Fade out non-scale notes
+        api.noteGroups.forEach(g => {
+            const idx = parseInt(g.getAttribute('data-note-index'));
+            if (!scaleNoteSet.has(idx)) {
+                g.style.opacity = '0.1';
+            }
+        });
+
+        // Ensure all scale notes show interval colors and visible labels
+        api.noteGroups.forEach(g => {
+            const idx = parseInt(g.getAttribute('data-note-index'));
+            if (scaleNoteSet.has(idx)) {
+                const text = g.querySelector('text');
+                const circle = g.querySelector('circle');
+                if (text) text.setAttribute('visibility', 'visible');
+                const sem = ((idx - rootIndex) + 12) % 12;
+                const intervalLabel = SIMPLE_LABELS[sem];
+                const colors = MusicTheory.getIntervalColor(intervalLabel);
+                circle.setAttribute('fill', colors.fill);
+                circle.setAttribute('stroke', colors.border);
+                text.setAttribute('fill', colors.text);
+            }
+        });
+
+        // Update center text
+        const intervalText = api.questionGroup.querySelector('.question-interval');
+        const rootText = api.questionGroup.querySelector('.question-root');
+        if (intervalText) {
+            intervalText.textContent = gameState.currentRoot + ' ' + MusicTheory.SCALES[gameState.currentScaleType].name;
+        }
+        if (rootText) {
+            rootText.textContent = '';
+        }
+
+        // Arpeggiated playthrough
+        const gamesState = window.Games ? window.Games.getState() : null;
+        const noteCount = gameState.scaleNotes.length;
+        if (gamesState && gamesState.soundEnabled) {
+            gameState.scaleNotes.forEach((noteIdx, i) => {
+                setTimeout(() => {
+                    const noteName = MusicTheory.getNoteName(noteIdx, MusicTheory.shouldUseFlats(gameState.currentRoot));
+                    Sound.playNote(noteName, GAME_OCTAVE, 0.4);
+                }, i * 200);
+            });
+        }
+
+        // Show Next button after arpeggio finishes
+        const delay = 500 + (noteCount * 200);
+        setTimeout(() => {
+            const nextBtn = document.getElementById('game-next-btn');
+            if (nextBtn) {
+                nextBtn.style.display = 'block';
+            }
+        }, delay);
+    }
+
     function showResults() {
         const content = document.getElementById('game-content');
         if (!content) return;
@@ -1089,7 +1430,8 @@
     function renderStats(container) {
         container.innerHTML = '';
 
-        const gameStats = stats[getStatsKey()];
+        const statsKey = getStatsKey();
+        const gameStats = stats[statsKey];
         if (!gameStats || Object.keys(gameStats).length === 0) {
             const msg = document.createElement('p');
             msg.className = 'game-explanation';
@@ -1098,7 +1440,75 @@
             return;
         }
 
-        // Find all tested intervals across all roots
+        if (statsKey === 'scale-builder') {
+            // Scale builder stats: columns = scale types
+            const testedScales = new Set();
+            const testedRoots = [];
+
+            ALL_ROOTS.forEach(root => {
+                if (gameStats[root]) {
+                    testedRoots.push(root);
+                    Object.keys(gameStats[root]).forEach(s => testedScales.add(s));
+                }
+            });
+
+            // Sort scale types in the same order as ALL_SCALE_TYPES
+            const sortedScales = ALL_SCALE_TYPES.filter(s => testedScales.has(s));
+            if (sortedScales.length === 0) return;
+
+            const table = document.createElement('div');
+            table.className = 'stats-table';
+
+            // Header row
+            const headerRow = document.createElement('div');
+            headerRow.className = 'stats-row';
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'stats-root-label';
+            headerRow.appendChild(emptyCell);
+
+            sortedScales.forEach(s => {
+                const cell = document.createElement('div');
+                cell.className = 'stats-cell stats-cell-header';
+                cell.textContent = MusicTheory.SCALES[s].name;
+                headerRow.appendChild(cell);
+            });
+            table.appendChild(headerRow);
+
+            // Data rows
+            testedRoots.forEach(root => {
+                const row = document.createElement('div');
+                row.className = 'stats-row';
+
+                const rootCell = document.createElement('div');
+                rootCell.className = 'stats-root-label';
+                rootCell.textContent = root;
+                row.appendChild(rootCell);
+
+                sortedScales.forEach(s => {
+                    const cell = document.createElement('div');
+                    cell.className = 'stats-cell';
+
+                    const data = gameStats[root][s];
+                    if (data && data.tested > 0) {
+                        const ratio = data.correct / data.tested;
+                        const pct = Math.round(ratio * 100);
+                        cell.style.backgroundColor = accuracyToColor(ratio);
+                        cell.textContent = `${pct}%`;
+                        cell.title = `${MusicTheory.SCALES[s].name} from ${root}: ${data.correct}/${data.tested} (${pct}%)`;
+                        cell.style.color = ratio > 0.3 && ratio < 0.7 ? '#000' : ratio >= 0.7 ? '#000' : '#fff';
+                    } else {
+                        cell.style.backgroundColor = '#f0f0f0';
+                    }
+                    row.appendChild(cell);
+                });
+                table.appendChild(row);
+            });
+
+            container.appendChild(table);
+            return;
+        }
+
+        // Interval-based stats (existing modes)
         const testedIntervals = new Set();
         const testedRoots = [];
 
