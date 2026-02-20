@@ -62,7 +62,21 @@
         await Tone.start();
         ensureSynth();
 
-        const notesWithOctaves = assignOctaves(noteNames);
+        const hasOctaves = noteNames.some(n => /\d/.test(n));
+        let notesWithOctaves;
+        if (hasOctaves) {
+            notesWithOctaves = noteNames.map(n => {
+                const match = n.match(/^([A-Ga-g][#b]*)(\d+)$/);
+                if (match) {
+                    const index = MusicTheory.getNoteIndex(match[1]);
+                    return MusicTheory.CHROMATIC_NOTES[index] + match[2];
+                }
+                return n;
+            });
+        } else {
+            notesWithOctaves = assignOctaves(noteNames);
+        }
+
         const strumDelay = 0.08; // 80ms between each note
         const now = Tone.now();
         notesWithOctaves.forEach((note, i) => {

@@ -32,6 +32,10 @@
 
     const GAME_OCTAVE = 4;
 
+    function getNoteOctave(noteIndex, rootIndex) {
+        return (noteIndex < rootIndex) ? GAME_OCTAVE + 1 : GAME_OCTAVE;
+    }
+
     const VALID_GAME_MODES = ['root-to-interval', 'interval-to-root', 'interval-to-interval', 'scale-builder', 'chord-builder'];
 
     const ALL_SCALE_TYPES = Object.keys(MusicTheory.SCALES);
@@ -1117,7 +1121,7 @@
                 Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
             } else {
                 const givenNoteName = MusicTheory.getNoteName(gameState.givenNoteIndex, false);
-                Sound.playNote(givenNoteName, GAME_OCTAVE);
+                Sound.playNote(givenNoteName, getNoteOctave(gameState.givenNoteIndex, gameState.currentRootIndex));
             }
         }
     }
@@ -1168,7 +1172,7 @@
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(clickedNoteIndex, false);
-            Sound.playNote(noteName, GAME_OCTAVE);
+            Sound.playNote(noteName, getNoteOctave(clickedNoteIndex, gameState.currentRootIndex));
         }
 
         // Record stat
@@ -1278,7 +1282,7 @@
                 if (mode === 'root-to-interval') {
                     const targetIndex = (rootIndex + gameState.currentSemitone) % 12;
                     const targetNote = MusicTheory.getNoteName(targetIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
-                    Sound.playNote(targetNote, GAME_OCTAVE);
+                    Sound.playNote(targetNote, getNoteOctave(targetIndex, gameState.currentRootIndex));
                     setTimeout(() => {
                         Sound.playInterval(gameState.currentRoot, targetNote, gameState.currentSemitone, GAME_OCTAVE);
                     }, 250);
@@ -1291,7 +1295,7 @@
                 } else if (mode === 'interval-to-interval') {
                     const answerIndex = (rootIndex + gameState.targetSemitone) % 12;
                     const answerNote = MusicTheory.getNoteName(answerIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
-                    Sound.playNote(answerNote, GAME_OCTAVE);
+                    Sound.playNote(answerNote, getNoteOctave(answerIndex, gameState.currentRootIndex));
                     setTimeout(() => {
                         Sound.playInterval(gameState.currentRoot, answerNote, gameState.targetSemitone, GAME_OCTAVE);
                     }, 250);
@@ -1316,7 +1320,7 @@
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
-            Sound.playNote(noteName, GAME_OCTAVE);
+            Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
         }
 
         // Flash green
@@ -1372,7 +1376,7 @@
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(noteIndex, false);
-            Sound.playNote(noteName, GAME_OCTAVE);
+            Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
         }
 
         gameState.hadMistake = true;
@@ -1468,7 +1472,7 @@
             gameState.scaleNotes.forEach((noteIdx, i) => {
                 setTimeout(() => {
                     const noteName = MusicTheory.getNoteName(noteIdx, MusicTheory.shouldUseFlats(gameState.currentRoot));
-                    Sound.playNote(noteName, GAME_OCTAVE, 0.4);
+                    Sound.playNote(noteName, getNoteOctave(noteIdx, gameState.currentRootIndex), 0.4);
                 }, i * 200);
             });
         }
@@ -1494,7 +1498,7 @@
             const gamesState = window.Games ? window.Games.getState() : null;
             if (gamesState && gamesState.soundEnabled) {
                 const noteName = MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
-                Sound.playNote(noteName, GAME_OCTAVE);
+                Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
             }
         }
 
@@ -1551,7 +1555,7 @@
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(noteIndex, false);
-            Sound.playNote(noteName, GAME_OCTAVE);
+            Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
         }
 
         gameState.hadMistake = true;
@@ -1639,9 +1643,10 @@
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
             const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
-            const chordNoteNames = gameState.chordNotes.map(noteIdx =>
-                MusicTheory.getNoteName(noteIdx, useFlats)
-            );
+            const chordNoteNames = gameState.chordNotes.map(noteIdx => {
+                const name = MusicTheory.getNoteName(noteIdx, useFlats);
+                return name + getNoteOctave(noteIdx, gameState.currentRootIndex);
+            });
             Sound.playChord(chordNoteNames);
         }
 
