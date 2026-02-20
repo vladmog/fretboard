@@ -43,6 +43,10 @@
                             Modes
                         </label>
                         <label class="radio-label">
+                            <input type="radio" name="mode" value="find">
+                            Find
+                        </label>
+                        <label class="radio-label">
                             <input type="radio" name="mode" value="games">
                             Games
                         </label>
@@ -118,6 +122,15 @@
                         </div>
                         <div id="scale-chords">
                             <!-- Scale chord buttons populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div id="find-controls" class="control-group" style="display: none;">
+                        <label>Matching Chords</label>
+                        <ul id="find-results-list" class="find-results-list"></ul>
+                        <div class="find-actions">
+                            <button id="find-add-btn" class="btn btn-add" disabled>+ Add</button>
+                            <button id="find-clear-btn" class="btn btn-clear">Clear</button>
                         </div>
                     </div>
                 </div>

@@ -8,7 +8,7 @@
 
     // Application state
     const state = {
-        mode: 'scale',          // 'scale', 'chord', 'interval', 'caged', or 'modes'
+        mode: 'scale',          // 'scale', 'chord', 'interval', 'caged', 'modes', or 'find'
         root: 'C',
         scaleType: 'major',
         chordType: 'maj',
@@ -20,7 +20,10 @@
         showRelative: false,    // Toggle for relative major/minor
         showNoteNames: false,   // Toggle for note names vs intervals on markers
         soundEnabled: true,     // Toggle for chord list sound playback
-        fretboard: null         // Fretboard API instance
+        fretboard: null,        // Fretboard API instance
+        findMarkers: {},        // Find mode: map keyed by string (1-6) → {fret, noteIndex}
+        findResults: [],        // Find mode: results from MusicTheory.findChords()
+        findSelectedIndex: -1   // Find mode: index in findResults, -1 = user markers view
     };
 
     // Storage key for chord list persistence
@@ -343,6 +346,178 @@
         });
     }
 
+    // ========================================
+    // FIND MODE
+    // ========================================
+
+    /**
+     * Register click handler for Find mode fretboard interaction
+     */
+    function registerFindClickHandler() {
+        if (!state.fretboard) return;
+        state.fretboard.onFretClick((string, fret) => {
+            // If a result chord is selected, deselect it first
+            if (state.findSelectedIndex >= 0) {
+                state.findSelectedIndex = -1;
+            }
+
+            // Toggle marker: same string+fret removes, different fret replaces, new string adds
+            if (state.findMarkers[string] && state.findMarkers[string].fret === fret) {
+                delete state.findMarkers[string];
+            } else {
+                const stringIndex = 6 - string;
+                const noteIndex = MusicTheory.getNoteAt(stringIndex, fret);
+                state.findMarkers[string] = { fret, noteIndex };
+                if (state.soundEnabled) {
+                    const noteName = MusicTheory.getNoteName(noteIndex, false);
+                    const octave = MusicTheory.getOctaveAt(stringIndex, fret);
+                    Sound.playNote(noteName, octave);
+                }
+            }
+
+            updateFindResults();
+            displayFindMarkers();
+        });
+    }
+
+    /**
+     * Update find results based on current markers
+     */
+    function updateFindResults() {
+        const noteSet = new Set();
+        for (const marker of Object.values(state.findMarkers)) {
+            noteSet.add(marker.noteIndex);
+        }
+        state.findResults = MusicTheory.findChords(noteSet);
+        state.findSelectedIndex = -1;
+        renderFindResults();
+    }
+
+    /**
+     * Display user-placed find markers on the fretboard
+     */
+    function displayFindMarkers() {
+        if (!state.fretboard) return;
+        state.fretboard.clearMarkers();
+
+        const notes = [];
+        for (const [stringStr, marker] of Object.entries(state.findMarkers)) {
+            const string = parseInt(stringStr);
+            const noteName = MusicTheory.getNoteName(marker.noteIndex, false);
+            notes.push(noteName);
+            state.fretboard.setMarker(string, marker.fret, {
+                color: '#555',
+                borderColor: '#000',
+                text: noteName,
+                textColor: '#fff'
+            });
+        }
+
+        // Apply current rotation to newly created markers
+        if (window.RotationToggle) {
+            window.RotationToggle.applyCurrentRotation();
+        }
+
+        updateInfoPanel({
+            title: notes.length > 0 ? 'Find: ' + notes.join(' ') : 'Find Mode',
+            notes: notes.length > 0 ? notes : ['Tap fretboard to place notes'],
+            intervals: []
+        });
+    }
+
+    /**
+     * Render find results list UI
+     */
+    function renderFindResults() {
+        const listEl = document.getElementById('find-results-list');
+        if (!listEl) return;
+
+        listEl.innerHTML = '';
+
+        const addBtn = document.getElementById('find-add-btn');
+
+        if (Object.keys(state.findMarkers).length < 2) {
+            const li = document.createElement('li');
+            li.className = 'find-result-placeholder';
+            li.textContent = 'Place 2+ notes to find chords';
+            listEl.appendChild(li);
+            if (addBtn) addBtn.disabled = true;
+            return;
+        }
+
+        if (state.findResults.length === 0) {
+            const li = document.createElement('li');
+            li.className = 'find-result-placeholder';
+            li.textContent = 'No matching chords';
+            listEl.appendChild(li);
+            if (addBtn) addBtn.disabled = true;
+            return;
+        }
+
+        state.findResults.forEach((chord, index) => {
+            const li = document.createElement('li');
+            li.className = 'find-result-item';
+            if (index === state.findSelectedIndex) {
+                li.classList.add('selected');
+            }
+
+            const symbolSpan = document.createElement('span');
+            symbolSpan.className = 'find-result-symbol';
+            symbolSpan.textContent = chord.symbol;
+
+            const notesSpan = document.createElement('span');
+            notesSpan.className = 'find-result-notes';
+            notesSpan.textContent = chord.notes.join(' ');
+
+            li.appendChild(symbolSpan);
+            li.appendChild(notesSpan);
+            li.addEventListener('click', () => selectFindResult(index));
+            listEl.appendChild(li);
+        });
+
+        if (addBtn) addBtn.disabled = state.findSelectedIndex < 0;
+    }
+
+    /**
+     * Select or deselect a find result chord
+     * @param {number} index - Index in findResults
+     */
+    function selectFindResult(index) {
+        if (state.findSelectedIndex === index) {
+            // Deselect — show user markers
+            state.findSelectedIndex = -1;
+            displayFindMarkers();
+        } else {
+            state.findSelectedIndex = index;
+            const chord = state.findResults[index];
+            displayChord(chord);
+            if (state.soundEnabled) {
+                Sound.playChord(chord.notes);
+            }
+        }
+        renderFindResults();
+    }
+
+    /**
+     * Add selected find result to chord list
+     */
+    function addFindResultToChordList() {
+        if (state.findSelectedIndex < 0 || state.findSelectedIndex >= state.findResults.length) return;
+        const chord = state.findResults[state.findSelectedIndex];
+        addChordToList(chord.root, chord.type);
+    }
+
+    /**
+     * Clear all find markers and results
+     */
+    function clearFindMarkers() {
+        state.findMarkers = {};
+        state.findResults = [];
+        state.findSelectedIndex = -1;
+        renderFindResults();
+        displayFindMarkers();
+    }
+
     /**
      * Update the info panel with current selection details
      * @param {Object} info - { title, notes, intervals }
@@ -375,6 +550,11 @@
                 const chord = MusicTheory.buildChord(item.root, item.type);
                 displayChord(chord);
             }
+        } else if (state.mode === 'find') {
+            if (state.findSelectedIndex < 0) {
+                displayFindMarkers();
+            }
+            return;
         } else if (state.mode === 'caged') {
             displayCaged(state.root, state.cagedShape);
         } else if (state.mode === 'modes') {
@@ -696,15 +876,24 @@
             if (window.Games) window.Games.deactivate();
         }
 
+        // Leaving Find mode — clean up
+        if (state.mode === 'find') {
+            if (state.fretboard) state.fretboard.onFretClick(null);
+            state.findMarkers = {};
+            state.findResults = [];
+            state.findSelectedIndex = -1;
+            document.body.classList.remove('find-mode-active');
+        }
+
         state.mode = mode;
         state.selectedChordIndex = -1; // Deselect list item when changing mode
         updateTypeDropdown();
         renderChordList();
 
-        // Show/hide type selector based on mode (hide for interval only)
+        // Show/hide type selector based on mode (hide for interval and find)
         const typeGroup = document.querySelector('.control-group:has(#type-select)');
         if (typeGroup) {
-            typeGroup.style.display = mode === 'interval' ? 'none' : 'block';
+            typeGroup.style.display = (mode === 'interval' || mode === 'find') ? 'none' : 'block';
         }
 
         // When entering CAGED mode, ensure chordType is a valid CAGED type
@@ -731,6 +920,12 @@
             rootLabel.textContent = mode === 'modes' ? 'Key' : 'Root Note';
         }
 
+        // Show/hide root note selector (hide in find mode)
+        const rootGroup = document.querySelector('.control-group:has(#root-note)');
+        if (rootGroup) {
+            rootGroup.style.display = mode === 'find' ? 'none' : 'block';
+        }
+
         // Show/hide CAGED shape selector
         const cagedSelector = document.getElementById('caged-shape-selector');
         if (cagedSelector) {
@@ -743,10 +938,13 @@
             builderSection.style.display = mode === 'scale' ? 'block' : 'none';
         }
 
+        // Show/hide find controls
+        const findControls = document.getElementById('find-controls');
+        if (findControls) {
+            findControls.style.display = mode === 'find' ? 'block' : 'none';
+        }
+
         // Show/hide Add button based on mode
-        // Scale mode: use scale chord buttons only
-        // Chord mode: show Add button
-        // Interval/CAGED mode: hide Add button
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
             addChordBtn.style.display = (mode === 'chord') ? 'flex' : 'none';
@@ -754,6 +952,15 @@
 
         if (mode === 'scale') {
             renderScaleChords();
+        }
+
+        // Enter Find mode
+        if (mode === 'find') {
+            document.body.classList.add('find-mode-active');
+            registerFindClickHandler();
+            renderFindResults();
+            displayFindMarkers();
+            return;
         }
 
         updateDisplay();
@@ -920,6 +1127,17 @@
             clearListBtn.addEventListener('click', clearChordList);
         }
 
+        // Find mode buttons
+        const findAddBtn = document.getElementById('find-add-btn');
+        if (findAddBtn) {
+            findAddBtn.addEventListener('click', addFindResultToChordList);
+        }
+
+        const findClearBtn = document.getElementById('find-clear-btn');
+        if (findClearBtn) {
+            findClearBtn.addEventListener('click', clearFindMarkers);
+        }
+
     }
 
     /**
@@ -950,10 +1168,10 @@
             addChordBtn.style.display = state.mode === 'chord' ? 'flex' : 'none';
         }
 
-        // Hide type selector in interval mode only
+        // Hide type selector in interval/find mode
         const typeGroup = document.querySelector('.control-group:has(#type-select)');
         if (typeGroup) {
-            typeGroup.style.display = (state.mode === 'interval') ? 'none' : 'block';
+            typeGroup.style.display = (state.mode === 'interval' || state.mode === 'find') ? 'none' : 'block';
         }
 
         // Initial display
@@ -966,6 +1184,9 @@
                 tuning: MusicTheory.STANDARD_TUNING,
                 frets: 15
             });
+            if (state.mode === 'find') {
+                registerFindClickHandler();
+            }
             updateDisplay();
         });
     }

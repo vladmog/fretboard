@@ -26,6 +26,9 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 // Current markers storage
 let currentMarkers = [];
 
+// Click callback for Find mode
+let clickCallback = null;
+
 /**
  * Apply style object to SVG element
  * @param {SVGElement} element - SVG element to style
@@ -63,6 +66,51 @@ function createSVGElement(tag, attrs = {}, styleObj = null) {
  */
 function isVerticalOrientation() {
     return window.innerWidth <= 768;
+}
+
+/**
+ * Determine string and fret from a point in SVG coordinate space
+ * @param {Object} config - Fretboard configuration
+ * @param {number} svgX - X coordinate in SVG viewBox space
+ * @param {number} svgY - Y coordinate in SVG viewBox space
+ * @returns {Object|null} - {string, fret} or null if out of bounds
+ */
+function getStringFretFromPoint(config, svgX, svgY) {
+    const { padding, stringSpacing, fretSpacing, isVertical, numStrings, frets } = config;
+
+    let stringCoord, fretCoord;
+    if (isVertical) {
+        stringCoord = svgX;
+        fretCoord = svgY;
+    } else {
+        stringCoord = svgY;
+        fretCoord = svgX;
+    }
+
+    // Snap to nearest string
+    const stringIndex = Math.round((stringCoord - padding) / stringSpacing);
+    if (stringIndex < 0 || stringIndex >= numStrings) return null;
+
+    // In horizontal mode, strings are drawn reversed (high E at top)
+    let string;
+    if (isVertical) {
+        string = numStrings - stringIndex;
+    } else {
+        string = stringIndex + 1;
+    }
+
+    // Snap to nearest fret
+    let fret;
+    const fretPos = (fretCoord - padding) / fretSpacing;
+    if (fretPos < 0.25) {
+        fret = 0; // Open string zone
+    } else {
+        fret = Math.round(fretPos + 0.5);
+        if (fret < 1) fret = 1;
+        if (fret > frets) fret = frets;
+    }
+
+    return { string, fret };
 }
 
 /**
@@ -314,11 +362,24 @@ function createFretboard(container, config = {}) {
         tuning
     };
 
+    // Click listener for Find mode
+    svg.addEventListener('click', (e) => {
+        if (!clickCallback) return;
+        e.stopPropagation();
+        const point = new DOMPoint(e.clientX, e.clientY);
+        const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+        const result = getStringFretFromPoint(fretboardConfig, svgPoint.x, svgPoint.y);
+        if (result) {
+            clickCallback(result.string, result.fret);
+        }
+    });
+
     // Return API
     return {
         setMarker: (string, fret, options) => setMarker(fretboardConfig, string, fret, options),
         clearMarkers: () => clearMarkers(fretboardConfig),
-        addShape: (points, options) => addShape(fretboardConfig, points, options)
+        addShape: (points, options) => addShape(fretboardConfig, points, options),
+        onFretClick: (callback) => { clickCallback = callback; }
     };
 }
 
