@@ -269,20 +269,18 @@
             const activeNotes = mode === 'scale-builder' ? gameState.scaleNotes : gameState.chordNotes;
             api.noteGroups.forEach(g => {
                 const noteIndex = parseInt(g.getAttribute('data-note-index'));
-                if (!gameState.answered) {
-                    // Preserve already-highlighted correct notes
-                    const isHighlighted = noteIndex < activeNotes.length &&
-                        gameState.currentDegreeIndex > 0 &&
-                        activeNotes.slice(0, gameState.currentDegreeIndex).includes(noteIndex);
-                    if (!isHighlighted) {
-                        const fill = noteIndex % 2 === 0 ? '#000' : '#777';
-                        const circle = g.querySelector('circle');
-                        const text = g.querySelector('text');
-                        circle.setAttribute('fill', fill);
-                        circle.setAttribute('stroke', fill);
-                        text.setAttribute('fill', '#fff');
-                        text.setAttribute('visibility', settings.showLabels ? 'visible' : 'hidden');
-                    }
+                // Preserve already-highlighted correct notes
+                const isHighlighted = noteIndex < activeNotes.length &&
+                    gameState.currentDegreeIndex > 0 &&
+                    activeNotes.slice(0, gameState.currentDegreeIndex).includes(noteIndex);
+                if (!isHighlighted) {
+                    const fill = noteIndex % 2 === 0 ? '#000' : '#777';
+                    const circle = g.querySelector('circle');
+                    const text = g.querySelector('text');
+                    circle.setAttribute('fill', fill);
+                    circle.setAttribute('stroke', fill);
+                    text.setAttribute('fill', '#fff');
+                    text.setAttribute('visibility', settings.showLabels ? 'visible' : 'hidden');
                 }
             });
             updateQuestionText();
@@ -295,24 +293,20 @@
         api.noteGroups.forEach(g => {
             const noteIndex = parseInt(g.getAttribute('data-note-index'));
             const semitone = parseInt(g.getAttribute('data-semitone'));
-            if (!gameState.answered) {
-                let colors;
-                if (useNeutralColors || !settings.showColors) {
-                    const fill = noteIndex % 2 === 0 ? '#000' : '#777';
-                    colors = { fill, border: fill, text: '#fff' };
-                } else {
-                    const intervalLabel = SIMPLE_LABELS[semitone];
-                    colors = MusicTheory.getIntervalColor(intervalLabel);
-                }
-                const circle = g.querySelector('circle');
-                const text = g.querySelector('text');
-                circle.setAttribute('fill', colors.fill);
-                circle.setAttribute('stroke', colors.border);
-                text.setAttribute('fill', colors.text);
+            let colors;
+            if (useNeutralColors || !settings.showColors) {
+                const fill = noteIndex % 2 === 0 ? '#000' : '#777';
+                colors = { fill, border: fill, text: '#fff' };
+            } else {
+                const intervalLabel = SIMPLE_LABELS[semitone];
+                colors = MusicTheory.getIntervalColor(intervalLabel);
             }
-            const showLabel = settings.showLabels;
+            const circle = g.querySelector('circle');
             const text = g.querySelector('text');
-            text.setAttribute('visibility', showLabel ? 'visible' : 'hidden');
+            circle.setAttribute('fill', colors.fill);
+            circle.setAttribute('stroke', colors.border);
+            text.setAttribute('fill', colors.text);
+            text.setAttribute('visibility', settings.showLabels ? 'visible' : 'hidden');
         });
 
         // Update question text
@@ -1082,7 +1076,7 @@
         const mode = gameState.activeMode;
         const circleOptions = {};
         if (mode === 'scale-builder' || mode === 'chord-builder') {
-            circleOptions.neutralColors = true;
+            circleOptions.neutralColors = !settings.showColors;
         } else if (mode !== 'root-to-interval') {
             circleOptions.neutralColors = !settings.showColors;
             circleOptions.highlightNoteIndex = gameState.givenNoteIndex;
