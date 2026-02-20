@@ -118,5 +118,23 @@
         synth.triggerAttackRelease(targetSharp + targetOctave, 0.8, now + 0.08);
     }
 
-    window.Sound = { playChord, playNote, playInterval };
+    /**
+     * Play notes as an arpeggio (one at a time with longer delay)
+     * @param {string[]} noteNames - Note names (e.g. ['C', 'D', 'E', 'F', 'G', 'A', 'B'])
+     */
+    async function playArpeggio(noteNames) {
+        if (!noteNames || noteNames.length === 0) return;
+
+        await Tone.start();
+        ensureSynth();
+
+        const notesWithOctaves = assignOctaves(noteNames);
+        const delay = 0.1;
+        const now = Tone.now();
+        notesWithOctaves.forEach((note, i) => {
+            synth.triggerAttackRelease(note, 0.5, now + i * delay);
+        });
+    }
+
+    window.Sound = { playChord, playNote, playInterval, playArpeggio };
 })();

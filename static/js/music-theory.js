@@ -835,6 +835,37 @@ function findChords(noteSet) {
     return results;
 }
 
+/**
+ * Find all scales whose notes are a superset of the given note set
+ * @param {Set<number>} noteSet - Set of semitone indices (0-11)
+ * @returns {Array} Array of scale objects with root, type, name, notes
+ */
+function findScales(noteSet) {
+    if (noteSet.size < 2) return [];
+
+    const results = [];
+    const scaleTypeKeys = Object.keys(SCALES);
+
+    for (let rootIndex = 0; rootIndex < 12; rootIndex++) {
+        for (const typeKey of scaleTypeKeys) {
+            const scaleFormula = SCALES[typeKey];
+            const scaleNotes = scaleFormula.intervals.map(
+                interval => (rootIndex + INTERVALS[interval]) % 12
+            );
+            const scaleNoteSet = new Set(scaleNotes);
+            const isSubset = [...noteSet].every(n => scaleNoteSet.has(n));
+            if (isSubset) {
+                const root = CHROMATIC_NOTES[rootIndex].includes('#')
+                    ? (FLAT_KEYS.includes(FLAT_NOTES[rootIndex]) ? FLAT_NOTES[rootIndex] : CHROMATIC_NOTES[rootIndex])
+                    : CHROMATIC_NOTES[rootIndex];
+                results.push(buildScale(root, typeKey));
+            }
+        }
+    }
+
+    return results;
+}
+
 // Export for use in other modules
 window.MusicTheory = {
     CHROMATIC_NOTES,
@@ -862,5 +893,6 @@ window.MusicTheory = {
     spellNoteForDegree,
     getDegreeNumber,
     findChords,
+    findScales,
     getOctaveAt
 };
