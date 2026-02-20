@@ -19,7 +19,8 @@
     let settings = {
         roundCount: 10,
         enabledNotes: [...ALL_NOTES],
-        showColors: true
+        showColors: true,
+        gameMode: 'note-names'
     };
 
     // Game runtime state
@@ -49,6 +50,9 @@
                     settings.roundCount = roundOptions.reduce((prev, curr) =>
                         Math.abs(curr - settings.roundCount) < Math.abs(prev - settings.roundCount) ? curr : prev
                     );
+                }
+                if (!['note-names', 'note-sounds'].includes(settings.gameMode)) {
+                    settings.gameMode = 'note-names';
                 }
             }
         } catch (e) {
@@ -86,16 +90,23 @@
         }
     }
 
+    function getStatsKey() {
+        return settings.gameMode === 'note-sounds'
+            ? 'chromatic-circle-drills-sounds'
+            : 'chromatic-circle-drills';
+    }
+
     function recordStat(noteName, isCorrect) {
-        if (!stats['chromatic-circle-drills']) {
-            stats['chromatic-circle-drills'] = {};
+        const key = getStatsKey();
+        if (!stats[key]) {
+            stats[key] = {};
         }
-        if (!stats['chromatic-circle-drills'][noteName]) {
-            stats['chromatic-circle-drills'][noteName] = { tested: 0, correct: 0 };
+        if (!stats[key][noteName]) {
+            stats[key][noteName] = { tested: 0, correct: 0 };
         }
-        stats['chromatic-circle-drills'][noteName].tested++;
+        stats[key][noteName].tested++;
         if (isCorrect) {
-            stats['chromatic-circle-drills'][noteName].correct++;
+            stats[key][noteName].correct++;
         }
         saveStats();
     }
@@ -275,7 +286,9 @@
 
         const explanation = document.createElement('p');
         explanation.className = 'game-explanation';
-        explanation.textContent = 'Test your knowledge of note positions on the chromatic circle. You\'ll be given a note name \u2014 click the correct position on the circle.';
+        explanation.textContent = settings.gameMode === 'note-sounds'
+            ? 'A note will be played \u2014 identify it by clicking the correct position on the circle.'
+            : 'Test your knowledge of note positions on the chromatic circle. You\'ll be given a note name \u2014 click the correct position on the circle.';
         wrapper.appendChild(explanation);
 
         const statsContainer = document.createElement('div');
@@ -301,6 +314,13 @@
             alert('Please enable at least one note in settings.');
             return false;
         }
+        if (settings.gameMode === 'note-sounds') {
+            const gamesState = window.Games ? window.Games.getState() : null;
+            if (gamesState && !gamesState.soundEnabled) {
+                const soundBtn = document.getElementById('sound-toggle');
+                if (soundBtn) soundBtn.click();
+            }
+        }
         return true;
     }
 
@@ -308,6 +328,33 @@
 
     function renderSettings(modalBody) {
         modalBody.innerHTML = '';
+
+        // Game Mode
+        const modeGroup = document.createElement('div');
+        modeGroup.className = 'game-setting-group';
+        const modeLabel = document.createElement('label');
+        modeLabel.textContent = 'Game Mode';
+        modeLabel.className = 'game-setting-label';
+        const modeSelect = document.createElement('select');
+        modeSelect.className = 'game-setting-select';
+        [
+            { value: 'note-names', text: 'Note Names' },
+            { value: 'note-sounds', text: 'Note Sounds' }
+        ].forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.text;
+            if (opt.value === settings.gameMode) option.selected = true;
+            modeSelect.appendChild(option);
+        });
+        modeSelect.addEventListener('change', () => {
+            settings.gameMode = modeSelect.value;
+            saveSettings();
+            renderSettings(modalBody);
+        });
+        modeGroup.appendChild(modeLabel);
+        modeGroup.appendChild(modeSelect);
+        modalBody.appendChild(modeGroup);
 
         // Round count
         const roundGroup = document.createElement('div');
@@ -435,8 +482,9 @@
         clearBtn.style.color = '#000';
         clearBtn.textContent = 'Clear Stats';
         clearBtn.addEventListener('click', () => {
-            if (confirm('Clear all chromatic circle drills stats?')) {
-                delete stats['chromatic-circle-drills'];
+            const modeName = settings.gameMode === 'note-sounds' ? 'Note Sounds' : 'Note Names';
+            if (confirm(`Clear all ${modeName} stats?`)) {
+                delete stats[getStatsKey()];
                 saveStats();
             }
         });
@@ -497,11 +545,22 @@
         // Set question text in center
         const noteText = gameState.circleApi.questionGroup.querySelector('.question-note');
         const hintText = gameState.circleApi.questionGroup.querySelector('.question-hint');
-        if (noteText) {
-            noteText.textContent = gameState.currentTargetNote;
-        }
-        if (hintText) {
-            hintText.textContent = 'Find this note';
+
+        if (settings.gameMode === 'note-sounds') {
+            // Note Sounds mode: show "?" and let user identify by ear
+            if (noteText) noteText.textContent = '?';
+            if (hintText) hintText.textContent = 'Tap to hear again';
+            // Make center question group clickable to replay sound
+            gameState.circleApi.questionGroup.style.cursor = 'pointer';
+            gameState.circleApi.questionGroup.addEventListener('click', function replayHandler() {
+                if (!gameState.answered) {
+                    Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
+                }
+            });
+        } else {
+            // Note Names mode: show note name
+            if (noteText) noteText.textContent = gameState.currentTargetNote;
+            if (hintText) hintText.textContent = 'Find this note';
         }
 
         wrapper.appendChild(circleContainer);
@@ -518,9 +577,14 @@
         content.appendChild(wrapper);
 
         // Auto-play the target note sound
-        const gamesState = window.Games ? window.Games.getState() : null;
-        if (gamesState && gamesState.soundEnabled) {
+        if (settings.gameMode === 'note-sounds') {
+            // Always play in note-sounds mode (sound IS the question)
             Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
+        } else {
+            const gamesState = window.Games ? window.Games.getState() : null;
+            if (gamesState && gamesState.soundEnabled) {
+                Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
+            }
         }
     }
 
@@ -598,7 +662,13 @@
             }
 
             // Update center text
+            const centerNote = api.questionGroup.querySelector('.question-note');
             const hintText = api.questionGroup.querySelector('.question-hint');
+            if (settings.gameMode === 'note-sounds') {
+                // Reveal the actual note name
+                if (centerNote) centerNote.textContent = gameState.currentTargetNote;
+                api.questionGroup.style.cursor = 'default';
+            }
             if (hintText) {
                 hintText.textContent = 'Correct!';
             }
@@ -693,7 +763,7 @@
     function renderStats(container) {
         container.innerHTML = '';
 
-        const gameStats = stats['chromatic-circle-drills'];
+        const gameStats = stats[getStatsKey()];
         if (!gameStats || Object.keys(gameStats).length === 0) {
             const msg = document.createElement('p');
             msg.className = 'game-explanation';
