@@ -776,6 +776,42 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
     return filtered.map(({ _isOnRootString, _priority, ...rest }) => rest);
 }
 
+/**
+ * Find all chords whose notes are a subset of the given note set
+ * @param {Set<number>} noteSet - Set of semitone indices (0-11)
+ * @returns {Array} Array of chord objects with root, type, symbol, notes
+ */
+function findChords(noteSet) {
+    if (noteSet.size < 2) return [];
+
+    const results = [];
+    const chordTypeKeys = Object.keys(CHORD_TYPES);
+
+    for (let rootIndex = 0; rootIndex < 12; rootIndex++) {
+        for (const typeKey of chordTypeKeys) {
+            const chordFormula = CHORD_TYPES[typeKey];
+            // Compute chord's semitone set
+            const chordNotes = chordFormula.intervals.map(
+                interval => (rootIndex + INTERVALS[interval]) % 12
+            );
+            // Check if all selected notes are in this chord
+            const chordNoteSet = new Set(chordNotes);
+            const isSubset = [...noteSet].every(n => chordNoteSet.has(n));
+            if (isSubset) {
+                const rootName = getNoteName(rootIndex, FLAT_KEYS.includes(FLAT_NOTES[rootIndex]));
+                // Use sharp or flat root depending on convention
+                const root = CHROMATIC_NOTES[rootIndex].includes('#')
+                    ? (FLAT_KEYS.includes(FLAT_NOTES[rootIndex]) ? FLAT_NOTES[rootIndex] : CHROMATIC_NOTES[rootIndex])
+                    : CHROMATIC_NOTES[rootIndex];
+                const chord = buildChord(root, typeKey);
+                results.push(chord);
+            }
+        }
+    }
+
+    return results;
+}
+
 // Export for use in other modules
 window.MusicTheory = {
     CHROMATIC_NOTES,
@@ -801,5 +837,6 @@ window.MusicTheory = {
     isAccidentalNote,
     lightenColor,
     spellNoteForDegree,
-    getDegreeNumber
+    getDegreeNumber,
+    findChords
 };
