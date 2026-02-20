@@ -553,6 +553,9 @@
         } else if (state.mode === 'find') {
             if (state.findSelectedIndex < 0) {
                 displayFindMarkers();
+            } else {
+                const chord = state.findResults[state.findSelectedIndex];
+                displayChord(chord);
             }
             return;
         } else if (state.mode === 'caged') {
