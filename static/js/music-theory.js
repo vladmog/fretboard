@@ -284,15 +284,25 @@ const CAGED_SHAPES = {
  * @returns {number} Semitone index (0-11)
  */
 function getNoteIndex(note) {
-    // Handle sharps
+    // Fast path: standard sharp names
     let index = CHROMATIC_NOTES.indexOf(note);
     if (index !== -1) return index;
 
-    // Handle flats
+    // Fast path: standard flat names
     index = FLAT_NOTES.indexOf(note);
     if (index !== -1) return index;
 
-    return 0; // Default to C if not found
+    // General parser for double accidentals and enharmonic spellings
+    // (Fb, Cb, E#, B#, Bbb, Dbb, F##, etc.)
+    const letter = note[0];
+    const letterIdx = NOTE_LETTERS.indexOf(letter);
+    if (letterIdx === -1) return 0;
+    let semitone = LETTER_SEMITONES[letterIdx];
+    for (let i = 1; i < note.length; i++) {
+        if (note[i] === '#') semitone++;
+        else if (note[i] === 'b') semitone--;
+    }
+    return ((semitone % 12) + 12) % 12;
 }
 
 /**
