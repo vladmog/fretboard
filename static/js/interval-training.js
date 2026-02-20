@@ -32,9 +32,10 @@
 
     const GAME_OCTAVE = 4;
 
-    const VALID_GAME_MODES = ['root-to-interval', 'interval-to-root', 'interval-to-interval', 'scale-builder'];
+    const VALID_GAME_MODES = ['root-to-interval', 'interval-to-root', 'interval-to-interval', 'scale-builder', 'chord-builder'];
 
     const ALL_SCALE_TYPES = Object.keys(MusicTheory.SCALES);
+    const ALL_CHORD_TYPES = Object.keys(MusicTheory.CHORD_TYPES);
 
     // Game settings (persisted)
     let settings = {
@@ -45,7 +46,8 @@
         notationStyle: 'short',
         showColors: true,
         showLabels: true,
-        enabledScales: [...ALL_SCALE_TYPES]
+        enabledScales: [...ALL_SCALE_TYPES],
+        enabledChords: [...ALL_CHORD_TYPES]
     };
 
     // Game runtime state
@@ -65,6 +67,9 @@
         currentScaleType: null,
         scaleNotes: [],
         scaleDegrees: [],
+        currentChordType: null,
+        chordNotes: [],
+        chordIntervals: [],
         currentDegreeIndex: 0,
         hadMistake: false
     };
@@ -129,6 +134,7 @@
     function getStatsKey() {
         if (gameState.activeMode === 'root-to-interval') return 'interval-training';
         if (gameState.activeMode === 'scale-builder') return 'scale-builder';
+        if (gameState.activeMode === 'chord-builder') return 'chord-builder';
         return gameState.activeMode;
     }
 
@@ -164,6 +170,24 @@
         stats[key][root][scaleType].tested++;
         if (isCorrect) {
             stats[key][root][scaleType].correct++;
+        }
+        saveStats();
+    }
+
+    function recordChordStat(root, chordType, isCorrect) {
+        const key = 'chord-builder';
+        if (!stats[key]) {
+            stats[key] = {};
+        }
+        if (!stats[key][root]) {
+            stats[key][root] = {};
+        }
+        if (!stats[key][root][chordType]) {
+            stats[key][root][chordType] = { tested: 0, correct: 0 };
+        }
+        stats[key][root][chordType].tested++;
+        if (isCorrect) {
+            stats[key][root][chordType].correct++;
         }
         saveStats();
     }
@@ -216,6 +240,10 @@
             const scaleName = MusicTheory.SCALES[gameState.currentScaleType].name;
             intervalText.textContent = scaleName;
             rootText.textContent = 'from ' + gameState.currentRoot;
+        } else if (mode === 'chord-builder') {
+            const chordName = MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
+            intervalText.textContent = chordName;
+            rootText.textContent = 'from ' + gameState.currentRoot;
         }
     }
 
@@ -233,14 +261,15 @@
 
         const mode = gameState.activeMode;
 
-        if (mode === 'scale-builder') {
+        if (mode === 'scale-builder' || mode === 'chord-builder') {
+            const activeNotes = mode === 'scale-builder' ? gameState.scaleNotes : gameState.chordNotes;
             api.noteGroups.forEach(g => {
                 const noteIndex = parseInt(g.getAttribute('data-note-index'));
                 if (!gameState.answered) {
                     // Preserve already-highlighted correct notes
-                    const isHighlighted = noteIndex < gameState.scaleNotes.length &&
+                    const isHighlighted = noteIndex < activeNotes.length &&
                         gameState.currentDegreeIndex > 0 &&
-                        gameState.scaleNotes.slice(0, gameState.currentDegreeIndex).includes(noteIndex);
+                        activeNotes.slice(0, gameState.currentDegreeIndex).includes(noteIndex);
                     if (!isHighlighted) {
                         const fill = noteIndex % 2 === 0 ? '#000' : '#777';
                         const circle = g.querySelector('circle');
@@ -463,7 +492,8 @@
             'root-to-interval': 'You\'ll be given a root note and an interval \u2014 click the correct note on the circle.',
             'interval-to-root': 'You\'ll be given a note and its interval from an unknown root \u2014 click the root note on the circle.',
             'interval-to-interval': 'You\'ll be given a note with its interval and a target interval \u2014 find the note that matches the target interval.',
-            'scale-builder': 'You\'ll be given a scale \u2014 click the notes on the chromatic circle in order, from root to the last degree.'
+            'scale-builder': 'You\'ll be given a scale \u2014 click the notes on the chromatic circle in order, from root to the last degree.',
+            'chord-builder': 'You\'ll be given a chord \u2014 click the notes on the chromatic circle in order, from root through each chord tone.'
         };
         explanation.textContent = 'Train your ear and theory knowledge by identifying intervals on the chromatic circle. ' + modeDescriptions[settings.gameMode];
         wrapper.appendChild(explanation);
@@ -490,6 +520,17 @@
         if (settings.gameMode === 'scale-builder') {
             if (settings.enabledScales.length === 0) {
                 alert('Please enable at least one scale type in settings.');
+                return false;
+            }
+            if (settings.enabledRoots.length === 0) {
+                alert('Please enable at least one root note in settings.');
+                return false;
+            }
+            return true;
+        }
+        if (settings.gameMode === 'chord-builder') {
+            if (settings.enabledChords.length === 0) {
+                alert('Please enable at least one chord type in settings.');
                 return false;
             }
             if (settings.enabledRoots.length === 0) {
@@ -533,7 +574,8 @@
             { value: 'root-to-interval', text: 'Root \u2192 Interval' },
             { value: 'interval-to-root', text: 'Interval \u2192 Root' },
             { value: 'interval-to-interval', text: 'Interval \u2192 Interval' },
-            { value: 'scale-builder', text: 'Scale Builder' }
+            { value: 'scale-builder', text: 'Scale Builder' },
+            { value: 'chord-builder', text: 'Chord Builder' }
         ].forEach(opt => {
             const option = document.createElement('option');
             option.value = opt.value;
@@ -574,7 +616,7 @@
         modalBody.appendChild(roundGroup);
 
         // Notation style (hidden in scale-builder mode)
-        if (settings.gameMode !== 'scale-builder') {
+        if (settings.gameMode !== 'scale-builder' && settings.gameMode !== 'chord-builder') {
             const notationGroup = document.createElement('div');
             notationGroup.className = 'game-setting-group';
             const notationLabel = document.createElement('label');
@@ -657,7 +699,72 @@
         labelsGroup.appendChild(labelsSelect);
         modalBody.appendChild(labelsGroup);
 
-        if (settings.gameMode === 'scale-builder') {
+        if (settings.gameMode === 'chord-builder') {
+            // Chord type checkboxes
+            const chordGroup = document.createElement('div');
+            chordGroup.className = 'game-setting-group';
+            const chordHeader = document.createElement('div');
+            chordHeader.className = 'game-setting-header';
+            const chordLabel = document.createElement('label');
+            chordLabel.textContent = 'Chord Types';
+            chordLabel.className = 'game-setting-label';
+            chordHeader.appendChild(chordLabel);
+
+            const chordBtns = document.createElement('div');
+            chordBtns.className = 'game-setting-btns';
+            const selectAllChords = document.createElement('button');
+            selectAllChords.textContent = 'All';
+            selectAllChords.className = 'game-setting-btn';
+            const deselectAllChords = document.createElement('button');
+            deselectAllChords.textContent = 'None';
+            deselectAllChords.className = 'game-setting-btn';
+            chordBtns.appendChild(selectAllChords);
+            chordBtns.appendChild(deselectAllChords);
+            chordHeader.appendChild(chordBtns);
+            chordGroup.appendChild(chordHeader);
+
+            const chordChecks = document.createElement('div');
+            chordChecks.className = 'game-setting-checks';
+
+            const chordCheckboxes = [];
+            ALL_CHORD_TYPES.forEach(key => {
+                const label = document.createElement('label');
+                label.className = 'game-setting-check-label';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = settings.enabledChords.includes(key);
+                cb.addEventListener('change', () => {
+                    if (cb.checked) {
+                        if (!settings.enabledChords.includes(key)) {
+                            settings.enabledChords.push(key);
+                        }
+                    } else {
+                        settings.enabledChords = settings.enabledChords.filter(v => v !== key);
+                    }
+                    saveSettings();
+                });
+                chordCheckboxes.push(cb);
+                const span = document.createElement('span');
+                span.textContent = MusicTheory.CHORD_TYPES[key].name;
+                label.appendChild(cb);
+                label.appendChild(span);
+                chordChecks.appendChild(label);
+            });
+
+            selectAllChords.addEventListener('click', () => {
+                settings.enabledChords = [...ALL_CHORD_TYPES];
+                chordCheckboxes.forEach(cb => cb.checked = true);
+                saveSettings();
+            });
+            deselectAllChords.addEventListener('click', () => {
+                settings.enabledChords = [];
+                chordCheckboxes.forEach(cb => cb.checked = false);
+                saveSettings();
+            });
+
+            chordGroup.appendChild(chordChecks);
+            modalBody.appendChild(chordGroup);
+        } else if (settings.gameMode === 'scale-builder') {
             // Scale type checkboxes
             const scaleGroup = document.createElement('div');
             scaleGroup.className = 'game-setting-group';
@@ -870,7 +977,8 @@
                 'interval-training': 'Root \u2192 Interval',
                 'interval-to-root': 'Interval \u2192 Root',
                 'interval-to-interval': 'Interval \u2192 Interval',
-                'scale-builder': 'Scale Builder'
+                'scale-builder': 'Scale Builder',
+                'chord-builder': 'Chord Builder'
             };
             if (confirm('Clear stats for ' + modeNames[key] + ' mode?')) {
                 delete stats[key];
@@ -918,6 +1026,16 @@
             gameState.scaleDegrees = scale.degrees;
             gameState.currentDegreeIndex = 0;
             gameState.hadMistake = false;
+        } else if (mode === 'chord-builder') {
+            const chordIdx = Math.floor(Math.random() * settings.enabledChords.length);
+            gameState.currentChordType = settings.enabledChords[chordIdx];
+            const chordFormula = MusicTheory.CHORD_TYPES[gameState.currentChordType];
+            gameState.chordNotes = chordFormula.intervals.map(interval =>
+                (gameState.currentRootIndex + MusicTheory.INTERVALS[interval]) % 12
+            );
+            gameState.chordIntervals = chordFormula.intervals;
+            gameState.currentDegreeIndex = 0;
+            gameState.hadMistake = false;
         } else {
             const intIdx = Math.floor(Math.random() * settings.enabledIntervals.length);
             gameState.currentSemitone = settings.enabledIntervals[intIdx];
@@ -959,7 +1077,7 @@
 
         const mode = gameState.activeMode;
         const circleOptions = {};
-        if (mode === 'scale-builder') {
+        if (mode === 'scale-builder' || mode === 'chord-builder') {
             circleOptions.neutralColors = true;
         } else if (mode !== 'root-to-interval') {
             circleOptions.neutralColors = !settings.showColors;
@@ -995,7 +1113,7 @@
         // Auto-play: root note for root-to-interval and scale-builder, given note for other modes
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
-            if (mode === 'root-to-interval' || mode === 'scale-builder') {
+            if (mode === 'root-to-interval' || mode === 'scale-builder' || mode === 'chord-builder') {
                 Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
             } else {
                 const givenNoteName = MusicTheory.getNoteName(gameState.givenNoteIndex, false);
@@ -1015,6 +1133,16 @@
                 handleScaleCorrectStep(noteIndex);
             } else {
                 handleScaleWrongStep(noteIndex);
+            }
+            return;
+        }
+
+        if (mode === 'chord-builder') {
+            const expectedIndex = gameState.chordNotes[gameState.currentDegreeIndex];
+            if (noteIndex === expectedIndex) {
+                handleChordCorrectStep(noteIndex);
+            } else {
+                handleChordWrongStep(noteIndex);
             }
             return;
         }
@@ -1355,6 +1483,177 @@
         }, delay);
     }
 
+    function handleChordCorrectStep(noteIndex) {
+        const api = gameState.circleApi;
+        if (!api) return;
+
+        const isLastStep = gameState.currentDegreeIndex === gameState.chordNotes.length - 1;
+
+        // Play clicked note sound (skip on last step — chord plays on complete)
+        if (!isLastStep) {
+            const gamesState = window.Games ? window.Games.getState() : null;
+            if (gamesState && gamesState.soundEnabled) {
+                const noteName = MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
+                Sound.playNote(noteName, GAME_OCTAVE);
+            }
+        }
+
+        // Flash green
+        const group = api.noteGroups.find(g =>
+            parseInt(g.getAttribute('data-note-index')) === noteIndex
+        );
+        if (group) {
+            const circle = group.querySelector('circle');
+            const text = group.querySelector('text');
+            circle.setAttribute('fill', '#00CC00');
+            circle.setAttribute('stroke', '#009900');
+
+            const degreeLabel = gameState.chordIntervals[gameState.currentDegreeIndex];
+
+            setTimeout(() => {
+                // Apply interval color
+                if (settings.showColors) {
+                    const colors = MusicTheory.getIntervalColor(degreeLabel);
+                    circle.setAttribute('fill', colors.fill);
+                    circle.setAttribute('stroke', colors.border);
+                    text.setAttribute('fill', colors.text);
+                } else {
+                    const fill = noteIndex % 2 === 0 ? '#000' : '#777';
+                    circle.setAttribute('fill', fill);
+                    circle.setAttribute('stroke', fill);
+                    text.setAttribute('fill', '#fff');
+                }
+                // Force-show label
+                if (settings.showLabels) {
+                    text.setAttribute('visibility', 'visible');
+                }
+            }, 300);
+        }
+
+        gameState.currentDegreeIndex++;
+
+        // Update progress text
+        const rootText = api.questionGroup.querySelector('.question-root');
+        if (rootText) {
+            rootText.textContent = 'from ' + gameState.currentRoot + ' (' + gameState.currentDegreeIndex + '/' + gameState.chordNotes.length + ')';
+        }
+
+        if (gameState.currentDegreeIndex === gameState.chordNotes.length) {
+            handleChordComplete();
+        }
+    }
+
+    function handleChordWrongStep(noteIndex) {
+        const api = gameState.circleApi;
+        if (!api) return;
+
+        // Play clicked note sound
+        const gamesState = window.Games ? window.Games.getState() : null;
+        if (gamesState && gamesState.soundEnabled) {
+            const noteName = MusicTheory.getNoteName(noteIndex, false);
+            Sound.playNote(noteName, GAME_OCTAVE);
+        }
+
+        gameState.hadMistake = true;
+
+        // Flash ALL 12 markers red
+        api.noteGroups.forEach(g => {
+            const circle = g.querySelector('circle');
+            circle.setAttribute('fill', '#FF0000');
+            circle.setAttribute('stroke', '#CC0000');
+        });
+
+        setTimeout(() => {
+            // Restore all markers to neutral colors
+            api.noteGroups.forEach(g => {
+                const idx = parseInt(g.getAttribute('data-note-index'));
+                const circle = g.querySelector('circle');
+                const text = g.querySelector('text');
+                const fill = idx % 2 === 0 ? '#000' : '#777';
+                circle.setAttribute('fill', fill);
+                circle.setAttribute('stroke', fill);
+                text.setAttribute('fill', '#fff');
+            });
+
+            // Reset sequence
+            gameState.currentDegreeIndex = 0;
+
+            // Reset progress text
+            const rootText = api.questionGroup.querySelector('.question-root');
+            if (rootText) {
+                rootText.textContent = 'from ' + gameState.currentRoot;
+            }
+        }, 400);
+    }
+
+    function handleChordComplete() {
+        gameState.answered = true;
+        if (!gameState.hadMistake) {
+            gameState.correctCount++;
+        }
+
+        // Record stat
+        recordChordStat(gameState.currentRoot, gameState.currentChordType, !gameState.hadMistake);
+
+        const api = gameState.circleApi;
+        if (!api) return;
+
+        const rootIndex = gameState.currentRootIndex;
+        const chordNoteSet = new Set(gameState.chordNotes);
+
+        // Fade out non-chord notes
+        api.noteGroups.forEach(g => {
+            const idx = parseInt(g.getAttribute('data-note-index'));
+            if (!chordNoteSet.has(idx)) {
+                g.style.opacity = '0.1';
+            }
+        });
+
+        // Ensure all chord notes show interval colors and visible labels
+        api.noteGroups.forEach(g => {
+            const idx = parseInt(g.getAttribute('data-note-index'));
+            if (chordNoteSet.has(idx)) {
+                const text = g.querySelector('text');
+                const circle = g.querySelector('circle');
+                if (text) text.setAttribute('visibility', 'visible');
+                const sem = ((idx - rootIndex) + 12) % 12;
+                const intervalLabel = SIMPLE_LABELS[sem];
+                const colors = MusicTheory.getIntervalColor(intervalLabel);
+                circle.setAttribute('fill', colors.fill);
+                circle.setAttribute('stroke', colors.border);
+                text.setAttribute('fill', colors.text);
+            }
+        });
+
+        // Update center text
+        const intervalText = api.questionGroup.querySelector('.question-interval');
+        const rootText = api.questionGroup.querySelector('.question-root');
+        if (intervalText) {
+            intervalText.textContent = gameState.currentRoot + ' ' + MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
+        }
+        if (rootText) {
+            rootText.textContent = '';
+        }
+
+        // Play chord
+        const gamesState = window.Games ? window.Games.getState() : null;
+        if (gamesState && gamesState.soundEnabled) {
+            const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
+            const chordNoteNames = gameState.chordNotes.map(noteIdx =>
+                MusicTheory.getNoteName(noteIdx, useFlats)
+            );
+            Sound.playChord(chordNoteNames);
+        }
+
+        // Show Next button
+        setTimeout(() => {
+            const nextBtn = document.getElementById('game-next-btn');
+            if (nextBtn) {
+                nextBtn.style.display = 'block';
+            }
+        }, 500);
+    }
+
     function showResults() {
         const content = document.getElementById('game-content');
         if (!content) return;
@@ -1437,6 +1736,74 @@
             msg.className = 'game-explanation';
             msg.textContent = 'No stats yet. Play a round to see your accuracy!';
             container.appendChild(msg);
+            return;
+        }
+
+        if (statsKey === 'chord-builder') {
+            // Chord builder stats: columns = chord types
+            const testedChords = new Set();
+            const testedRoots = [];
+
+            ALL_ROOTS.forEach(root => {
+                if (gameStats[root]) {
+                    testedRoots.push(root);
+                    Object.keys(gameStats[root]).forEach(c => testedChords.add(c));
+                }
+            });
+
+            // Sort chord types in the same order as ALL_CHORD_TYPES
+            const sortedChords = ALL_CHORD_TYPES.filter(c => testedChords.has(c));
+            if (sortedChords.length === 0) return;
+
+            const table = document.createElement('div');
+            table.className = 'stats-table';
+
+            // Header row
+            const headerRow = document.createElement('div');
+            headerRow.className = 'stats-row';
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'stats-root-label';
+            headerRow.appendChild(emptyCell);
+
+            sortedChords.forEach(c => {
+                const cell = document.createElement('div');
+                cell.className = 'stats-cell stats-cell-header';
+                cell.textContent = MusicTheory.CHORD_TYPES[c].name;
+                headerRow.appendChild(cell);
+            });
+            table.appendChild(headerRow);
+
+            // Data rows
+            testedRoots.forEach(root => {
+                const row = document.createElement('div');
+                row.className = 'stats-row';
+
+                const rootCell = document.createElement('div');
+                rootCell.className = 'stats-root-label';
+                rootCell.textContent = root;
+                row.appendChild(rootCell);
+
+                sortedChords.forEach(c => {
+                    const cell = document.createElement('div');
+                    cell.className = 'stats-cell';
+
+                    const data = gameStats[root][c];
+                    if (data && data.tested > 0) {
+                        const ratio = data.correct / data.tested;
+                        const pct = Math.round(ratio * 100);
+                        cell.style.backgroundColor = accuracyToColor(ratio);
+                        cell.textContent = `${pct}%`;
+                        cell.title = `${MusicTheory.CHORD_TYPES[c].name} from ${root}: ${data.correct}/${data.tested} (${pct}%)`;
+                        cell.style.color = ratio > 0.3 && ratio < 0.7 ? '#000' : ratio >= 0.7 ? '#000' : '#fff';
+                    } else {
+                        cell.style.backgroundColor = '#f0f0f0';
+                    }
+                    row.appendChild(cell);
+                });
+                table.appendChild(row);
+            });
+
+            container.appendChild(table);
             return;
         }
 
