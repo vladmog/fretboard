@@ -743,11 +743,11 @@
         container.innerHTML = '';
 
         const chordsRow = document.createElement('div');
-        chordsRow.className = 'scale-chords-row';
+        chordsRow.className = 'scale-chords-list';
 
         chords.forEach((chord) => {
             const btn = document.createElement('button');
-            btn.className = 'scale-chord-btn';
+            btn.className = 'scale-chord-item';
             btn.innerHTML = `<span class="numeral">${chord.numeral}</span><span class="chord-name">${chord.symbol}</span>`;
             btn.addEventListener('click', () => {
                 addChordToList(chord.root, chord.type);
