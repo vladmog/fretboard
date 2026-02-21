@@ -1129,10 +1129,15 @@
                 }, 400);
             } else if (mode === 'scale-builder' || mode === 'chord-builder') {
                 Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
-            } else {
-                // interval-to-interval and other modes: play given note
+            } else if (mode === 'interval-to-interval') {
+                // Play given note, then target note
                 const givenNoteName = MusicTheory.getNoteName(gameState.givenNoteIndex, false);
+                const targetIndex = (gameState.currentRootIndex + gameState.targetSemitone) % 12;
+                const targetNote = MusicTheory.getNoteName(targetIndex, false);
                 Sound.playNote(givenNoteName, getNoteOctave(gameState.givenNoteIndex, gameState.currentRootIndex));
+                setTimeout(() => {
+                    Sound.playNote(targetNote, getNoteOctave(targetIndex, gameState.currentRootIndex));
+                }, 400);
             }
         }
     }
