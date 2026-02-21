@@ -948,9 +948,11 @@ input[name="caged-shape"][value="D"] ~ * {
     white-space: nowrap;
 }
 
-.games-controls button:hover {
-    background: #000;
-    color: #fff;
+@media (hover: hover) {
+    .games-controls button:hover {
+        background: #000;
+        color: #fff;
+    }
 }
 
 .games-controls button.games-sound-on {
