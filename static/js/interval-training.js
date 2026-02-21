@@ -1108,12 +1108,28 @@
 
         content.appendChild(wrapper);
 
-        // Auto-play: root note for root-to-interval and scale-builder, given note for other modes
+        // Auto-play sounds on round start
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
-            if (mode === 'root-to-interval' || mode === 'scale-builder' || mode === 'chord-builder') {
+            if (mode === 'root-to-interval') {
+                // Play root, then target interval note
+                const targetIndex = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
+                const targetNote = MusicTheory.getNoteName(targetIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
+                Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
+                setTimeout(() => {
+                    Sound.playNote(targetNote, getNoteOctave(targetIndex, gameState.currentRootIndex));
+                }, 400);
+            } else if (mode === 'interval-to-root') {
+                // Play interval note, then root
+                const givenNoteName = MusicTheory.getNoteName(gameState.givenNoteIndex, false);
+                Sound.playNote(givenNoteName, getNoteOctave(gameState.givenNoteIndex, gameState.currentRootIndex));
+                setTimeout(() => {
+                    Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
+                }, 400);
+            } else if (mode === 'scale-builder' || mode === 'chord-builder') {
                 Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
             } else {
+                // interval-to-interval and other modes: play given note
                 const givenNoteName = MusicTheory.getNoteName(gameState.givenNoteIndex, false);
                 Sound.playNote(givenNoteName, getNoteOctave(gameState.givenNoteIndex, gameState.currentRootIndex));
             }
