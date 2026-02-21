@@ -759,19 +759,18 @@
             }
             btn.innerHTML = `<span class="numeral">${chord.numeral}</span><span class="chord-name">${chord.symbol}</span>`;
             btn.addEventListener('click', () => {
-                state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol };
-                state.selectedChordIndex = -1;
-
-                // Play the chord if sound is enabled
-                if (state.soundEnabled) {
-                    const builtChord = MusicTheory.buildChord(chord.root, chord.type);
-                    Sound.playChord(builtChord.notes);
+                if (state.activeScaleChord && state.activeScaleChord.root === chord.root && state.activeScaleChord.type === chord.type) {
+                    // Deactivate — return to scale view
+                    state.activeScaleChord = null;
+                } else {
+                    state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol };
+                    if (state.soundEnabled) {
+                        const builtChord = MusicTheory.buildChord(chord.root, chord.type);
+                        Sound.playChord(builtChord.notes);
+                    }
                 }
-
-                // Highlight clicked button
-                chordsRow.querySelectorAll('.scale-chord-item').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-
+                state.selectedChordIndex = -1;
+                renderScaleChords();
                 renderChordList();
                 updateDisplay();
             });
