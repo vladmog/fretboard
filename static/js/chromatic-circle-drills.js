@@ -351,6 +351,7 @@
             settings.gameMode = modeSelect.value;
             saveSettings();
             renderSettings(modalBody);
+            renderTitlePage();
         });
         modeGroup.appendChild(modeLabel);
         modeGroup.appendChild(modeSelect);
