@@ -23,7 +23,8 @@
         fretboard: null,        // Fretboard API instance
         findMarkers: {},        // Find mode: map keyed by "string-fret" → { string, fret, noteIndex }
         findResults: [],        // Find mode: results from MusicTheory.findChords()
-        findSelectedIndex: -1   // Find mode: index in findResults, -1 = user markers view
+        findSelectedIndex: -1,  // Find mode: index in findResults, -1 = user markers view
+        activeScaleChord: null  // Scale mode: previewed chord { root, type, symbol } or null
     };
 
     // Storage key for chord list persistence
@@ -604,8 +605,13 @@
         } else if (state.mode === 'interval') {
             displayIntervals(state.root);
         } else if (state.mode === 'scale') {
-            const scale = MusicTheory.buildScale(state.root, state.scaleType);
-            displayScale(scale);
+            if (state.activeScaleChord) {
+                const chord = MusicTheory.buildChord(state.activeScaleChord.root, state.activeScaleChord.type);
+                displayChord(chord);
+            } else {
+                const scale = MusicTheory.buildScale(state.root, state.scaleType);
+                displayScale(scale);
+            }
         } else {
             const chord = MusicTheory.buildChord(state.root, state.chordType);
             displayChord(chord);
@@ -748,9 +754,26 @@
         chords.forEach((chord) => {
             const btn = document.createElement('button');
             btn.className = 'scale-chord-item';
+            if (state.activeScaleChord && state.activeScaleChord.root === chord.root && state.activeScaleChord.type === chord.type) {
+                btn.classList.add('selected');
+            }
             btn.innerHTML = `<span class="numeral">${chord.numeral}</span><span class="chord-name">${chord.symbol}</span>`;
             btn.addEventListener('click', () => {
-                addChordToList(chord.root, chord.type);
+                state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol };
+                state.selectedChordIndex = -1;
+
+                // Play the chord if sound is enabled
+                if (state.soundEnabled) {
+                    const builtChord = MusicTheory.buildChord(chord.root, chord.type);
+                    Sound.playChord(builtChord.notes);
+                }
+
+                // Highlight clicked button
+                chordsRow.querySelectorAll('.scale-chord-item').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+
+                renderChordList();
+                updateDisplay();
             });
             chordsRow.appendChild(btn);
         });
@@ -929,6 +952,7 @@
 
         state.mode = mode;
         state.selectedChordIndex = -1; // Deselect list item when changing mode
+        state.activeScaleChord = null;
         updateTypeDropdown();
         renderChordList();
 
@@ -989,7 +1013,7 @@
         // Show/hide Add button based on mode
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
-            addChordBtn.style.display = (mode === 'chord') ? 'flex' : 'none';
+            addChordBtn.style.display = (mode === 'chord' || mode === 'scale') ? 'flex' : 'none';
         }
 
         if (mode === 'scale') {
@@ -1035,11 +1059,16 @@
             rootSelect.addEventListener('change', (e) => {
                 state.root = e.target.value;
                 state.selectedChordIndex = -1;
+                state.activeScaleChord = null;
                 renderChordList();
                 if (state.mode === 'scale') {
                     renderScaleChords();
                 }
                 updateDisplay();
+                if (state.mode === 'chord' && state.soundEnabled) {
+                    const chord = MusicTheory.buildChord(state.root, state.chordType);
+                    Sound.playChord(chord.notes);
+                }
             });
         }
 
@@ -1049,6 +1078,7 @@
             typeSelect.addEventListener('change', (e) => {
                 if (state.mode === 'scale') {
                     state.scaleType = e.target.value;
+                    state.activeScaleChord = null;
                     // Reset relative toggle if switching to unsupported scale type
                     if (state.scaleType !== 'major' && state.scaleType !== 'natural_minor') {
                         state.showRelative = false;
@@ -1067,6 +1097,10 @@
                 state.selectedChordIndex = -1;
                 renderChordList();
                 updateDisplay();
+                if ((state.mode === 'chord' || state.mode === 'caged') && state.soundEnabled) {
+                    const chord = MusicTheory.buildChord(state.root, state.chordType);
+                    Sound.playChord(chord.notes);
+                }
             });
         }
 
@@ -1075,7 +1109,9 @@
         if (seventhsToggle) {
             seventhsToggle.addEventListener('change', (e) => {
                 state.showSevenths = e.target.checked;
+                state.activeScaleChord = null;
                 renderScaleChords();
+                updateDisplay();
             });
         }
 
@@ -1101,6 +1137,7 @@
         if (relativeToggle) {
             relativeToggle.addEventListener('change', (e) => {
                 state.showRelative = e.target.checked;
+                state.activeScaleChord = null;
                 renderScaleChords();
                 updateDisplay();
             });
@@ -1168,7 +1205,11 @@
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
             addChordBtn.addEventListener('click', () => {
-                addChordToList(state.root, state.chordType);
+                if (state.mode === 'scale' && state.activeScaleChord) {
+                    addChordToList(state.activeScaleChord.root, state.activeScaleChord.type);
+                } else {
+                    addChordToList(state.root, state.chordType);
+                }
             });
         }
 
@@ -1216,7 +1257,7 @@
         // Set initial mode-dependent UI states
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
-            addChordBtn.style.display = state.mode === 'chord' ? 'flex' : 'none';
+            addChordBtn.style.display = (state.mode === 'chord' || state.mode === 'scale') ? 'flex' : 'none';
         }
 
         // Hide type selector in interval/find mode
