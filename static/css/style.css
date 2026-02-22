@@ -1325,6 +1325,11 @@ input[name="caged-shape"][value="D"] ~ * {
 
     .game-title-page {
         gap: 1rem;
+        width: 100%;
+    }
+
+    #game-stats-container {
+        width: 100%;
     }
 
     .game-title {
@@ -1353,10 +1358,18 @@ input[name="caged-shape"][value="D"] ~ * {
         max-width: 90vw;
     }
 
+    .stats-table {
+        max-width: 100%;
+    }
+
     .stats-cell {
-        min-width: 1.5rem;
+        min-width: 0;
         height: 1.25rem;
         font-size: 0.4375rem;
+    }
+
+    .rt-chart-container {
+        max-width: 100%;
     }
 
     .games-controls {
