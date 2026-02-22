@@ -844,40 +844,49 @@
         h.textContent = heading;
         container.appendChild(h);
 
-        const chart = document.createElement('div');
-        chart.className = 'rt-chart';
+        const timeMap = {};
+        items.forEach(q => { timeMap[q.label] = q.timeMs; });
 
         const maxTime = Math.max(...items.map(q => q.timeMs));
         const minTime = Math.min(...items.map(q => q.timeMs));
 
-        items.forEach(q => {
-            const row = document.createElement('div');
-            row.className = 'rt-chart-row';
+        const table = document.createElement('div');
+        table.className = 'stats-table';
 
-            const label = document.createElement('div');
-            label.className = 'rt-chart-label';
-            label.textContent = q.label;
-
-            const barContainer = document.createElement('div');
-            barContainer.className = 'rt-chart-bar-container';
-
-            const bar = document.createElement('div');
-            bar.className = 'rt-chart-bar';
-            bar.style.width = (maxTime > 0 ? (q.timeMs / maxTime) * 100 : 0) + '%';
-            bar.style.backgroundColor = reactionTimeToColor(q.timeMs, minTime, maxTime);
-
-            const time = document.createElement('span');
-            time.className = 'rt-chart-time';
-            time.textContent = formatTime(q.timeMs);
-
-            barContainer.appendChild(bar);
-            barContainer.appendChild(time);
-            row.appendChild(label);
-            row.appendChild(barContainer);
-            chart.appendChild(row);
+        const headerRow = document.createElement('div');
+        headerRow.className = 'stats-row';
+        ALL_NOTES.forEach(note => {
+            const cell = document.createElement('div');
+            cell.className = 'stats-cell stats-cell-header';
+            cell.textContent = note;
+            headerRow.appendChild(cell);
         });
+        table.appendChild(headerRow);
 
-        container.appendChild(chart);
+        const dataRow = document.createElement('div');
+        dataRow.className = 'stats-row';
+        ALL_NOTES.forEach(note => {
+            const cell = document.createElement('div');
+            cell.className = 'stats-cell';
+
+            if (timeMap[note] !== undefined) {
+                const t = timeMap[note];
+                const bg = reactionTimeToColor(t, minTime, maxTime);
+                cell.style.backgroundColor = bg;
+                cell.textContent = formatTime(t);
+                cell.title = `${note}: ${formatTime(t)}`;
+                // Parse rgb to determine text brightness
+                const rgb = bg.match(/\d+/g).map(Number);
+                const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+                cell.style.color = brightness > 140 ? '#000' : '#fff';
+            } else {
+                cell.style.backgroundColor = '#f0f0f0';
+            }
+            dataRow.appendChild(cell);
+        });
+        table.appendChild(dataRow);
+
+        container.appendChild(table);
     }
 
     function renderStats(container) {
