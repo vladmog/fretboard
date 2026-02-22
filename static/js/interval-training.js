@@ -75,7 +75,9 @@
         chordNotes: [],
         chordIntervals: [],
         currentDegreeIndex: 0,
-        hadMistake: false
+        hadMistake: false,
+        questionStartTime: 0,
+        questionTimes: []
     };
 
     // Stats
@@ -157,6 +159,24 @@
         if (isCorrect) {
             stats[key][root][semitone].correct++;
         }
+        saveStats();
+    }
+
+    function commitSessionStats() {
+        loadStats();
+        const key = getStatsKey();
+        if (!stats[key]) stats[key] = {};
+        gameState.questionTimes.forEach(q => {
+            if (!stats[key][q.root]) stats[key][q.root] = {};
+            if (!stats[key][q.root][q.semitone]) {
+                stats[key][q.root][q.semitone] = { tested: 0, correct: 0, totalTimeMs: 0, timedCount: 0 };
+            }
+            const entry = stats[key][q.root][q.semitone];
+            entry.tested++;
+            if (q.correct) entry.correct++;
+            entry.totalTimeMs = (entry.totalTimeMs || 0) + q.timeMs;
+            entry.timedCount = (entry.timedCount || 0) + 1;
+        });
         saveStats();
     }
 
@@ -994,6 +1014,7 @@
         gameState.currentRound = 0;
         gameState.totalRounds = settings.roundCount;
         gameState.correctCount = 0;
+        gameState.questionTimes = [];
         nextQuestion();
     }
 
@@ -1110,6 +1131,8 @@
 
         content.appendChild(wrapper);
 
+        gameState.questionStartTime = performance.now();
+
         // Auto-play sounds on round start
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
@@ -1194,9 +1217,6 @@
             Sound.playNote(noteName, getNoteOctave(clickedNoteIndex, gameState.currentRootIndex));
         }
 
-        // Record stat
-        recordStat(gameState.currentRoot, getRecordSemitone(), false);
-
         // Flash red
         const api = gameState.circleApi;
         if (api) {
@@ -1223,8 +1243,14 @@
             gameState.correctCount++;
         }
 
-        // Record stat
-        recordStat(gameState.currentRoot, getRecordSemitone(), true);
+        // Capture timing
+        const elapsed = performance.now() - gameState.questionStartTime;
+        gameState.questionTimes.push({
+            root: gameState.currentRoot,
+            semitone: getRecordSemitone(),
+            timeMs: Math.round(elapsed),
+            correct: !gameState.hadMistake
+        });
 
         const api = gameState.circleApi;
         if (api) {
@@ -1705,18 +1731,45 @@
         pct.textContent = `${percent}%`;
         wrapper.appendChild(pct);
 
-        // Stats
-        const statsContainer = document.createElement('div');
-        statsContainer.id = 'game-stats-container';
-        loadStats();
-        renderStats(statsContainer);
-        wrapper.appendChild(statsContainer);
+        // Session reaction time matrix
+        const rtContainer = document.createElement('div');
+        rtContainer.className = 'rt-chart-container';
+        const timesByRootSemitone = {};
+        gameState.questionTimes.forEach(q => {
+            if (!timesByRootSemitone[q.root]) {
+                timesByRootSemitone[q.root] = {};
+            }
+            if (!timesByRootSemitone[q.root][q.semitone]) {
+                timesByRootSemitone[q.root][q.semitone] = { total: 0, count: 0 };
+            }
+            timesByRootSemitone[q.root][q.semitone].total += q.timeMs;
+            timesByRootSemitone[q.root][q.semitone].count++;
+        });
+        const timeData = {};
+        Object.keys(timesByRootSemitone).forEach(root => {
+            timeData[root] = {};
+            Object.keys(timesByRootSemitone[root]).forEach(s => {
+                const entry = timesByRootSemitone[root][s];
+                timeData[root][s] = Math.round(entry.total / entry.count);
+            });
+        });
+        renderReactionTimeMatrix(rtContainer, timeData, 'Reaction Times');
+        wrapper.appendChild(rtContainer);
 
         const btnRow = document.createElement('div');
         btnRow.className = 'game-btn-row';
 
+        const logBtn = document.createElement('button');
+        logBtn.className = 'game-start-btn';
+        logBtn.textContent = 'Log & Play Again';
+        logBtn.addEventListener('click', () => {
+            commitSessionStats();
+            if (validateSettings()) startGame();
+        });
+        btnRow.appendChild(logBtn);
+
         const playAgainBtn = document.createElement('button');
-        playAgainBtn.className = 'game-start-btn';
+        playAgainBtn.className = 'game-start-btn game-btn-secondary';
         playAgainBtn.textContent = 'Play Again';
         playAgainBtn.addEventListener('click', () => {
             if (validateSettings()) startGame();
@@ -1750,6 +1803,112 @@
             b = Math.round(0 + (50 - 0) * t);
         }
         return `rgb(${r},${g},${b})`;
+    }
+
+    function reactionTimeToColor(timeMs, minTime, maxTime) {
+        if (maxTime === minTime) return '#32CD32';
+        const ratio = (timeMs - minTime) / (maxTime - minTime);
+        let r, g, b;
+        if (ratio <= 0.5) {
+            const t = ratio / 0.5;
+            r = Math.round(50 + (255 - 50) * t);
+            g = Math.round(205 + (215 - 205) * t);
+            b = Math.round(50 - 50 * t);
+        } else {
+            const t = (ratio - 0.5) / 0.5;
+            r = 255;
+            g = Math.round(215 * (1 - t));
+            b = 0;
+        }
+        return `rgb(${r},${g},${b})`;
+    }
+
+    function formatTime(ms) {
+        if (ms < 1000) return ms + 'ms';
+        return (ms / 1000).toFixed(1) + 's';
+    }
+
+    function renderReactionTimeMatrix(container, timeData, heading) {
+        // timeData: { root: { semitone: avgTimeMs } }
+        const testedRoots = [];
+        const testedIntervals = new Set();
+
+        ALL_ROOTS.forEach(root => {
+            if (timeData[root]) {
+                testedRoots.push(root);
+                Object.keys(timeData[root]).forEach(s => testedIntervals.add(parseInt(s)));
+            }
+        });
+
+        const sortedIntervals = Array.from(testedIntervals).sort((a, b) => a - b);
+        if (sortedIntervals.length === 0) return;
+
+        const h = document.createElement('div');
+        h.className = 'rt-chart-heading';
+        h.textContent = heading;
+        container.appendChild(h);
+
+        // Compute global min/max for color scaling
+        let minTime = Infinity, maxTime = -Infinity;
+        testedRoots.forEach(root => {
+            sortedIntervals.forEach(s => {
+                const t = timeData[root][s];
+                if (t !== undefined) {
+                    if (t < minTime) minTime = t;
+                    if (t > maxTime) maxTime = t;
+                }
+            });
+        });
+
+        const table = document.createElement('div');
+        table.className = 'stats-table';
+
+        // Header row
+        const headerRow = document.createElement('div');
+        headerRow.className = 'stats-row';
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'stats-root-label';
+        headerRow.appendChild(emptyCell);
+
+        sortedIntervals.forEach(s => {
+            const cell = document.createElement('div');
+            cell.className = 'stats-cell stats-cell-header';
+            cell.textContent = getIntervalLabel(s);
+            headerRow.appendChild(cell);
+        });
+        table.appendChild(headerRow);
+
+        // Data rows
+        testedRoots.forEach(root => {
+            const row = document.createElement('div');
+            row.className = 'stats-row';
+
+            const rootCell = document.createElement('div');
+            rootCell.className = 'stats-root-label';
+            rootCell.textContent = root;
+            row.appendChild(rootCell);
+
+            sortedIntervals.forEach(s => {
+                const cell = document.createElement('div');
+                cell.className = 'stats-cell';
+
+                const t = timeData[root][s];
+                if (t !== undefined) {
+                    cell.style.backgroundColor = reactionTimeToColor(t, minTime, maxTime);
+                    cell.textContent = formatTime(t);
+                    cell.title = `${getIntervalLabel(s)} from ${root}: ${formatTime(t)}`;
+                    // Dark text for fast (green/yellow), light for slow (red/orange)
+                    const ratio = maxTime === minTime ? 0 : (t - minTime) / (maxTime - minTime);
+                    cell.style.color = ratio > 0.7 ? '#fff' : '#000';
+                } else {
+                    cell.style.backgroundColor = '#f0f0f0';
+                }
+                row.appendChild(cell);
+            });
+            table.appendChild(row);
+        });
+
+        container.appendChild(table);
     }
 
     function renderStats(container) {
@@ -1966,6 +2125,26 @@
         });
 
         container.appendChild(table);
+
+        // Avg reaction time matrix (interval modes only)
+        const timeData = {};
+        let hasTimeData = false;
+        testedRoots.forEach(root => {
+            sortedIntervals.forEach(s => {
+                const data = gameStats[root][s];
+                if (data && (data.timedCount || 0) > 0) {
+                    if (!timeData[root]) timeData[root] = {};
+                    timeData[root][s] = Math.round((data.totalTimeMs || 0) / data.timedCount);
+                    hasTimeData = true;
+                }
+            });
+        });
+        if (hasTimeData) {
+            const rtContainer = document.createElement('div');
+            rtContainer.className = 'rt-chart-container';
+            renderReactionTimeMatrix(rtContainer, timeData, 'Avg Reaction Time');
+            container.appendChild(rtContainer);
+        }
     }
 
     // ---- Cleanup ----
