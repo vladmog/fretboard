@@ -31,6 +31,7 @@
         currentTargetIndex: 0,
         correctCount: 0,
         answered: false,
+        hadMistake: false,
         circleApi: null
     };
 
@@ -505,6 +506,7 @@
     function nextQuestion() {
         gameState.currentRound++;
         gameState.answered = false;
+        gameState.hadMistake = false;
 
         if (gameState.currentRound > gameState.totalRounds) {
             showResults();
@@ -600,6 +602,8 @@
     }
 
     function handleWrongAnswer(clickedNoteIndex) {
+        gameState.hadMistake = true;
+
         // Play clicked note sound
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
@@ -632,7 +636,9 @@
 
     function handleCorrectAnswer(noteIndex) {
         gameState.answered = true;
-        gameState.correctCount++;
+        if (!gameState.hadMistake) {
+            gameState.correctCount++;
+        }
 
         // Record stat
         recordStat(gameState.currentTargetNote, true);

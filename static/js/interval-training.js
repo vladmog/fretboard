@@ -1036,6 +1036,7 @@
             gameState.currentDegreeIndex = 0;
             gameState.hadMistake = false;
         } else {
+            gameState.hadMistake = false;
             const intIdx = Math.floor(Math.random() * settings.enabledIntervals.length);
             gameState.currentSemitone = settings.enabledIntervals[intIdx];
 
@@ -1184,6 +1185,8 @@
     }
 
     function handleWrongAnswer(clickedNoteIndex, clickedSemitone) {
+        gameState.hadMistake = true;
+
         // Play clicked note sound
         const gamesState = window.Games ? window.Games.getState() : null;
         if (gamesState && gamesState.soundEnabled) {
@@ -1216,7 +1219,9 @@
 
     function handleCorrectAnswer(noteIndex) {
         gameState.answered = true;
-        gameState.correctCount++;
+        if (!gameState.hadMistake) {
+            gameState.correctCount++;
+        }
 
         // Record stat
         recordStat(gameState.currentRoot, getRecordSemitone(), true);
