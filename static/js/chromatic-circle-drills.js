@@ -938,7 +938,14 @@
         });
         table.appendChild(dataRow);
 
-        container.appendChild(table);
+        const accHeading = document.createElement('div');
+        accHeading.className = 'rt-chart-heading';
+        accHeading.textContent = 'Accuracy';
+        const accContainer = document.createElement('div');
+        accContainer.className = 'rt-chart-container';
+        accContainer.appendChild(accHeading);
+        accContainer.appendChild(table);
+        container.appendChild(accContainer);
 
         // Avg reaction time chart
         const noteAvgs = [];
