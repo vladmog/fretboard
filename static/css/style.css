@@ -1297,6 +1297,13 @@ input[name="caged-shape"][value="D"] ~ * {
     letter-spacing: 0.05em;
 }
 
+#game-stats-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
 /* Reaction Time Chart */
 .rt-chart-container {
     width: 100%;
@@ -1308,8 +1315,8 @@ input[name="caged-shape"][value="D"] ~ * {
     letter-spacing: 0.15em;
     font-weight: 700;
     color: #666;
-    margin-bottom: 0.5rem;
     text-align: center;
+    margin-bottom: 0.25rem;
 }
 
 /* Games responsive: back button position */
@@ -1330,6 +1337,7 @@ input[name="caged-shape"][value="D"] ~ * {
 
     #game-stats-container {
         width: 100%;
+        margin-top: 0.5rem;
     }
 
     .game-title {
