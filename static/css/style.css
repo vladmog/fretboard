@@ -1304,9 +1304,44 @@ input[name="caged-shape"][value="D"] ~ * {
         right: 0.75rem;
     }
 
+    .game-content {
+        padding: 1rem 0.75rem;
+    }
+
+    .game-title-page {
+        gap: 1rem;
+    }
+
     .game-title {
         font-size: 1.125rem;
-        margin-top: 2.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .game-start-btn {
+        padding: 0.75rem 2rem;
+        font-size: 0.75rem;
+    }
+
+    .game-score {
+        font-size: 1.5rem;
+    }
+
+    .game-score-pct {
+        font-size: 0.75rem;
+    }
+
+    .game-btn-row {
+        gap: 0.75rem;
+    }
+
+    .game-explanation {
+        max-width: 90vw;
+    }
+
+    .stats-cell {
+        min-width: 1.5rem;
+        height: 1.25rem;
+        font-size: 0.4375rem;
     }
 
     .games-controls {
