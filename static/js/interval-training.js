@@ -1516,24 +1516,16 @@
             const degreeLabel = gameState.scaleDegrees[gameState.currentDegreeIndex];
 
             setTimeout(() => {
-                // Apply interval color
-                if (settings.showColors) {
-                    const colors = MusicTheory.getIntervalColor(degreeLabel);
-                    circle.setAttribute('fill', colors.fill);
-                    circle.setAttribute('stroke', colors.border);
-                    text.setAttribute('fill', colors.text);
-                } else {
-                    const fill = noteIndex % 2 === 0 ? '#000' : '#777';
-                    circle.setAttribute('fill', fill);
-                    circle.setAttribute('stroke', fill);
-                    text.setAttribute('fill', '#fff');
-                }
-                // Force-show label
-                if (settings.showLabels) {
-                    text.setAttribute('visibility', 'visible');
-                }
+                // Always reveal interval color on correct answer
+                const colors = MusicTheory.getIntervalColor(degreeLabel);
+                circle.setAttribute('fill', colors.fill);
+                circle.setAttribute('stroke', colors.border);
+                text.setAttribute('fill', colors.text);
+                // Always show note label
+                text.setAttribute('visibility', 'visible');
+                // Always show interval label
                 const ilText = group.querySelector('.interval-label');
-                if (ilText && settings.showLabels && settings.showIntervalLabels) {
+                if (ilText) {
                     ilText.setAttribute('visibility', 'visible');
                 }
             }, 300);
@@ -1596,6 +1588,7 @@
                     circle.setAttribute('stroke', fill);
                     text.setAttribute('fill', '#fff');
                 }
+                text.setAttribute('visibility', settings.showLabels ? 'visible' : 'hidden');
                 const ilText = g.querySelector('.interval-label');
                 if (ilText) {
                     ilText.setAttribute('visibility',
@@ -1719,24 +1712,16 @@
             const degreeLabel = gameState.chordIntervals[gameState.currentDegreeIndex];
 
             setTimeout(() => {
-                // Apply interval color
-                if (settings.showColors) {
-                    const colors = MusicTheory.getIntervalColor(degreeLabel);
-                    circle.setAttribute('fill', colors.fill);
-                    circle.setAttribute('stroke', colors.border);
-                    text.setAttribute('fill', colors.text);
-                } else {
-                    const fill = noteIndex % 2 === 0 ? '#000' : '#777';
-                    circle.setAttribute('fill', fill);
-                    circle.setAttribute('stroke', fill);
-                    text.setAttribute('fill', '#fff');
-                }
-                // Force-show label
-                if (settings.showLabels) {
-                    text.setAttribute('visibility', 'visible');
-                }
+                // Always reveal interval color on correct answer
+                const colors = MusicTheory.getIntervalColor(degreeLabel);
+                circle.setAttribute('fill', colors.fill);
+                circle.setAttribute('stroke', colors.border);
+                text.setAttribute('fill', colors.text);
+                // Always show note label
+                text.setAttribute('visibility', 'visible');
+                // Always show interval label
                 const ilText = group.querySelector('.interval-label');
-                if (ilText && settings.showLabels && settings.showIntervalLabels) {
+                if (ilText) {
                     ilText.setAttribute('visibility', 'visible');
                 }
             }, 300);
@@ -1794,6 +1779,7 @@
                     circle.setAttribute('stroke', fill);
                     text.setAttribute('fill', '#fff');
                 }
+                text.setAttribute('visibility', settings.showLabels ? 'visible' : 'hidden');
                 const ilText = g.querySelector('.interval-label');
                 if (ilText) {
                     ilText.setAttribute('visibility',
