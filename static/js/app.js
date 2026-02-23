@@ -182,7 +182,9 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: '#fff',
                 borderColor: '#ccc',
-                text: state.showChordIntervals ? '' : getMarkerLabel(pos, scale.noteSpelling),
+                text: state.showChordIntervals
+                    ? (state.showNoteNames ? getMarkerLabel(pos, scale.noteSpelling) : '')
+                    : getMarkerLabel(pos, scale.noteSpelling),
                 textColor: '#bbb'
             });
         }
