@@ -461,7 +461,8 @@ function setMarker(config, string, fret, options = {}) {
         borderColor = null,
         borderWidth = 2,
         text = '',
-        textColor = styles.markerText.fill
+        textColor = styles.markerText.fill,
+        rainbowBorder = false
     } = options;
 
     const { markerGroup } = config;
@@ -472,14 +473,19 @@ function setMarker(config, string, fret, options = {}) {
 
     // Create circle with border
     const circleStyle = { ...styles.marker, fill: color };
-    if (borderColor) {
+    if (borderColor && !rainbowBorder) {
         circleStyle.stroke = borderColor;
+        circleStyle.strokeWidth = borderWidth;
+    } else if (rainbowBorder) {
         circleStyle.strokeWidth = borderWidth;
     }
     const circle = createSVGElement('circle', {
         cx: x,
         cy: y
     }, circleStyle);
+    if (rainbowBorder) {
+        circle.classList.add('rainbow-border');
+    }
     group.appendChild(circle);
 
     // Create text label if provided
