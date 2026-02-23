@@ -1215,6 +1215,26 @@ input[name="caged-shape"][value="D"] ~ * {
     gap: 1rem;
 }
 
+.game-top-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.game-top-row .game-round-counter {
+    flex: 1;
+    text-align: center;
+}
+
+.game-hint-spacer {
+    min-width: 3rem;
+}
+
+.game-hint-toggle .toggle-text {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.5rem;
+}
+
 .game-round-counter {
     font-size: 0.75rem;
     text-transform: uppercase;
