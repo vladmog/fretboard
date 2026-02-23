@@ -148,6 +148,34 @@
         }
     }
 
+    function setCenterColumns(textEl1, items1, textEl2, items2, center, size) {
+        textEl1.textContent = '';
+        textEl2.textContent = '';
+
+        var count = items1.length;
+        if (count === 0) return;
+
+        var spacing = size * 0.06;
+        var totalWidth = spacing * (count - 1);
+        var startX = center - totalWidth / 2;
+
+        for (var i = 0; i < count; i++) {
+            var x = count === 1 ? center : startX + spacing * i;
+
+            var tspan1 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+            tspan1.setAttribute('x', x);
+            tspan1.textContent = items1[i];
+            textEl1.appendChild(tspan1);
+
+            if (items2 && items2[i] !== undefined) {
+                var tspan2 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                tspan2.setAttribute('x', x);
+                tspan2.textContent = items2[i];
+                textEl2.appendChild(tspan2);
+            }
+        }
+    }
+
     function getStatsKey() {
         if (gameState.activeMode === 'root-to-interval') return 'interval-training';
         if (gameState.activeMode === 'scale-builder') return 'scale-builder';
@@ -1569,13 +1597,12 @@
         const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
         const rootText = api.questionGroup.querySelector('.question-root');
         const notesText = api.questionGroup.querySelector('.question-notes');
-        if (rootText) {
-            rootText.textContent = gameState.scaleDegrees.slice(0, gameState.currentDegreeIndex).join('  ');
-        }
-        if (notesText) {
-            notesText.textContent = gameState.scaleNotes.slice(0, gameState.currentDegreeIndex).map(function(idx) {
+        if (rootText && notesText) {
+            var intervals = gameState.scaleDegrees.slice(0, gameState.currentDegreeIndex);
+            var notes = gameState.scaleNotes.slice(0, gameState.currentDegreeIndex).map(function(idx) {
                 return MusicTheory.getNoteName(idx, useFlats);
-            }).join('  ');
+            });
+            setCenterColumns(rootText, intervals, notesText, notes, api.center, api.size);
         }
 
         if (gameState.currentDegreeIndex === gameState.scaleNotes.length) {
@@ -1703,13 +1730,11 @@
         if (intervalText) {
             intervalText.textContent = gameState.currentRoot + ' ' + MusicTheory.SCALES[gameState.currentScaleType].name;
         }
-        if (rootText) {
-            rootText.textContent = gameState.scaleDegrees.join('  ');
-        }
-        if (notesText) {
-            notesText.textContent = gameState.scaleNotes.map(function(idx) {
+        if (rootText && notesText) {
+            var notes = gameState.scaleNotes.map(function(idx) {
                 return MusicTheory.getNoteName(idx, useFlats);
-            }).join('  ');
+            });
+            setCenterColumns(rootText, gameState.scaleDegrees, notesText, notes, api.center, api.size);
         }
 
         // Arpeggiated playthrough
@@ -1783,13 +1808,12 @@
         const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
         const rootText = api.questionGroup.querySelector('.question-root');
         const notesText = api.questionGroup.querySelector('.question-notes');
-        if (rootText) {
-            rootText.textContent = gameState.chordIntervals.slice(0, gameState.currentDegreeIndex).join('  ');
-        }
-        if (notesText) {
-            notesText.textContent = gameState.chordNotes.slice(0, gameState.currentDegreeIndex).map(function(idx) {
+        if (rootText && notesText) {
+            var intervals = gameState.chordIntervals.slice(0, gameState.currentDegreeIndex);
+            var notes = gameState.chordNotes.slice(0, gameState.currentDegreeIndex).map(function(idx) {
                 return MusicTheory.getNoteName(idx, useFlats);
-            }).join('  ');
+            });
+            setCenterColumns(rootText, intervals, notesText, notes, api.center, api.size);
         }
 
         if (gameState.currentDegreeIndex === gameState.chordNotes.length) {
@@ -1912,13 +1936,11 @@
         if (intervalText) {
             intervalText.textContent = gameState.currentRoot + ' ' + MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
         }
-        if (rootText) {
-            rootText.textContent = gameState.chordIntervals.join('  ');
-        }
-        if (notesText) {
-            notesText.textContent = gameState.chordNotes.map(function(idx) {
+        if (rootText && notesText) {
+            var notes = gameState.chordNotes.map(function(idx) {
                 return MusicTheory.getNoteName(idx, useFlats);
-            }).join('  ');
+            });
+            setCenterColumns(rootText, gameState.chordIntervals, notesText, notes, api.center, api.size);
         }
 
         // Play chord
