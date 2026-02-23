@@ -439,7 +439,7 @@ select:hover {
 
 .scale-chord-item .numeral {
     font-size: 0.625rem;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.1em;
     width: 3.5rem;
     flex-shrink: 0;
