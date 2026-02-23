@@ -38,6 +38,14 @@
 
     const VALID_GAME_MODES = ['root-to-interval', 'interval-to-root', 'interval-to-interval', 'scale-builder', 'chord-builder'];
 
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
     const ALL_SCALE_TYPES = Object.keys(MusicTheory.SCALES);
     const ALL_CHORD_TYPES = Object.keys(MusicTheory.CHORD_TYPES);
 
@@ -77,7 +85,9 @@
         currentDegreeIndex: 0,
         hadMistake: false,
         questionStartTime: 0,
-        questionTimes: []
+        questionTimes: [],
+        questionQueue: [],
+        lastDrawnItem: null
     };
 
     // Stats
@@ -1010,36 +1020,92 @@
 
     // ---- Game Logic ----
 
+    function buildQuestionPool(mode) {
+        const pool = [];
+        if (mode === 'scale-builder') {
+            for (const root of settings.enabledRoots) {
+                for (const scaleType of settings.enabledScales) {
+                    pool.push({ root, scaleType });
+                }
+            }
+        } else if (mode === 'chord-builder') {
+            for (const root of settings.enabledRoots) {
+                for (const chordType of settings.enabledChords) {
+                    pool.push({ root, chordType });
+                }
+            }
+        } else if (mode === 'interval-to-interval') {
+            for (const root of settings.enabledRoots) {
+                for (const givenSemitone of settings.enabledIntervals) {
+                    const givenPos = givenSemitone % 12;
+                    const candidates = settings.enabledIntervals.filter(i => i % 12 !== givenPos);
+                    for (const targetSemitone of candidates) {
+                        pool.push({ root, givenSemitone, targetSemitone });
+                    }
+                }
+            }
+        } else {
+            // root-to-interval and interval-to-root
+            for (const root of settings.enabledRoots) {
+                for (const semitone of settings.enabledIntervals) {
+                    pool.push({ root, semitone });
+                }
+            }
+        }
+        return pool;
+    }
+
+    function questionsEqual(a, b) {
+        return JSON.stringify(a) === JSON.stringify(b);
+    }
+
+    function fillQuestionQueue() {
+        const pool = buildQuestionPool(gameState.activeMode);
+        shuffleArray(pool);
+        if (pool.length > 1 && gameState.lastDrawnItem && questionsEqual(pool[0], gameState.lastDrawnItem)) {
+            const swapIdx = 1 + Math.floor(Math.random() * (pool.length - 1));
+            [pool[0], pool[swapIdx]] = [pool[swapIdx], pool[0]];
+        }
+        gameState.questionQueue = pool;
+    }
+
     function startGame() {
         gameState.currentRound = 0;
         gameState.totalRounds = settings.roundCount;
         gameState.correctCount = 0;
         gameState.questionTimes = [];
+        gameState.activeMode = settings.gameMode;
+        gameState.questionQueue = [];
+        gameState.lastDrawnItem = null;
+        fillQuestionQueue();
         nextQuestion();
     }
 
     function nextQuestion() {
         gameState.currentRound++;
         gameState.answered = false;
-        gameState.activeMode = settings.gameMode;
 
         if (gameState.currentRound > gameState.totalRounds) {
             showResults();
             return;
         }
 
-        // Pick random root
-        const rootIdx = Math.floor(Math.random() * settings.enabledRoots.length);
-        gameState.currentRoot = settings.enabledRoots[rootIdx];
-        gameState.currentRootIndex = MusicTheory.getNoteIndex(gameState.currentRoot);
+        // Draw next question from shuffle bag
+        if (gameState.questionQueue.length === 0) {
+            fillQuestionQueue();
+        }
+        const q = gameState.questionQueue.shift();
+        gameState.lastDrawnItem = q;
+
+        gameState.currentRoot = q.root;
+        gameState.currentRootIndex = MusicTheory.getNoteIndex(q.root);
 
         const mode = gameState.activeMode;
 
         if (mode === 'scale-builder') {
-            const scaleIdx = Math.floor(Math.random() * settings.enabledScales.length);
-            gameState.currentScaleType = settings.enabledScales[scaleIdx];
-            const scale = MusicTheory.buildScale(gameState.currentRoot, gameState.currentScaleType);
-            const scaleFormula = MusicTheory.SCALES[gameState.currentScaleType];
+            gameState.currentScaleType = q.scaleType;
+            const scale = MusicTheory.buildScale(q.root, q.scaleType);
+            const scaleFormula = MusicTheory.SCALES[q.scaleType];
             gameState.scaleNotes = scaleFormula.intervals.map(interval =>
                 (gameState.currentRootIndex + MusicTheory.INTERVALS[interval]) % 12
             );
@@ -1047,30 +1113,28 @@
             gameState.currentDegreeIndex = 0;
             gameState.hadMistake = false;
         } else if (mode === 'chord-builder') {
-            const chordIdx = Math.floor(Math.random() * settings.enabledChords.length);
-            gameState.currentChordType = settings.enabledChords[chordIdx];
-            const chordFormula = MusicTheory.CHORD_TYPES[gameState.currentChordType];
+            gameState.currentChordType = q.chordType;
+            const chordFormula = MusicTheory.CHORD_TYPES[q.chordType];
             gameState.chordNotes = chordFormula.intervals.map(interval =>
                 (gameState.currentRootIndex + MusicTheory.INTERVALS[interval]) % 12
             );
             gameState.chordIntervals = chordFormula.intervals;
             gameState.currentDegreeIndex = 0;
             gameState.hadMistake = false;
-        } else {
+        } else if (mode === 'interval-to-interval') {
             gameState.hadMistake = false;
-            const intIdx = Math.floor(Math.random() * settings.enabledIntervals.length);
-            gameState.currentSemitone = settings.enabledIntervals[intIdx];
+            gameState.givenSemitone = q.givenSemitone;
+            gameState.givenNoteIndex = (gameState.currentRootIndex + q.givenSemitone) % 12;
+            gameState.targetSemitone = q.targetSemitone;
+            gameState.currentSemitone = q.givenSemitone;
+        } else {
+            // root-to-interval and interval-to-root
+            gameState.hadMistake = false;
+            gameState.currentSemitone = q.semitone;
 
             if (mode === 'interval-to-root') {
-                gameState.givenSemitone = gameState.currentSemitone;
-                gameState.givenNoteIndex = (gameState.currentRootIndex + gameState.givenSemitone) % 12;
-            } else if (mode === 'interval-to-interval') {
-                gameState.givenSemitone = gameState.currentSemitone;
-                gameState.givenNoteIndex = (gameState.currentRootIndex + gameState.givenSemitone) % 12;
-                // Pick a second interval that lands on a different circle position
-                const givenPos = gameState.givenSemitone % 12;
-                const candidates = settings.enabledIntervals.filter(i => i % 12 !== givenPos);
-                gameState.targetSemitone = candidates[Math.floor(Math.random() * candidates.length)];
+                gameState.givenSemitone = q.semitone;
+                gameState.givenNoteIndex = (gameState.currentRootIndex + q.semitone) % 12;
             }
         }
 

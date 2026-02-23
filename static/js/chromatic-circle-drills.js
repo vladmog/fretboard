@@ -15,6 +15,14 @@
 
     const GAME_OCTAVE = 4;
 
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
     // Game settings (persisted)
     let settings = {
         roundCount: 10,
@@ -34,7 +42,9 @@
         hadMistake: false,
         circleApi: null,
         questionStartTime: 0,
-        questionTimes: []
+        questionTimes: [],
+        questionQueue: [],
+        lastDrawnItem: null
     };
 
     // Stats
@@ -515,11 +525,24 @@
 
     // ---- Game Logic ----
 
+    function fillQuestionQueue() {
+        const pool = [...settings.enabledNotes];
+        shuffleArray(pool);
+        if (pool.length > 1 && pool[0] === gameState.lastDrawnItem) {
+            const swapIdx = 1 + Math.floor(Math.random() * (pool.length - 1));
+            [pool[0], pool[swapIdx]] = [pool[swapIdx], pool[0]];
+        }
+        gameState.questionQueue = pool;
+    }
+
     function startGame() {
         gameState.currentRound = 0;
         gameState.totalRounds = settings.roundCount;
         gameState.correctCount = 0;
         gameState.questionTimes = [];
+        gameState.questionQueue = [];
+        gameState.lastDrawnItem = null;
+        fillQuestionQueue();
         nextQuestion();
     }
 
@@ -533,9 +556,12 @@
             return;
         }
 
-        // Pick random note from enabled notes
-        const idx = Math.floor(Math.random() * settings.enabledNotes.length);
-        gameState.currentTargetNote = settings.enabledNotes[idx];
+        // Draw next note from shuffle bag
+        if (gameState.questionQueue.length === 0) {
+            fillQuestionQueue();
+        }
+        gameState.currentTargetNote = gameState.questionQueue.shift();
+        gameState.lastDrawnItem = gameState.currentTargetNote;
         gameState.currentTargetIndex = MusicTheory.getNoteIndex(gameState.currentTargetNote);
 
         renderGameView();
