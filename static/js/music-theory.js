@@ -842,6 +842,77 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
             filtered = filtered.filter(p =>
                 p.fret === 0 || (p.fret >= bestWindow.start && p.fret <= bestWindow.end)
             );
+
+            // Phase 3: Re-voice within window to recover missing chord tones
+            const chordIntervals = chord ? chord.intervals : ['1', '3', '5'];
+            const getCoveredIntervals = () => new Set(filtered.map(p => p.label));
+            const getMissingIntervals = () => chordIntervals.filter(i => !getCoveredIntervals().has(i));
+
+            // Step 1: For dropped strings, find best chord tone within window
+            const activeStrings = new Set(filtered.map(p => p.string));
+            const allOriginalStrings = new Set(positions.map(p => p.string));
+            for (const str of allOriginalStrings) {
+                if (activeStrings.has(str)) continue;
+                const stringIndex = 6 - str;
+                let bestOption = null;
+                const missing = getMissingIntervals();
+                for (const interval of chordIntervals) {
+                    const targetNote = (rootIndex + INTERVALS[interval]) % 12;
+                    const openNote = STRING_ROOTS[stringIndex];
+                    let fret = ((targetNote - openNote) % 12 + 12) % 12;
+                    if (fret < bestWindow.start) fret += 12;
+                    if (fret >= bestWindow.start && fret <= bestWindow.end) {
+                        const isMissing = missing.includes(interval);
+                        const isOnRootString = str === shape.rootString && interval === '1';
+                        const priority = getVoicingPriority(interval, isOnRootString);
+                        if (!bestOption || (isMissing && !bestOption.isMissing) ||
+                            (isMissing === bestOption.isMissing && priority > bestOption.priority)) {
+                            bestOption = {
+                                string: str, fret, noteIndex: targetNote,
+                                label: interval, isRoot: interval === '1',
+                                _isOnRootString: isOnRootString,
+                                _priority: priority, isMissing, priority
+                            };
+                        }
+                    }
+                }
+                if (bestOption) {
+                    const { isMissing: _, priority: __, ...pos } = bestOption;
+                    filtered.push(pos);
+                }
+            }
+
+            // Step 2: Swap duplicated intervals for missing ones
+            for (const missing of getMissingIntervals()) {
+                const targetNote = (rootIndex + INTERVALS[missing]) % 12;
+                const intervalCount = {};
+                for (const p of filtered) {
+                    intervalCount[p.label] = (intervalCount[p.label] || 0) + 1;
+                }
+                let bestSwap = null;
+                for (const p of filtered) {
+                    if (intervalCount[p.label] <= 1) continue;
+                    const stringIndex = 6 - p.string;
+                    const openNote = STRING_ROOTS[stringIndex];
+                    let fret = ((targetNote - openNote) % 12 + 12) % 12;
+                    if (fret < bestWindow.start) fret += 12;
+                    if (fret >= bestWindow.start && fret <= bestWindow.end) {
+                        if (!bestSwap || p._priority < bestSwap.existingPriority) {
+                            bestSwap = { pos: p, fret, existingPriority: p._priority };
+                        }
+                    }
+                }
+                if (bestSwap) {
+                    const p = bestSwap.pos;
+                    const isOnRootString = p.string === shape.rootString && missing === '1';
+                    p.fret = bestSwap.fret;
+                    p.noteIndex = targetNote;
+                    p.label = missing;
+                    p.isRoot = missing === '1';
+                    p._isOnRootString = isOnRootString;
+                    p._priority = getVoicingPriority(missing, isOnRootString);
+                }
+            }
         }
     }
 
