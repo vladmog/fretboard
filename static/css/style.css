@@ -432,7 +432,13 @@ select:hover {
     color: #000;
 }
 
-.scale-chord-item:hover,
+@media (hover: hover) {
+    .scale-chord-item:hover {
+        background-color: #000;
+        color: #fff;
+    }
+}
+
 .scale-chord-item.selected {
     background-color: #000;
     color: #fff;
