@@ -11,7 +11,6 @@ const styles = {
     fret: { stroke: '#000', strokeWidth: 1 },
     nut: { stroke: '#000', strokeWidth: 4 },
     inlay: { fill: '#888', r: 5 },
-    fretNumber: { fill: '#000', fontSize: 13, fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif', fontWeight: '400' },
     marker: { fill: '#000', r: 15 },
     markerText: { fill: '#fff', fontSize: 13, fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif', fontWeight: '400' }
 };
@@ -133,7 +132,6 @@ function createFretboard(container, config = {}) {
     const fretSpacing = 70;
     const padding = 50;
     const nutWidth = 8;
-    const fretNumberOffset = 30;
 
     // Calculate SVG dimensions based on orientation
     let svgWidth, svgHeight, fretboardWidth, fretboardHeight;
@@ -143,12 +141,12 @@ function createFretboard(container, config = {}) {
         fretboardWidth = (numStrings - 1) * stringSpacing;
         fretboardHeight = frets * fretSpacing;
         svgWidth = fretboardWidth + padding * 2;
-        svgHeight = fretboardHeight + padding * 2 + fretNumberOffset;
+        svgHeight = fretboardHeight + padding * 2;
     } else {
         // Horizontal: strings go top-bottom, frets go left-right
         fretboardWidth = frets * fretSpacing;
         fretboardHeight = (numStrings - 1) * stringSpacing;
-        svgWidth = fretboardWidth + padding * 2 + fretNumberOffset;
+        svgWidth = fretboardWidth + padding * 2;
         svgHeight = fretboardHeight + padding * 2;
     }
 
@@ -164,7 +162,6 @@ function createFretboard(container, config = {}) {
     const fretGroup = createSVGElement('g', { class: 'fret-layer' });
     const stringGroup = createSVGElement('g', { class: 'string-layer' });
     const markerGroup = createSVGElement('g', { class: 'marker-layer' });
-    const labelGroup = createSVGElement('g', { class: 'label-layer' });
 
     // Draw fretboard background
     if (isVertical) {
@@ -282,7 +279,7 @@ function createFretboard(container, config = {}) {
 
         if (isVertical) {
             const y = padding + (f - 0.5) * fretSpacing;
-            const x = padding - 22;
+            const x = padding - 30;
 
             if (isDouble) {
                 const inlay1 = createSVGElement('circle', {
@@ -301,7 +298,7 @@ function createFretboard(container, config = {}) {
             }
         } else {
             const x = padding + (f - 0.5) * fretSpacing;
-            const y = padding + fretboardHeight + 22;
+            const y = padding + fretboardHeight + 30;
 
             if (isDouble) {
                 const inlay1 = createSVGElement('circle', {
@@ -350,42 +347,12 @@ function createFretboard(container, config = {}) {
         }
     }
 
-    // Draw fret numbers
-    for (let f = 1; f <= frets; f++) {
-        if (!INLAY_FRETS.includes(f)) continue;
-
-        if (isVertical) {
-            const y = padding + (f - 0.5) * fretSpacing;
-            const x = padding + fretboardWidth + 18;
-            const label = createSVGElement('text', {
-                x: x,
-                y: y,
-                'text-anchor': 'start',
-                'dominant-baseline': 'middle'
-            }, styles.fretNumber);
-            label.textContent = f;
-            labelGroup.appendChild(label);
-        } else {
-            const x = padding + (f - 0.5) * fretSpacing;
-            const y = padding + fretboardHeight + 22;
-            const label = createSVGElement('text', {
-                x: x,
-                y: y,
-                'text-anchor': 'middle',
-                'dominant-baseline': 'hanging'
-            }, styles.fretNumber);
-            label.textContent = f;
-            labelGroup.appendChild(label);
-        }
-    }
-
     // Assemble SVG
     svg.appendChild(bgGroup);
     svg.appendChild(inlayGroup);
     svg.appendChild(fretGroup);
     svg.appendChild(stringGroup);
     svg.appendChild(markerGroup);
-    svg.appendChild(labelGroup);
 
     container.appendChild(svg);
 
