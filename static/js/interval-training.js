@@ -206,52 +206,17 @@
         const key = getStatsKey();
         if (!stats[key]) stats[key] = {};
         gameState.questionTimes.forEach(q => {
+            const column = q.type !== undefined ? q.type : q.semitone;
             if (!stats[key][q.root]) stats[key][q.root] = {};
-            if (!stats[key][q.root][q.semitone]) {
-                stats[key][q.root][q.semitone] = { tested: 0, correct: 0, totalTimeMs: 0, timedCount: 0 };
+            if (!stats[key][q.root][column]) {
+                stats[key][q.root][column] = { tested: 0, correct: 0, totalTimeMs: 0, timedCount: 0 };
             }
-            const entry = stats[key][q.root][q.semitone];
+            const entry = stats[key][q.root][column];
             entry.tested++;
             if (q.correct) entry.correct++;
             entry.totalTimeMs = (entry.totalTimeMs || 0) + q.timeMs;
             entry.timedCount = (entry.timedCount || 0) + 1;
         });
-        saveStats();
-    }
-
-    function recordScaleStat(root, scaleType, isCorrect) {
-        const key = 'scale-builder';
-        if (!stats[key]) {
-            stats[key] = {};
-        }
-        if (!stats[key][root]) {
-            stats[key][root] = {};
-        }
-        if (!stats[key][root][scaleType]) {
-            stats[key][root][scaleType] = { tested: 0, correct: 0 };
-        }
-        stats[key][root][scaleType].tested++;
-        if (isCorrect) {
-            stats[key][root][scaleType].correct++;
-        }
-        saveStats();
-    }
-
-    function recordChordStat(root, chordType, isCorrect) {
-        const key = 'chord-builder';
-        if (!stats[key]) {
-            stats[key] = {};
-        }
-        if (!stats[key][root]) {
-            stats[key][root] = {};
-        }
-        if (!stats[key][root][chordType]) {
-            stats[key][root][chordType] = { tested: 0, correct: 0 };
-        }
-        stats[key][root][chordType].tested++;
-        if (isCorrect) {
-            stats[key][root][chordType].correct++;
-        }
         saveStats();
     }
 
@@ -1685,8 +1650,14 @@
             gameState.correctCount++;
         }
 
-        // Record stat
-        recordScaleStat(gameState.currentRoot, gameState.currentScaleType, !gameState.hadMistake);
+        // Capture timing
+        const elapsed = performance.now() - gameState.questionStartTime;
+        gameState.questionTimes.push({
+            root: gameState.currentRoot,
+            type: gameState.currentScaleType,
+            timeMs: Math.round(elapsed),
+            correct: !gameState.hadMistake
+        });
 
         const api = gameState.circleApi;
         if (!api) return;
@@ -1891,8 +1862,14 @@
             gameState.correctCount++;
         }
 
-        // Record stat
-        recordChordStat(gameState.currentRoot, gameState.currentChordType, !gameState.hadMistake);
+        // Capture timing
+        const elapsed = performance.now() - gameState.questionStartTime;
+        gameState.questionTimes.push({
+            root: gameState.currentRoot,
+            type: gameState.currentChordType,
+            timeMs: Math.round(elapsed),
+            correct: !gameState.hadMistake
+        });
 
         const api = gameState.circleApi;
         if (!api) return;
@@ -1993,26 +1970,36 @@
         // Session reaction time matrix
         const rtContainer = document.createElement('div');
         rtContainer.className = 'rt-chart-container';
-        const timesByRootSemitone = {};
+        const timesByRootColumn = {};
         gameState.questionTimes.forEach(q => {
-            if (!timesByRootSemitone[q.root]) {
-                timesByRootSemitone[q.root] = {};
+            const column = q.type !== undefined ? q.type : q.semitone;
+            if (!timesByRootColumn[q.root]) {
+                timesByRootColumn[q.root] = {};
             }
-            if (!timesByRootSemitone[q.root][q.semitone]) {
-                timesByRootSemitone[q.root][q.semitone] = { total: 0, count: 0 };
+            if (!timesByRootColumn[q.root][column]) {
+                timesByRootColumn[q.root][column] = { total: 0, count: 0 };
             }
-            timesByRootSemitone[q.root][q.semitone].total += q.timeMs;
-            timesByRootSemitone[q.root][q.semitone].count++;
+            timesByRootColumn[q.root][column].total += q.timeMs;
+            timesByRootColumn[q.root][column].count++;
         });
         const timeData = {};
-        Object.keys(timesByRootSemitone).forEach(root => {
+        Object.keys(timesByRootColumn).forEach(root => {
             timeData[root] = {};
-            Object.keys(timesByRootSemitone[root]).forEach(s => {
-                const entry = timesByRootSemitone[root][s];
-                timeData[root][s] = Math.round(entry.total / entry.count);
+            Object.keys(timesByRootColumn[root]).forEach(col => {
+                const entry = timesByRootColumn[root][col];
+                timeData[root][col] = Math.round(entry.total / entry.count);
             });
         });
-        renderReactionTimeMatrix(rtContainer, timeData, 'Reaction Times');
+        const isBuilder = gameState.activeMode === 'scale-builder' || gameState.activeMode === 'chord-builder';
+        if (isBuilder) {
+            const allTypes = gameState.activeMode === 'chord-builder' ? ALL_CHORD_TYPES : ALL_SCALE_TYPES;
+            const typeNameFn = gameState.activeMode === 'chord-builder'
+                ? c => MusicTheory.CHORD_TYPES[c].name
+                : s => MusicTheory.SCALES[s].name;
+            renderBuilderReactionTimeMatrix(rtContainer, timeData, 'Reaction Times', allTypes, typeNameFn);
+        } else {
+            renderReactionTimeMatrix(rtContainer, timeData, 'Reaction Times');
+        }
         wrapper.appendChild(rtContainer);
 
         const btnRow = document.createElement('div');
@@ -2170,6 +2157,88 @@
         container.appendChild(table);
     }
 
+    function renderBuilderReactionTimeMatrix(container, timeData, heading, allTypes, typeNameFn) {
+        // timeData: { root: { type: avgTimeMs } }
+        const testedRoots = [];
+        const testedTypes = new Set();
+
+        ALL_ROOTS.forEach(root => {
+            if (timeData[root]) {
+                testedRoots.push(root);
+                Object.keys(timeData[root]).forEach(t => testedTypes.add(t));
+            }
+        });
+
+        const sortedTypes = allTypes.filter(t => testedTypes.has(t));
+        if (sortedTypes.length === 0) return;
+
+        const h = document.createElement('div');
+        h.className = 'rt-chart-heading';
+        h.textContent = heading;
+        container.appendChild(h);
+
+        // Compute global min/max for color scaling
+        let minTime = Infinity, maxTime = -Infinity;
+        testedRoots.forEach(root => {
+            sortedTypes.forEach(t => {
+                const v = timeData[root][t];
+                if (v !== undefined) {
+                    if (v < minTime) minTime = v;
+                    if (v > maxTime) maxTime = v;
+                }
+            });
+        });
+
+        const table = document.createElement('div');
+        table.className = 'stats-table';
+
+        // Header row
+        const headerRow = document.createElement('div');
+        headerRow.className = 'stats-row';
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'stats-root-label';
+        headerRow.appendChild(emptyCell);
+
+        sortedTypes.forEach(t => {
+            const cell = document.createElement('div');
+            cell.className = 'stats-cell stats-cell-header';
+            cell.textContent = typeNameFn(t);
+            headerRow.appendChild(cell);
+        });
+        table.appendChild(headerRow);
+
+        // Data rows
+        testedRoots.forEach(root => {
+            const row = document.createElement('div');
+            row.className = 'stats-row';
+
+            const rootCell = document.createElement('div');
+            rootCell.className = 'stats-root-label';
+            rootCell.textContent = root;
+            row.appendChild(rootCell);
+
+            sortedTypes.forEach(t => {
+                const cell = document.createElement('div');
+                cell.className = 'stats-cell';
+
+                const v = timeData[root][t];
+                if (v !== undefined) {
+                    cell.style.backgroundColor = reactionTimeToColor(v, minTime, maxTime);
+                    cell.textContent = formatTime(v);
+                    cell.title = `${typeNameFn(t)} from ${root}: ${formatTime(v)}`;
+                    const ratio = maxTime === minTime ? 0 : (v - minTime) / (maxTime - minTime);
+                    cell.style.color = ratio > 0.7 ? '#fff' : '#000';
+                } else {
+                    cell.style.backgroundColor = '#f0f0f0';
+                }
+                row.appendChild(cell);
+            });
+            table.appendChild(row);
+        });
+
+        container.appendChild(table);
+    }
+
     function renderStats(container) {
         container.innerHTML = '';
 
@@ -2248,6 +2317,27 @@
             });
 
             container.appendChild(table);
+
+            // Avg reaction time matrix for chord-builder
+            const chordTimeData = {};
+            let hasChordTimeData = false;
+            testedRoots.forEach(root => {
+                sortedChords.forEach(c => {
+                    const data = gameStats[root][c];
+                    if (data && (data.timedCount || 0) > 0) {
+                        if (!chordTimeData[root]) chordTimeData[root] = {};
+                        chordTimeData[root][c] = Math.round((data.totalTimeMs || 0) / data.timedCount);
+                        hasChordTimeData = true;
+                    }
+                });
+            });
+            if (hasChordTimeData) {
+                const rtContainer = document.createElement('div');
+                rtContainer.className = 'rt-chart-container';
+                renderBuilderReactionTimeMatrix(rtContainer, chordTimeData, 'Avg Reaction Time',
+                    ALL_CHORD_TYPES, c => MusicTheory.CHORD_TYPES[c].name);
+                container.appendChild(rtContainer);
+            }
             return;
         }
 
@@ -2316,6 +2406,27 @@
             });
 
             container.appendChild(table);
+
+            // Avg reaction time matrix for scale-builder
+            const scaleTimeData = {};
+            let hasScaleTimeData = false;
+            testedRoots.forEach(root => {
+                sortedScales.forEach(s => {
+                    const data = gameStats[root][s];
+                    if (data && (data.timedCount || 0) > 0) {
+                        if (!scaleTimeData[root]) scaleTimeData[root] = {};
+                        scaleTimeData[root][s] = Math.round((data.totalTimeMs || 0) / data.timedCount);
+                        hasScaleTimeData = true;
+                    }
+                });
+            });
+            if (hasScaleTimeData) {
+                const rtContainer = document.createElement('div');
+                rtContainer.className = 'rt-chart-container';
+                renderBuilderReactionTimeMatrix(rtContainer, scaleTimeData, 'Avg Reaction Time',
+                    ALL_SCALE_TYPES, s => MusicTheory.SCALES[s].name);
+                container.appendChild(rtContainer);
+            }
             return;
         }
 
