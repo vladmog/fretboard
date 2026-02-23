@@ -447,9 +447,11 @@
 
         for (const pos of positions) {
             const colors = MusicTheory.getIntervalColor(pos.label);
+            const isRoot = pos.label === '1';
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
+                rainbowBorder: isRoot,
                 text: getMarkerLabel(pos, scale.noteSpelling),
                 textColor: colors.text
             });
@@ -711,7 +713,15 @@
         } else if (state.mode === 'caged') {
             displayCaged(state.root, state.cagedShape);
         } else if (state.mode === 'modes') {
-            displayMode(state.root, state.modeType);
+            if (state.activeScaleChord) {
+                const modeRoot = MusicTheory.getModeRoot(state.root, state.modeType);
+                const modeScaleType = MusicTheory.MODES[state.modeType].scaleType;
+                const scale = MusicTheory.buildScale(modeRoot, modeScaleType);
+                const chord = MusicTheory.buildChord(state.activeScaleChord.root, state.activeScaleChord.type);
+                displayScaleChord(chord, scale);
+            } else {
+                displayMode(state.root, state.modeType);
+            }
         } else if (state.mode === 'interval') {
             displayIntervals(state.root);
         } else if (state.mode === 'scale') {
@@ -847,15 +857,22 @@
         const container = document.getElementById('scale-chords');
         if (!container) return;
 
-        // Use relative scale if toggle is active
-        let chordRoot = state.root;
-        let chordScaleType = state.scaleType;
+        let chordRoot, chordScaleType;
 
-        if (state.showRelative) {
-            const relativeInfo = MusicTheory.getRelativeScale(state.root, state.scaleType);
-            if (relativeInfo) {
-                chordRoot = relativeInfo.root;
-                chordScaleType = relativeInfo.scaleType;
+        if (state.mode === 'modes') {
+            chordRoot = MusicTheory.getModeRoot(state.root, state.modeType);
+            chordScaleType = MusicTheory.MODES[state.modeType].scaleType;
+        } else {
+            // Use relative scale if toggle is active
+            chordRoot = state.root;
+            chordScaleType = state.scaleType;
+
+            if (state.showRelative) {
+                const relativeInfo = MusicTheory.getRelativeScale(state.root, state.scaleType);
+                if (relativeInfo) {
+                    chordRoot = relativeInfo.root;
+                    chordScaleType = relativeInfo.scaleType;
+                }
             }
         }
 
@@ -1117,10 +1134,26 @@
             cagedSelector.style.display = mode === 'caged' ? 'block' : 'none';
         }
 
-        // Show/hide scale chord builder (only in scale mode)
+        // Show/hide scale chord builder (scale and modes)
         const builderSection = document.getElementById('scale-chord-builder');
         if (builderSection) {
-            builderSection.style.display = mode === 'scale' ? 'block' : 'none';
+            builderSection.style.display = (mode === 'scale' || mode === 'modes') ? 'block' : 'none';
+        }
+
+        // Hide relative toggle in modes mode (not applicable)
+        const relativeLabel = document.getElementById('relative-toggle')?.closest('.toggle-label');
+        if (relativeLabel) {
+            relativeLabel.style.display = mode === 'modes' ? 'none' : '';
+        }
+
+        // Reset relative state when entering modes
+        if (mode === 'modes') {
+            state.showRelative = false;
+            const relativeToggle = document.getElementById('relative-toggle');
+            if (relativeToggle) {
+                relativeToggle.checked = false;
+                relativeToggle.closest('.toggle-label').classList.remove('checked');
+            }
         }
 
         // Show/hide find controls
@@ -1135,7 +1168,7 @@
             addChordBtn.style.display = (mode === 'chord' || mode === 'scale') ? 'flex' : 'none';
         }
 
-        if (mode === 'scale') {
+        if (mode === 'scale' || mode === 'modes') {
             renderScaleChords();
         }
 
@@ -1180,7 +1213,7 @@
                 state.selectedChordIndex = -1;
                 state.activeScaleChord = null;
                 renderChordList();
-                if (state.mode === 'scale') {
+                if (state.mode === 'scale' || state.mode === 'modes') {
                     renderScaleChords();
                 }
                 updateDisplay();
@@ -1210,6 +1243,8 @@
                     renderScaleChords();
                 } else if (state.mode === 'modes') {
                     state.modeType = e.target.value;
+                    state.activeScaleChord = null;
+                    renderScaleChords();
                 } else {
                     state.chordType = e.target.value;
                 }
