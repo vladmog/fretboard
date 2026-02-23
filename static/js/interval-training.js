@@ -617,6 +617,8 @@
         explanation.textContent = 'Train your ear and theory knowledge by identifying intervals on the chromatic circle. ' + modeDescriptions[settings.gameMode];
         wrapper.appendChild(explanation);
 
+        gameState.activeMode = settings.gameMode;
+
         const statsContainer = document.createElement('div');
         statsContainer.id = 'game-stats-container';
         renderStats(statsContainer);
