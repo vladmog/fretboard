@@ -58,6 +58,7 @@
         notationStyle: 'short',
         showColors: true,
         showLabels: true,
+        showIntervalLabels: false,
         enabledScales: [...ALL_SCALE_TYPES],
         enabledChords: [...ALL_CHORD_TYPES]
     };
@@ -312,6 +313,11 @@
                     text.setAttribute('fill', '#fff');
                     text.setAttribute('visibility', settings.showLabels ? 'visible' : 'hidden');
                 }
+                const ilText = g.querySelector('.interval-label');
+                if (ilText) {
+                    ilText.setAttribute('visibility',
+                        (settings.showLabels && settings.showIntervalLabels) ? 'visible' : 'hidden');
+                }
             });
             updateQuestionText();
             return;
@@ -337,6 +343,11 @@
             circle.setAttribute('stroke', colors.border);
             text.setAttribute('fill', colors.text);
             text.setAttribute('visibility', settings.showLabels ? 'visible' : 'hidden');
+            const ilText = g.querySelector('.interval-label');
+            if (ilText) {
+                ilText.setAttribute('visibility',
+                    (settings.showLabels && settings.showIntervalLabels) ? 'visible' : 'hidden');
+            }
         });
 
         // Update question text
@@ -452,8 +463,28 @@
             const forceShow = options.forceShowLabelIndex !== undefined && i === options.forceShowLabelIndex;
             if (!settings.showLabels && !forceShow) text.setAttribute('visibility', 'hidden');
 
+            // Interval label positioned outside the marker
+            const ilRadius = radius + markerRadius + size * 0.03;
+            const ilX = center + ilRadius * Math.cos(angle);
+            const ilY = center + ilRadius * Math.sin(angle);
+            const ilText = document.createElementNS(svgNS, 'text');
+            ilText.setAttribute('class', 'interval-label');
+            ilText.setAttribute('x', ilX);
+            ilText.setAttribute('y', ilY);
+            ilText.setAttribute('text-anchor', 'middle');
+            ilText.setAttribute('dominant-baseline', 'central');
+            ilText.setAttribute('font-size', markerRadius * 0.65);
+            ilText.setAttribute('font-weight', '600');
+            ilText.setAttribute('font-family', "'Helvetica Neue', Helvetica, Arial, sans-serif");
+            ilText.setAttribute('fill', '#000');
+            ilText.textContent = intervalLabel;
+            if (!(settings.showLabels && settings.showIntervalLabels)) {
+                ilText.setAttribute('visibility', 'hidden');
+            }
+
             g.appendChild(circle);
             g.appendChild(text);
+            g.appendChild(ilText);
 
             g.addEventListener('click', () => {
                 onNoteClick(i, semitone);
@@ -719,14 +750,46 @@
             if ((opt.value === 'on') === settings.showLabels) option.selected = true;
             labelsSelect.appendChild(option);
         });
+        let ilSelect = null;
         labelsSelect.addEventListener('change', () => {
             settings.showLabels = labelsSelect.value === 'on';
+            if (!settings.showLabels) {
+                settings.showIntervalLabels = false;
+                if (ilSelect) ilSelect.value = 'off';
+            }
             saveSettings();
             applySettingsToCurrentRound();
         });
         labelsGroup.appendChild(labelsLabel);
         labelsGroup.appendChild(labelsSelect);
         modalBody.appendChild(labelsGroup);
+
+        // Interval Labels toggle
+        const ilGroup = document.createElement('div');
+        ilGroup.className = 'game-setting-group';
+        const ilLabel = document.createElement('label');
+        ilLabel.textContent = 'Interval Labels';
+        ilLabel.className = 'game-setting-label';
+        ilSelect = document.createElement('select');
+        ilSelect.className = 'game-setting-select';
+        [
+            { value: 'on', text: 'On' },
+            { value: 'off', text: 'Off' }
+        ].forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.text;
+            if ((opt.value === 'on') === settings.showIntervalLabels) option.selected = true;
+            ilSelect.appendChild(option);
+        });
+        ilSelect.addEventListener('change', () => {
+            settings.showIntervalLabels = ilSelect.value === 'on';
+            saveSettings();
+            applySettingsToCurrentRound();
+        });
+        ilGroup.appendChild(ilLabel);
+        ilGroup.appendChild(ilSelect);
+        modalBody.appendChild(ilGroup);
 
         if (settings.gameMode === 'chord-builder') {
             // Chord type checkboxes
@@ -1342,6 +1405,8 @@
                 const idx = parseInt(g.getAttribute('data-note-index'));
                 if (!keepVisible.has(idx)) {
                     g.style.opacity = '0.1';
+                    const ilText = g.querySelector('.interval-label');
+                    if (ilText) ilText.setAttribute('visibility', 'hidden');
                 }
             });
 
@@ -1359,6 +1424,10 @@
                     circle.setAttribute('fill', colors.fill);
                     circle.setAttribute('stroke', colors.border);
                     text.setAttribute('fill', colors.text);
+                    const ilText = g.querySelector('.interval-label');
+                    if (ilText && settings.showIntervalLabels) {
+                        ilText.setAttribute('visibility', 'visible');
+                    }
                 }
             });
 
@@ -1463,6 +1532,10 @@
                 if (settings.showLabels) {
                     text.setAttribute('visibility', 'visible');
                 }
+                const ilText = group.querySelector('.interval-label');
+                if (ilText && settings.showLabels && settings.showIntervalLabels) {
+                    ilText.setAttribute('visibility', 'visible');
+                }
             }, 300);
         }
 
@@ -1523,6 +1596,11 @@
                     circle.setAttribute('stroke', fill);
                     text.setAttribute('fill', '#fff');
                 }
+                const ilText = g.querySelector('.interval-label');
+                if (ilText) {
+                    ilText.setAttribute('visibility',
+                        (settings.showLabels && settings.showIntervalLabels) ? 'visible' : 'hidden');
+                }
             });
 
             // Reset sequence
@@ -1556,6 +1634,8 @@
             const idx = parseInt(g.getAttribute('data-note-index'));
             if (!scaleNoteSet.has(idx)) {
                 g.style.opacity = '0.1';
+                const ilText = g.querySelector('.interval-label');
+                if (ilText) ilText.setAttribute('visibility', 'hidden');
             }
         });
 
@@ -1572,6 +1652,10 @@
                 circle.setAttribute('fill', colors.fill);
                 circle.setAttribute('stroke', colors.border);
                 text.setAttribute('fill', colors.text);
+                const ilText = g.querySelector('.interval-label');
+                if (ilText && settings.showIntervalLabels) {
+                    ilText.setAttribute('visibility', 'visible');
+                }
             }
         });
 
@@ -1651,6 +1735,10 @@
                 if (settings.showLabels) {
                     text.setAttribute('visibility', 'visible');
                 }
+                const ilText = group.querySelector('.interval-label');
+                if (ilText && settings.showLabels && settings.showIntervalLabels) {
+                    ilText.setAttribute('visibility', 'visible');
+                }
             }, 300);
         }
 
@@ -1706,6 +1794,11 @@
                     circle.setAttribute('stroke', fill);
                     text.setAttribute('fill', '#fff');
                 }
+                const ilText = g.querySelector('.interval-label');
+                if (ilText) {
+                    ilText.setAttribute('visibility',
+                        (settings.showLabels && settings.showIntervalLabels) ? 'visible' : 'hidden');
+                }
             });
 
             // Reset sequence
@@ -1739,6 +1832,8 @@
             const idx = parseInt(g.getAttribute('data-note-index'));
             if (!chordNoteSet.has(idx)) {
                 g.style.opacity = '0.1';
+                const ilText = g.querySelector('.interval-label');
+                if (ilText) ilText.setAttribute('visibility', 'hidden');
             }
         });
 
@@ -1755,6 +1850,10 @@
                 circle.setAttribute('fill', colors.fill);
                 circle.setAttribute('stroke', colors.border);
                 text.setAttribute('fill', colors.text);
+                const ilText = g.querySelector('.interval-label');
+                if (ilText && settings.showIntervalLabels) {
+                    ilText.setAttribute('visibility', 'visible');
+                }
             }
         });
 
