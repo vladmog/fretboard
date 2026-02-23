@@ -8,6 +8,7 @@
 
 html {
     height: 100%;
+    background-color: #fff;
 }
 
 body {
@@ -32,7 +33,7 @@ body {
     .app-container {
         grid-template-rows: 3fr 2fr;
         grid-template-columns: 1fr;
-        padding: 1.5rem;
+        padding: max(1.5rem, env(safe-area-inset-top)) max(1.5rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1.5rem, env(safe-area-inset-left));
         gap: 1.5rem;
     }
 
@@ -74,7 +75,7 @@ body {
     .app-container {
         grid-template-columns: 1fr 1fr;
         grid-template-rows: 100%;
-        padding: 0.5rem;
+        padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
         gap: 0.5rem;
         height: 100%;
     }
@@ -1038,7 +1039,7 @@ input[name="caged-shape"][value="D"] ~ * {
     align-items: center;
     justify-content: flex-start;
     min-height: 100vh;
-    padding: 4rem 1rem;
+    padding: calc(4rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-right, 0px)) calc(1rem + env(safe-area-inset-bottom, 0px)) calc(1rem + env(safe-area-inset-left, 0px));
 }
 
 /* Back button */
@@ -1064,8 +1065,8 @@ input[name="caged-shape"][value="D"] ~ * {
 /* Controls box */
 .games-controls {
     position: fixed;
-    bottom: 1rem;
-    right: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    right: calc(1rem + env(safe-area-inset-right, 0px));
     z-index: 120;
     display: flex;
     gap: 0.5rem;
@@ -1465,12 +1466,12 @@ input[name="caged-shape"][value="D"] ~ * {
 /* Games responsive: back button position */
 @media (max-width: 768px) {
     .games-back-btn {
-        top: 0.75rem;
-        right: 0.75rem;
+        top: calc(0.75rem + env(safe-area-inset-top, 0px));
+        right: calc(0.75rem + env(safe-area-inset-right, 0px));
     }
 
     .game-content {
-        padding: 3rem 0.75rem 5rem;
+        padding: calc(3rem + env(safe-area-inset-top, 0px)) calc(0.75rem + env(safe-area-inset-right, 0px)) calc(5rem + env(safe-area-inset-bottom, 0px)) calc(0.75rem + env(safe-area-inset-left, 0px));
     }
 
     .game-title-page {
@@ -1524,8 +1525,8 @@ input[name="caged-shape"][value="D"] ~ * {
     }
 
     .games-controls {
-        bottom: 0.5rem;
-        right: 0.5rem;
+        bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+        right: calc(0.5rem + env(safe-area-inset-right, 0px));
     }
 
     .rt-chart-row { height: 1rem; }
@@ -1536,8 +1537,8 @@ input[name="caged-shape"][value="D"] ~ * {
 
 @media (min-width: 769px) {
     .games-back-btn {
-        bottom: 1rem;
-        left: 1rem;
+        bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+        left: calc(1rem + env(safe-area-inset-left, 0px));
     }
 }
 
