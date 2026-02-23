@@ -1505,15 +1505,24 @@
         });
 
         setTimeout(() => {
-            // Restore all markers to neutral colors
+            // Restore all markers to appropriate colors
             api.noteGroups.forEach((g, i) => {
                 const idx = parseInt(g.getAttribute('data-note-index'));
                 const circle = g.querySelector('circle');
                 const text = g.querySelector('text');
-                const fill = idx % 2 === 0 ? '#000' : '#777';
-                circle.setAttribute('fill', fill);
-                circle.setAttribute('stroke', fill);
-                text.setAttribute('fill', '#fff');
+                if (settings.showColors) {
+                    const sem = ((idx - gameState.currentRootIndex) + 12) % 12;
+                    const intervalLabel = SIMPLE_LABELS[sem];
+                    const colors = MusicTheory.getIntervalColor(intervalLabel);
+                    circle.setAttribute('fill', colors.fill);
+                    circle.setAttribute('stroke', colors.border);
+                    text.setAttribute('fill', colors.text);
+                } else {
+                    const fill = idx % 2 === 0 ? '#000' : '#777';
+                    circle.setAttribute('fill', fill);
+                    circle.setAttribute('stroke', fill);
+                    text.setAttribute('fill', '#fff');
+                }
             });
 
             // Reset sequence
@@ -1679,15 +1688,24 @@
         });
 
         setTimeout(() => {
-            // Restore all markers to neutral colors
+            // Restore all markers to appropriate colors
             api.noteGroups.forEach(g => {
                 const idx = parseInt(g.getAttribute('data-note-index'));
                 const circle = g.querySelector('circle');
                 const text = g.querySelector('text');
-                const fill = idx % 2 === 0 ? '#000' : '#777';
-                circle.setAttribute('fill', fill);
-                circle.setAttribute('stroke', fill);
-                text.setAttribute('fill', '#fff');
+                if (settings.showColors) {
+                    const sem = ((idx - gameState.currentRootIndex) + 12) % 12;
+                    const intervalLabel = SIMPLE_LABELS[sem];
+                    const colors = MusicTheory.getIntervalColor(intervalLabel);
+                    circle.setAttribute('fill', colors.fill);
+                    circle.setAttribute('stroke', colors.border);
+                    text.setAttribute('fill', colors.text);
+                } else {
+                    const fill = idx % 2 === 0 ? '#000' : '#777';
+                    circle.setAttribute('fill', fill);
+                    circle.setAttribute('stroke', fill);
+                    text.setAttribute('fill', '#fff');
+                }
             });
 
             // Reset sequence
