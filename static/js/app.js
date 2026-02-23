@@ -105,9 +105,11 @@
 
         for (const pos of positions) {
             const colors = MusicTheory.getIntervalColor(pos.label);
+            const isRoot = pos.label === '1';
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
+                rainbowBorder: isRoot,
                 text: getMarkerLabel(pos, displayScale.noteSpelling),
                 textColor: colors.text
             });
@@ -216,13 +218,15 @@
                 borderColor = '#000000';
                 borderWidth = 3.5;
             }
-            if (pos.noteIndex === scaleRootIndex) {
+            const isScaleRoot = pos.noteIndex === scaleRootIndex;
+            if (isScaleRoot) {
                 borderColor = '#FF0000';
             }
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: borderColor,
                 borderWidth: borderWidth,
+                rainbowBorder: isScaleRoot,
                 text: getMarkerLabel(pos, labelSpelling),
                 textColor: colors.text
             });
@@ -238,6 +242,7 @@
                 state.fretboard.setMarker(pos.string, pos.fret, {
                     color: 'transparent',
                     borderColor: '#FF0000',
+                    rainbowBorder: true,
                     text: '',
                     textColor: 'transparent'
                 });

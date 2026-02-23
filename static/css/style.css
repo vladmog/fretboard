@@ -1398,3 +1398,17 @@ input[name="caged-shape"][value="D"] ~ * {
         left: 1rem;
     }
 }
+
+@keyframes rainbow-stroke {
+    0%   { stroke: #FF0000; }
+    16%  { stroke: #FF8800; }
+    33%  { stroke: #FFFF00; }
+    50%  { stroke: #00FF00; }
+    66%  { stroke: #0088FF; }
+    83%  { stroke: #8800FF; }
+    100% { stroke: #FF0000; }
+}
+
+.rainbow-border {
+    animation: rainbow-stroke 0.5s linear infinite;
+}
