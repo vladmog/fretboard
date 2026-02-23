@@ -80,6 +80,30 @@
     }
 
     /**
+     * Update visibility of the relative toggle based on current mode and selection
+     */
+    function updateRelToggleVisibility() {
+        const relativeLabel = document.getElementById('relative-toggle')?.closest('.toggle-label');
+        if (!relativeLabel) return;
+        let supported = false;
+        if (state.mode === 'scale') {
+            supported = state.scaleType === 'major' || state.scaleType === 'natural_minor';
+        } else if (state.mode === 'f.scale' && state.findSelectedIndex >= 0) {
+            const result = state.findResults[state.findSelectedIndex];
+            supported = result && (result.type === 'major' || result.type === 'natural_minor');
+        }
+        relativeLabel.style.display = supported ? '' : 'none';
+        if (!supported && state.showRelative) {
+            state.showRelative = false;
+            const toggle = document.getElementById('relative-toggle');
+            if (toggle) {
+                toggle.checked = false;
+                relativeLabel.classList.remove('checked');
+            }
+        }
+    }
+
+    /**
      * Display a scale on the fretboard
      * @param {Object} scale - Scale instance from buildScale()
      */
@@ -651,6 +675,7 @@
         renderFindResults();
         if (state.mode === 'f.scale') {
             renderFindScaleChords();
+            updateRelToggleVisibility();
         }
     }
 
@@ -674,6 +699,7 @@
         renderFindResults();
         if (state.mode === 'f.scale') {
             renderFindScaleChords();
+            updateRelToggleVisibility();
         }
         displayFindMarkers();
     }
@@ -952,7 +978,17 @@
 
         builderSection.classList.remove('disabled');
         const selectedScale = state.findResults[state.findSelectedIndex];
-        const chords = MusicTheory.buildScaleChords(selectedScale.root, selectedScale.type, state.showSevenths);
+
+        let chordRoot = selectedScale.root;
+        let chordScaleType = selectedScale.type;
+        if (state.showRelative) {
+            const relativeInfo = MusicTheory.getRelativeScale(selectedScale.root, selectedScale.type);
+            if (relativeInfo) {
+                chordRoot = relativeInfo.root;
+                chordScaleType = relativeInfo.scaleType;
+            }
+        }
+        const chords = MusicTheory.buildScaleChords(chordRoot, chordScaleType, state.showSevenths);
 
         if (chords.length === 0) {
             container.innerHTML = '<p class="scale-chords-note">Scale chords not available for this scale type</p>';
@@ -1216,21 +1252,8 @@
             builderSection.style.display = (mode === 'scale' || mode === 'modes' || mode === 'f.scale') ? 'block' : 'none';
         }
 
-        // Hide relative toggle in modes mode (not applicable)
-        const relativeLabel = document.getElementById('relative-toggle')?.closest('.toggle-label');
-        if (relativeLabel) {
-            relativeLabel.style.display = (mode === 'modes' || mode === 'f.scale') ? 'none' : '';
-        }
-
-        // Reset relative state when entering modes or f.scale
-        if (mode === 'modes' || mode === 'f.scale') {
-            state.showRelative = false;
-            const relativeToggle = document.getElementById('relative-toggle');
-            if (relativeToggle) {
-                relativeToggle.checked = false;
-                relativeToggle.closest('.toggle-label').classList.remove('checked');
-            }
-        }
+        // Update relative toggle visibility for current mode
+        updateRelToggleVisibility();
 
         // Show/hide find controls
         const findControls = document.getElementById('find-controls');
@@ -1309,15 +1332,7 @@
                 if (state.mode === 'scale') {
                     state.scaleType = e.target.value;
                     state.activeScaleChord = null;
-                    // Reset relative toggle if switching to unsupported scale type
-                    if (state.scaleType !== 'major' && state.scaleType !== 'natural_minor') {
-                        state.showRelative = false;
-                        const relativeToggle = document.getElementById('relative-toggle');
-                        if (relativeToggle) {
-                            relativeToggle.checked = false;
-                            relativeToggle.closest('.toggle-label').classList.remove('checked');
-                        }
-                    }
+                    updateRelToggleVisibility();
                     renderScaleChords();
                 } else if (state.mode === 'modes') {
                     state.modeType = e.target.value;
@@ -1374,7 +1389,11 @@
             relativeToggle.addEventListener('change', (e) => {
                 state.showRelative = e.target.checked;
                 state.activeScaleChord = null;
-                renderScaleChords();
+                if (state.mode === 'f.scale') {
+                    renderFindScaleChords();
+                } else {
+                    renderScaleChords();
+                }
                 updateDisplay();
             });
         }
