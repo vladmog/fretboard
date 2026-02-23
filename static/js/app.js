@@ -162,6 +162,80 @@
     }
 
     /**
+     * Display a scale chord on the fretboard with scale-relative degrees
+     * @param {Object} chord - Chord instance from buildChord()
+     * @param {Object} scale - Scale instance from buildScale() (parent scale)
+     */
+    function displayScaleChord(chord, scale) {
+        if (!state.fretboard) return;
+
+        state.fretboard.clearMarkers();
+
+        // Filter scale's noteToDegree to only notes present in the chord
+        const filteredNoteToDegree = {};
+        for (const [noteIndex, degree] of Object.entries(scale.noteToDegree)) {
+            if (chord.noteToInterval.hasOwnProperty(noteIndex)) {
+                filteredNoteToDegree[noteIndex] = degree;
+            }
+        }
+
+        const positions = MusicTheory.getNotesOnFretboard(
+            filteredNoteToDegree,
+            15,
+            scale.root
+        );
+
+        const chordRootIndex = MusicTheory.getNoteIndex(chord.root);
+        for (const pos of positions) {
+            const colors = MusicTheory.getIntervalColor(pos.label);
+            let borderColor = colors.border;
+            let borderWidth = 2;
+            if (pos.noteIndex === chordRootIndex && pos.label !== '1') {
+                borderColor = '#000000';
+                borderWidth = 3.5;
+            }
+            state.fretboard.setMarker(pos.string, pos.fret, {
+                color: colors.fill,
+                borderColor: borderColor,
+                borderWidth: borderWidth,
+                text: getMarkerLabel(pos, scale.noteSpelling),
+                textColor: colors.text
+            });
+        }
+
+        // Add ghost markers at scale root positions when the chord doesn't contain the root
+        const rootIndex = MusicTheory.getNoteIndex(scale.root);
+        if (!filteredNoteToDegree.hasOwnProperty(rootIndex)) {
+            const ghostPositions = MusicTheory.getNotesOnFretboard(
+                { [rootIndex]: '1' }, 15, scale.root
+            );
+            for (const pos of ghostPositions) {
+                state.fretboard.setMarker(pos.string, pos.fret, {
+                    color: 'transparent',
+                    borderColor: '#FF0000',
+                    text: '',
+                    textColor: 'transparent'
+                });
+            }
+        }
+
+        // Apply current rotation to newly created markers
+        if (window.RotationToggle) {
+            window.RotationToggle.applyCurrentRotation();
+        }
+
+        // Build info panel: show chord symbol, chord notes, and their scale degrees
+        const chordNoteIndices = Object.keys(chord.noteToInterval).map(Number);
+        const scaleDegrees = chordNoteIndices.map(idx => scale.noteToDegree[idx]).filter(Boolean);
+
+        updateInfoPanel({
+            title: chord.symbol,
+            notes: chord.notes,
+            intervals: scaleDegrees
+        });
+    }
+
+    /**
      * Display all chromatic intervals relative to a root note
      * @param {string} root - Root note
      */
@@ -606,8 +680,19 @@
             displayIntervals(state.root);
         } else if (state.mode === 'scale') {
             if (state.activeScaleChord) {
+                // Resolve relative toggle (same logic as displayScale/renderScaleChords)
+                let scaleRoot = state.root;
+                let scaleType = state.scaleType;
+                if (state.showRelative && (scaleType === 'major' || scaleType === 'natural_minor')) {
+                    const relativeInfo = MusicTheory.getRelativeScale(scaleRoot, scaleType);
+                    if (relativeInfo) {
+                        scaleRoot = relativeInfo.root;
+                        scaleType = relativeInfo.scaleType;
+                    }
+                }
+                const scale = MusicTheory.buildScale(scaleRoot, scaleType);
                 const chord = MusicTheory.buildChord(state.activeScaleChord.root, state.activeScaleChord.type);
-                displayChord(chord);
+                displayScaleChord(chord, scale);
             } else {
                 const scale = MusicTheory.buildScale(state.root, state.scaleType);
                 displayScale(scale);

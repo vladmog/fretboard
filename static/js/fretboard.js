@@ -459,6 +459,7 @@ function setMarker(config, string, fret, options = {}) {
     const {
         color = styles.marker.fill,
         borderColor = null,
+        borderWidth = 2,
         text = '',
         textColor = styles.markerText.fill
     } = options;
@@ -473,7 +474,7 @@ function setMarker(config, string, fret, options = {}) {
     const circleStyle = { ...styles.marker, fill: color };
     if (borderColor) {
         circleStyle.stroke = borderColor;
-        circleStyle.strokeWidth = 2;
+        circleStyle.strokeWidth = borderWidth;
     }
     const circle = createSVGElement('circle', {
         cx: x,
