@@ -25,7 +25,8 @@
         findMarkers: {},        // Find mode: map keyed by "string-fret" → { string, fret, noteIndex }
         findResults: [],        // Find mode: results from MusicTheory.findChords()
         findSelectedIndex: -1,  // Find mode: index in findResults, -1 = user markers view
-        activeScaleChord: null  // Scale mode: previewed chord { root, type, symbol } or null
+        activeScaleChord: null, // Scale mode: previewed chord { root, type, symbol } or null
+        intervalFilter: new Set(['1','b2','2','b3','3','4','b5','5','b6','6','b7','7'])
     };
 
     // Storage key for chord list persistence
@@ -331,6 +332,7 @@
         );
 
         for (const pos of positions) {
+            if (!state.intervalFilter.has(pos.label)) continue;
             const colors = MusicTheory.getIntervalColor(pos.label);
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
@@ -345,10 +347,20 @@
             window.RotationToggle.applyCurrentRotation();
         }
 
+        // Filter info panel to only show checked intervals
+        const filteredNotes = [];
+        const filteredIntervals = [];
+        for (let i = 0; i < allIntervals.length; i++) {
+            if (state.intervalFilter.has(allIntervals[i])) {
+                filteredNotes.push(allNotes[i]);
+                filteredIntervals.push(allIntervals[i]);
+            }
+        }
+
         updateInfoPanel({
             title: `${root} Chromatic Intervals`,
-            notes: allNotes,
-            intervals: allIntervals
+            notes: filteredNotes,
+            intervals: filteredIntervals
         });
     }
 
@@ -1246,6 +1258,12 @@
             cagedSelector.style.display = mode === 'caged' ? 'block' : 'none';
         }
 
+        // Show/hide interval filter
+        const intervalFilter = document.getElementById('interval-filter');
+        if (intervalFilter) {
+            intervalFilter.style.display = mode === 'interval' ? 'block' : 'none';
+        }
+
         // Show/hide scale chord builder (scale and modes)
         const builderSection = document.getElementById('scale-chord-builder');
         if (builderSection) {
@@ -1496,6 +1514,56 @@
             findClearBtn.addEventListener('click', clearFindMarkers);
         }
 
+        // Interval filter checkboxes
+        const intervalChecks = document.querySelectorAll('.interval-check input[type="checkbox"]');
+        intervalChecks.forEach(checkbox => {
+            const label = checkbox.closest('.interval-check');
+            const interval = label.dataset.interval;
+
+            // Set initial checked class
+            if (checkbox.checked) {
+                label.classList.add('checked');
+            }
+
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    state.intervalFilter.add(interval);
+                    label.classList.add('checked');
+                } else {
+                    state.intervalFilter.delete(interval);
+                    label.classList.remove('checked');
+                }
+                updateDisplay();
+            });
+        });
+
+        // Interval filter: Select All
+        const intervalSelectAll = document.getElementById('interval-select-all');
+        if (intervalSelectAll) {
+            intervalSelectAll.addEventListener('click', () => {
+                const allIntervals = ['1','b2','2','b3','3','4','b5','5','b6','6','b7','7'];
+                state.intervalFilter = new Set(allIntervals);
+                document.querySelectorAll('.interval-check').forEach(label => {
+                    label.querySelector('input').checked = true;
+                    label.classList.add('checked');
+                });
+                updateDisplay();
+            });
+        }
+
+        // Interval filter: Deselect All
+        const intervalDeselectAll = document.getElementById('interval-deselect-all');
+        if (intervalDeselectAll) {
+            intervalDeselectAll.addEventListener('click', () => {
+                state.intervalFilter.clear();
+                document.querySelectorAll('.interval-check').forEach(label => {
+                    label.querySelector('input').checked = false;
+                    label.classList.remove('checked');
+                });
+                updateDisplay();
+            });
+        }
+
     }
 
     /**
@@ -1519,6 +1587,14 @@
         renderChordList();
         renderScaleChords();
         initEventListeners();
+
+        // Color-code interval filter checkboxes
+        document.querySelectorAll('.interval-check').forEach(label => {
+            const interval = label.dataset.interval;
+            const colors = MusicTheory.getIntervalColor(interval);
+            label.style.setProperty('--interval-color', colors.border);
+            label.style.setProperty('--interval-fill', colors.fill);
+        });
 
         // Set initial mode-dependent UI states
         const addChordBtn = document.getElementById('add-chord-btn');
