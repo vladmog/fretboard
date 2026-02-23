@@ -19,6 +19,7 @@
         showSevenths: false,    // Toggle for scale chord builder
         showRelative: false,    // Toggle for relative major/minor
         showNoteNames: false,   // Toggle for note names vs intervals on markers
+        showChordIntervals: false, // Toggle for chord-root intervals vs scale-root degrees
         soundEnabled: true,     // Toggle for chord list sound playback
         fretboard: null,        // Fretboard API instance
         findMarkers: {},        // Find mode: map keyed by "string-fret" → { string, fret, noteIndex }
@@ -184,18 +185,25 @@
             });
         }
 
-        // Filter scale's noteToDegree to only notes present in the chord
-        const filteredNoteToDegree = {};
-        for (const [noteIndex, degree] of Object.entries(scale.noteToDegree)) {
-            if (chord.noteToInterval.hasOwnProperty(noteIndex)) {
-                filteredNoteToDegree[noteIndex] = degree;
-            }
-        }
+        // Choose between scale degrees and chord intervals for labels
+        const chordNoteToDegree = state.showChordIntervals
+            ? chord.noteToInterval
+            : (() => {
+                const filtered = {};
+                for (const [noteIndex, degree] of Object.entries(scale.noteToDegree)) {
+                    if (chord.noteToInterval.hasOwnProperty(noteIndex)) {
+                        filtered[noteIndex] = degree;
+                    }
+                }
+                return filtered;
+            })();
+
+        const labelSpelling = state.showChordIntervals ? chord.noteSpelling : scale.noteSpelling;
 
         const positions = MusicTheory.getNotesOnFretboard(
-            filteredNoteToDegree,
+            chordNoteToDegree,
             15,
-            scale.root
+            state.showChordIntervals ? chord.root : scale.root
         );
 
         const chordRootIndex = MusicTheory.getNoteIndex(chord.root);
@@ -211,14 +219,14 @@
                 color: colors.fill,
                 borderColor: borderColor,
                 borderWidth: borderWidth,
-                text: getMarkerLabel(pos, scale.noteSpelling),
+                text: getMarkerLabel(pos, labelSpelling),
                 textColor: colors.text
             });
         }
 
         // Add ghost markers at scale root positions when the chord doesn't contain the root
         const rootIndex = MusicTheory.getNoteIndex(scale.root);
-        if (!filteredNoteToDegree.hasOwnProperty(rootIndex)) {
+        if (!chordNoteToDegree.hasOwnProperty(rootIndex)) {
             const ghostPositions = MusicTheory.getNotesOnFretboard(
                 { [rootIndex]: '1' }, 15, scale.root
             );
@@ -237,14 +245,15 @@
             window.RotationToggle.applyCurrentRotation();
         }
 
-        // Build info panel: show chord symbol, chord notes, and their scale degrees
-        const chordNoteIndices = Object.keys(chord.noteToInterval).map(Number);
-        const scaleDegrees = chordNoteIndices.map(idx => scale.noteToDegree[idx]).filter(Boolean);
+        // Build info panel: show chord symbol, chord notes, and their intervals
+        const displayIntervals = state.showChordIntervals
+            ? chord.intervals
+            : Object.keys(chord.noteToInterval).map(Number).map(idx => scale.noteToDegree[idx]).filter(Boolean);
 
         updateInfoPanel({
             title: chord.symbol,
             notes: chord.notes,
-            intervals: scaleDegrees
+            intervals: displayIntervals
         });
     }
 
@@ -1236,6 +1245,15 @@
                 state.showRelative = e.target.checked;
                 state.activeScaleChord = null;
                 renderScaleChords();
+                updateDisplay();
+            });
+        }
+
+        // Chord intervals toggle
+        const chordIntervalsToggle = document.getElementById('chord-intervals-toggle');
+        if (chordIntervalsToggle) {
+            chordIntervalsToggle.addEventListener('change', (e) => {
+                state.showChordIntervals = e.target.checked;
                 updateDisplay();
             });
         }
