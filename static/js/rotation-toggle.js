@@ -44,7 +44,7 @@
     function init() {
         const fretboard = document.getElementById('fretboard-panel');
         if (fretboard) {
-            fretboard.addEventListener('click', toggleRotation);
+            fretboard.addEventListener('touchend', toggleRotation);
         }
     }
 
