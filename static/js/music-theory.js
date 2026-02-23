@@ -763,13 +763,14 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
     // Calculate root fret: how many frets up from open string to reach the root note
     let rootFret = (rootIndex - openStringNote + 12) % 12;
 
-    // Prevent negative frets by shifting root up one octave when needed
-    const minOffset = Math.min(...shape.positions.map(pos => {
-        if (pos.interval === '7' && !('7' in intervalMap)) return Infinity;
+    // Only shift root up one octave when too few positions survive at fret >= 0
+    const survivingCount = shape.positions.filter(pos => {
+        if (pos.interval === '7' && !('7' in intervalMap)) return false;
         const newInterval = intervalMap[pos.interval] || pos.interval;
-        return pos.offset + (INTERVALS[newInterval] - INTERVALS[pos.interval]);
-    }));
-    if (rootFret + minOffset < 0) {
+        const offsetAdjust = INTERVALS[newInterval] - INTERVALS[pos.interval];
+        return rootFret + pos.offset + offsetAdjust >= 0;
+    }).length;
+    if (survivingCount < 3) {
         rootFret += 12;
     }
 
@@ -811,6 +812,7 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
     let filtered = Object.values(byString);
 
     // Phase 2: Max 4-fret span — find the best 4-fret window
+    let bestWindow = null;
     const frettedNotes = filtered.filter(p => p.fret > 0);
     if (frettedNotes.length > 0) {
         const minFretted = Math.min(...frettedNotes.map(p => p.fret));
@@ -818,7 +820,6 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
 
         if (maxFretted - minFretted > 3) {
             // Try every possible 4-fret window and pick the best one
-            let bestWindow = null;
             let bestScore = -1;
 
             for (let windowStart = minFretted; windowStart <= maxFretted - 3; windowStart++) {
@@ -842,76 +843,81 @@ function getCagedPositions(root, shapeName, chordType = 'maj') {
             filtered = filtered.filter(p =>
                 p.fret === 0 || (p.fret >= bestWindow.start && p.fret <= bestWindow.end)
             );
+        } else {
+            // Span fits within 4 frets — use a window starting at the lowest fretted note
+            bestWindow = { start: minFretted, end: minFretted + 3 };
+        }
+    }
 
-            // Phase 3: Re-voice within window to recover missing chord tones
-            const chordIntervals = chord ? chord.intervals : ['1', '3', '5'];
-            const getCoveredIntervals = () => new Set(filtered.map(p => p.label));
-            const getMissingIntervals = () => chordIntervals.filter(i => !getCoveredIntervals().has(i));
+    // Phase 3: Re-voice within window to recover missing chord tones
+    const chordIntervals = chord ? chord.intervals : ['1', '3', '5'];
+    const getCoveredIntervals = () => new Set(filtered.map(p => p.label));
+    const getMissingIntervals = () => chordIntervals.filter(i => !getCoveredIntervals().has(i));
 
-            // Step 1: For dropped strings, find best chord tone within window
-            const activeStrings = new Set(filtered.map(p => p.string));
-            const allOriginalStrings = new Set(positions.map(p => p.string));
-            for (const str of allOriginalStrings) {
-                if (activeStrings.has(str)) continue;
-                const stringIndex = 6 - str;
-                let bestOption = null;
-                const missing = getMissingIntervals();
-                for (const interval of chordIntervals) {
-                    const targetNote = (rootIndex + INTERVALS[interval]) % 12;
-                    const openNote = STRING_ROOTS[stringIndex];
-                    let fret = ((targetNote - openNote) % 12 + 12) % 12;
-                    if (fret < bestWindow.start) fret += 12;
-                    if (fret >= bestWindow.start && fret <= bestWindow.end) {
-                        const isMissing = missing.includes(interval);
-                        const isOnRootString = str === shape.rootString && interval === '1';
-                        const priority = getVoicingPriority(interval, isOnRootString);
-                        if (!bestOption || (isMissing && !bestOption.isMissing) ||
-                            (isMissing === bestOption.isMissing && priority > bestOption.priority)) {
-                            bestOption = {
-                                string: str, fret, noteIndex: targetNote,
-                                label: interval, isRoot: interval === '1',
-                                _isOnRootString: isOnRootString,
-                                _priority: priority, isMissing, priority
-                            };
-                        }
+    if (bestWindow && getMissingIntervals().length > 0) {
+        // Step 1: For dropped strings, find best chord tone within window
+        const activeStrings = new Set(filtered.map(p => p.string));
+        const allOriginalStrings = new Set(positions.map(p => p.string));
+        for (const str of allOriginalStrings) {
+            if (activeStrings.has(str)) continue;
+            const stringIndex = 6 - str;
+            let bestOption = null;
+            const missing = getMissingIntervals();
+            for (const interval of chordIntervals) {
+                const targetNote = (rootIndex + INTERVALS[interval]) % 12;
+                const openNote = STRING_ROOTS[stringIndex];
+                let fret = ((targetNote - openNote) % 12 + 12) % 12;
+                if (fret < bestWindow.start) fret += 12;
+                if (fret >= bestWindow.start && fret <= bestWindow.end) {
+                    const isMissing = missing.includes(interval);
+                    const isOnRootString = str === shape.rootString && interval === '1';
+                    const priority = getVoicingPriority(interval, isOnRootString);
+                    if (!bestOption || (isMissing && !bestOption.isMissing) ||
+                        (isMissing === bestOption.isMissing && priority > bestOption.priority)) {
+                        bestOption = {
+                            string: str, fret, noteIndex: targetNote,
+                            label: interval, isRoot: interval === '1',
+                            _isOnRootString: isOnRootString,
+                            _priority: priority, isMissing, priority
+                        };
                     }
-                }
-                if (bestOption) {
-                    const { isMissing: _, priority: __, ...pos } = bestOption;
-                    filtered.push(pos);
                 }
             }
+            if (bestOption) {
+                const { isMissing: _, priority: __, ...pos } = bestOption;
+                filtered.push(pos);
+            }
+        }
 
-            // Step 2: Swap duplicated intervals for missing ones
-            for (const missing of getMissingIntervals()) {
-                const targetNote = (rootIndex + INTERVALS[missing]) % 12;
-                const intervalCount = {};
-                for (const p of filtered) {
-                    intervalCount[p.label] = (intervalCount[p.label] || 0) + 1;
-                }
-                let bestSwap = null;
-                for (const p of filtered) {
-                    if (intervalCount[p.label] <= 1) continue;
-                    const stringIndex = 6 - p.string;
-                    const openNote = STRING_ROOTS[stringIndex];
-                    let fret = ((targetNote - openNote) % 12 + 12) % 12;
-                    if (fret < bestWindow.start) fret += 12;
-                    if (fret >= bestWindow.start && fret <= bestWindow.end) {
-                        if (!bestSwap || p._priority < bestSwap.existingPriority) {
-                            bestSwap = { pos: p, fret, existingPriority: p._priority };
-                        }
+        // Step 2: Swap duplicated intervals for missing ones
+        for (const missing of getMissingIntervals()) {
+            const targetNote = (rootIndex + INTERVALS[missing]) % 12;
+            const intervalCount = {};
+            for (const p of filtered) {
+                intervalCount[p.label] = (intervalCount[p.label] || 0) + 1;
+            }
+            let bestSwap = null;
+            for (const p of filtered) {
+                if (intervalCount[p.label] <= 1) continue;
+                const stringIndex = 6 - p.string;
+                const openNote = STRING_ROOTS[stringIndex];
+                let fret = ((targetNote - openNote) % 12 + 12) % 12;
+                if (fret < bestWindow.start) fret += 12;
+                if (fret >= bestWindow.start && fret <= bestWindow.end) {
+                    if (!bestSwap || p._priority < bestSwap.existingPriority) {
+                        bestSwap = { pos: p, fret, existingPriority: p._priority };
                     }
                 }
-                if (bestSwap) {
-                    const p = bestSwap.pos;
-                    const isOnRootString = p.string === shape.rootString && missing === '1';
-                    p.fret = bestSwap.fret;
-                    p.noteIndex = targetNote;
-                    p.label = missing;
-                    p.isRoot = missing === '1';
-                    p._isOnRootString = isOnRootString;
-                    p._priority = getVoicingPriority(missing, isOnRootString);
-                }
+            }
+            if (bestSwap) {
+                const p = bestSwap.pos;
+                const isOnRootString = p.string === shape.rootString && missing === '1';
+                p.fret = bestSwap.fret;
+                p.noteIndex = targetNote;
+                p.label = missing;
+                p.isRoot = missing === '1';
+                p._isOnRootString = isOnRootString;
+                p._priority = getVoicingPriority(missing, isOnRootString);
             }
         }
     }
