@@ -1165,7 +1165,7 @@
         // Show/hide Add button based on mode
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
-            addChordBtn.style.display = (mode === 'chord' || mode === 'scale') ? 'flex' : 'none';
+            addChordBtn.style.display = (mode === 'chord' || mode === 'scale' || mode === 'modes') ? 'flex' : 'none';
         }
 
         if (mode === 'scale' || mode === 'modes') {
@@ -1368,7 +1368,7 @@
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
             addChordBtn.addEventListener('click', () => {
-                if (state.mode === 'scale' && state.activeScaleChord) {
+                if ((state.mode === 'scale' || state.mode === 'modes') && state.activeScaleChord) {
                     addChordToList(state.activeScaleChord.root, state.activeScaleChord.type);
                 } else {
                     addChordToList(state.root, state.chordType);
@@ -1420,7 +1420,7 @@
         // Set initial mode-dependent UI states
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
-            addChordBtn.style.display = (state.mode === 'chord' || state.mode === 'scale') ? 'flex' : 'none';
+            addChordBtn.style.display = (state.mode === 'chord' || state.mode === 'scale' || state.mode === 'modes') ? 'flex' : 'none';
         }
 
         // Hide type selector in interval/find mode
