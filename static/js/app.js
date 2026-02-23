@@ -840,12 +840,6 @@
         const container = document.getElementById('scale-chords');
         if (!container) return;
 
-        // Only show for supported scale types
-        if (state.scaleType !== 'major' && state.scaleType !== 'natural_minor') {
-            container.innerHTML = '<p class="scale-chords-note">Chord builder available for Major and Natural Minor scales</p>';
-            return;
-        }
-
         // Use relative scale if toggle is active
         let chordRoot = state.root;
         let chordScaleType = state.scaleType;
@@ -859,6 +853,11 @@
         }
 
         const chords = MusicTheory.buildScaleChords(chordRoot, chordScaleType, state.showSevenths);
+
+        if (chords.length === 0) {
+            container.innerHTML = '<p class="scale-chords-note">Scale chords not available for this scale type</p>';
+            return;
+        }
 
         container.innerHTML = '';
 

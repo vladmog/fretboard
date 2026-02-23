@@ -169,7 +169,7 @@ body {
 
     .scale-chord-item .numeral {
         font-size: 0.5625rem;
-        width: 2rem;
+        width: 3rem;
     }
 
     .scale-chord-item .chord-name {
@@ -441,7 +441,7 @@ select:hover {
     font-size: 0.625rem;
     text-transform: none;
     letter-spacing: 0.1em;
-    width: 3.5rem;
+    width: 4.5rem;
     flex-shrink: 0;
 }
 
