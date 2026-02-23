@@ -429,6 +429,7 @@ select:hover {
     font-family: inherit;
     transition: background-color 0.1s, color 0.1s;
     text-align: left;
+    color: #000;
 }
 
 .scale-chord-item:hover,
@@ -933,6 +934,7 @@ input[name="caged-shape"][value="D"] ~ * {
     text-transform: uppercase;
     letter-spacing: 0.15em;
     cursor: pointer;
+    color: #000;
 }
 
 .games-back-btn:hover {
@@ -973,6 +975,7 @@ input[name="caged-shape"][value="D"] ~ * {
     background: #fff;
     cursor: pointer;
     white-space: nowrap;
+    color: #000;
 }
 
 @media (hover: hover) {
