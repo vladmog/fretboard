@@ -180,7 +180,7 @@
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: '#fff',
                 borderColor: '#ccc',
-                text: getMarkerLabel(pos, scale.noteSpelling),
+                text: state.showChordIntervals ? '' : getMarkerLabel(pos, scale.noteSpelling),
                 textColor: '#bbb'
             });
         }
