@@ -259,26 +259,46 @@
 
         const intervalText = api.questionGroup.querySelector('.question-interval');
         const rootText = api.questionGroup.querySelector('.question-root');
+        const notesText = api.questionGroup.querySelector('.question-notes');
         if (!intervalText || !rootText) return;
 
         const mode = gameState.activeMode;
         if (mode === 'root-to-interval') {
             intervalText.textContent = formatIntervalName(gameState.currentSemitone, settings.notationStyle);
             rootText.textContent = 'from ' + gameState.currentRoot;
+            if (notesText) notesText.textContent = '';
         } else if (mode === 'interval-to-root') {
             intervalText.textContent = getDisplayNoteName(gameState.givenNoteIndex);
             rootText.textContent = 'is the ' + formatIntervalName(gameState.givenSemitone, settings.notationStyle);
+            if (notesText) notesText.textContent = '';
         } else if (mode === 'interval-to-interval') {
             intervalText.textContent = getDisplayNoteName(gameState.givenNoteIndex) + ' is the ' + formatIntervalName(gameState.givenSemitone, settings.notationStyle);
             rootText.textContent = 'find the ' + formatIntervalName(gameState.targetSemitone, settings.notationStyle);
+            if (notesText) notesText.textContent = '';
         } else if (mode === 'scale-builder') {
             const scaleName = MusicTheory.SCALES[gameState.currentScaleType].name;
-            intervalText.textContent = scaleName;
-            rootText.textContent = 'from ' + gameState.currentRoot;
+            const center = api.center;
+            const s = api.size;
+            intervalText.textContent = gameState.currentRoot + ' ' + scaleName;
+            intervalText.setAttribute('y', center - s * 0.06);
+            rootText.textContent = '';
+            rootText.setAttribute('y', center + s * 0.005);
+            if (notesText) {
+                notesText.textContent = '';
+                notesText.setAttribute('y', center + s * 0.06);
+            }
         } else if (mode === 'chord-builder') {
             const chordName = MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
-            intervalText.textContent = chordName;
-            rootText.textContent = 'from ' + gameState.currentRoot;
+            const center = api.center;
+            const s = api.size;
+            intervalText.textContent = gameState.currentRoot + ' ' + chordName;
+            intervalText.setAttribute('y', center - s * 0.06);
+            rootText.textContent = '';
+            rootText.setAttribute('y', center + s * 0.005);
+            if (notesText) {
+                notesText.textContent = '';
+                notesText.setAttribute('y', center + s * 0.06);
+            }
         }
     }
 
@@ -519,8 +539,20 @@
         questionLine2.setAttribute('fill', '#666');
         questionLine2.setAttribute('class', 'question-root');
 
+        const questionLine3 = document.createElementNS(svgNS, 'text');
+        questionLine3.setAttribute('x', center);
+        questionLine3.setAttribute('y', center + size * 0.09);
+        questionLine3.setAttribute('text-anchor', 'middle');
+        questionLine3.setAttribute('dominant-baseline', 'central');
+        questionLine3.setAttribute('font-size', size * 0.035);
+        questionLine3.setAttribute('font-family', "'Helvetica Neue', Helvetica, Arial, sans-serif");
+        questionLine3.setAttribute('font-weight', '400');
+        questionLine3.setAttribute('fill', '#666');
+        questionLine3.setAttribute('class', 'question-notes');
+
         questionGroup.appendChild(questionLine1);
         questionGroup.appendChild(questionLine2);
+        questionGroup.appendChild(questionLine3);
         svg.appendChild(questionGroup);
 
         container.appendChild(svg);
@@ -1533,10 +1565,17 @@
 
         gameState.currentDegreeIndex++;
 
-        // Update progress text
+        // Update progress text with intervals and notes built so far
+        const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
         const rootText = api.questionGroup.querySelector('.question-root');
+        const notesText = api.questionGroup.querySelector('.question-notes');
         if (rootText) {
-            rootText.textContent = 'from ' + gameState.currentRoot + ' (' + gameState.currentDegreeIndex + '/' + gameState.scaleNotes.length + ')';
+            rootText.textContent = gameState.scaleDegrees.slice(0, gameState.currentDegreeIndex).join('  ');
+        }
+        if (notesText) {
+            notesText.textContent = gameState.scaleNotes.slice(0, gameState.currentDegreeIndex).map(function(idx) {
+                return MusicTheory.getNoteName(idx, useFlats);
+            }).join('  ');
         }
 
         if (gameState.currentDegreeIndex === gameState.scaleNotes.length) {
@@ -1599,10 +1638,14 @@
             // Reset sequence
             gameState.currentDegreeIndex = 0;
 
-            // Reset progress text
+            // Clear progress text
             const rootText = api.questionGroup.querySelector('.question-root');
             if (rootText) {
-                rootText.textContent = 'from ' + gameState.currentRoot;
+                rootText.textContent = '';
+            }
+            const notesText = api.questionGroup.querySelector('.question-notes');
+            if (notesText) {
+                notesText.textContent = '';
             }
         }, 400);
     }
@@ -1653,13 +1696,20 @@
         });
 
         // Update center text
+        const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
         const intervalText = api.questionGroup.querySelector('.question-interval');
         const rootText = api.questionGroup.querySelector('.question-root');
+        const notesText = api.questionGroup.querySelector('.question-notes');
         if (intervalText) {
             intervalText.textContent = gameState.currentRoot + ' ' + MusicTheory.SCALES[gameState.currentScaleType].name;
         }
         if (rootText) {
-            rootText.textContent = '';
+            rootText.textContent = gameState.scaleDegrees.join('  ');
+        }
+        if (notesText) {
+            notesText.textContent = gameState.scaleNotes.map(function(idx) {
+                return MusicTheory.getNoteName(idx, useFlats);
+            }).join('  ');
         }
 
         // Arpeggiated playthrough
@@ -1729,10 +1779,17 @@
 
         gameState.currentDegreeIndex++;
 
-        // Update progress text
+        // Update progress text with intervals and notes built so far
+        const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
         const rootText = api.questionGroup.querySelector('.question-root');
+        const notesText = api.questionGroup.querySelector('.question-notes');
         if (rootText) {
-            rootText.textContent = 'from ' + gameState.currentRoot + ' (' + gameState.currentDegreeIndex + '/' + gameState.chordNotes.length + ')';
+            rootText.textContent = gameState.chordIntervals.slice(0, gameState.currentDegreeIndex).join('  ');
+        }
+        if (notesText) {
+            notesText.textContent = gameState.chordNotes.slice(0, gameState.currentDegreeIndex).map(function(idx) {
+                return MusicTheory.getNoteName(idx, useFlats);
+            }).join('  ');
         }
 
         if (gameState.currentDegreeIndex === gameState.chordNotes.length) {
@@ -1790,10 +1847,14 @@
             // Reset sequence
             gameState.currentDegreeIndex = 0;
 
-            // Reset progress text
+            // Clear progress text
             const rootText = api.questionGroup.querySelector('.question-root');
             if (rootText) {
-                rootText.textContent = 'from ' + gameState.currentRoot;
+                rootText.textContent = '';
+            }
+            const notesText = api.questionGroup.querySelector('.question-notes');
+            if (notesText) {
+                notesText.textContent = '';
             }
         }, 400);
     }
@@ -1844,13 +1905,20 @@
         });
 
         // Update center text
+        const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
         const intervalText = api.questionGroup.querySelector('.question-interval');
         const rootText = api.questionGroup.querySelector('.question-root');
+        const notesText = api.questionGroup.querySelector('.question-notes');
         if (intervalText) {
             intervalText.textContent = gameState.currentRoot + ' ' + MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
         }
         if (rootText) {
-            rootText.textContent = '';
+            rootText.textContent = gameState.chordIntervals.join('  ');
+        }
+        if (notesText) {
+            notesText.textContent = gameState.chordNotes.map(function(idx) {
+                return MusicTheory.getNoteName(idx, useFlats);
+            }).join('  ');
         }
 
         // Play chord
