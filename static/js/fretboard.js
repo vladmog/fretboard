@@ -227,7 +227,7 @@ function createFretboard(container, config = {}) {
         }
     }
 
-    // Draw inlays
+    // Draw inlays (on fretboard)
     for (let f = 1; f <= frets; f++) {
         if (!INLAY_FRETS.includes(f)) continue;
 
@@ -238,21 +238,17 @@ function createFretboard(container, config = {}) {
             const centerX = padding + fretboardWidth / 2;
 
             if (isDouble) {
-                // Double inlay for 12th fret
                 const inlay1 = createSVGElement('circle', {
-                    cx: centerX - stringSpacing,
-                    cy: y
+                    cx: centerX - stringSpacing, cy: y
                 }, styles.inlay);
                 const inlay2 = createSVGElement('circle', {
-                    cx: centerX + stringSpacing,
-                    cy: y
+                    cx: centerX + stringSpacing, cy: y
                 }, styles.inlay);
                 inlayGroup.appendChild(inlay1);
                 inlayGroup.appendChild(inlay2);
             } else {
                 const inlay = createSVGElement('circle', {
-                    cx: centerX,
-                    cy: y
+                    cx: centerX, cy: y
                 }, styles.inlay);
                 inlayGroup.appendChild(inlay);
             }
@@ -262,19 +258,63 @@ function createFretboard(container, config = {}) {
 
             if (isDouble) {
                 const inlay1 = createSVGElement('circle', {
-                    cx: x,
-                    cy: centerY - stringSpacing
+                    cx: x, cy: centerY - stringSpacing
                 }, styles.inlay);
                 const inlay2 = createSVGElement('circle', {
-                    cx: x,
-                    cy: centerY + stringSpacing
+                    cx: x, cy: centerY + stringSpacing
                 }, styles.inlay);
                 inlayGroup.appendChild(inlay1);
                 inlayGroup.appendChild(inlay2);
             } else {
                 const inlay = createSVGElement('circle', {
-                    cx: x,
-                    cy: centerY
+                    cx: x, cy: centerY
+                }, styles.inlay);
+                inlayGroup.appendChild(inlay);
+            }
+        }
+    }
+
+    // Draw side inlays (left of fretboard in vertical, below in horizontal)
+    for (let f = 1; f <= frets; f++) {
+        if (!INLAY_FRETS.includes(f)) continue;
+
+        const isDouble = DOUBLE_INLAY_FRETS.includes(f);
+
+        if (isVertical) {
+            const y = padding + (f - 0.5) * fretSpacing;
+            const x = padding - 22;
+
+            if (isDouble) {
+                const inlay1 = createSVGElement('circle', {
+                    cx: x, cy: y - 8
+                }, styles.inlay);
+                const inlay2 = createSVGElement('circle', {
+                    cx: x, cy: y + 8
+                }, styles.inlay);
+                inlayGroup.appendChild(inlay1);
+                inlayGroup.appendChild(inlay2);
+            } else {
+                const inlay = createSVGElement('circle', {
+                    cx: x, cy: y
+                }, styles.inlay);
+                inlayGroup.appendChild(inlay);
+            }
+        } else {
+            const x = padding + (f - 0.5) * fretSpacing;
+            const y = padding + fretboardHeight + 22;
+
+            if (isDouble) {
+                const inlay1 = createSVGElement('circle', {
+                    cx: x - 8, cy: y
+                }, styles.inlay);
+                const inlay2 = createSVGElement('circle', {
+                    cx: x + 8, cy: y
+                }, styles.inlay);
+                inlayGroup.appendChild(inlay1);
+                inlayGroup.appendChild(inlay2);
+            } else {
+                const inlay = createSVGElement('circle', {
+                    cx: x, cy: y
                 }, styles.inlay);
                 inlayGroup.appendChild(inlay);
             }
