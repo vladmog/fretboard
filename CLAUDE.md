@@ -46,6 +46,10 @@ Brutalist black/white/gray design. Three responsive breakpoints:
 
 Interval colors are defined in `music-theory.js` (`getIntervalColor`), not CSS.
 
+## Git Workflow
+
+- Never push to a remote unless explicitly asked to.
+
 ### Key Design Decisions
 
 - All music theory computation is client-side (no API endpoints)
