@@ -1243,7 +1243,7 @@
         // Update root label based on mode
         const rootLabel = document.getElementById('root-label');
         if (rootLabel) {
-            rootLabel.textContent = mode === 'modes' ? 'Key' : 'Root Note';
+            rootLabel.textContent = mode === 'modes' ? 'Major Key' : 'Root Note';
         }
 
         // Show/hide root note selector (hide in find mode)
