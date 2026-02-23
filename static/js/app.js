@@ -252,7 +252,10 @@
         // Build info panel: show chord symbol, chord notes, and their intervals
         const displayIntervals = state.showChordIntervals
             ? chord.intervals
-            : Object.keys(chord.noteToInterval).map(Number).map(idx => scale.noteToDegree[idx]).filter(Boolean);
+            : chord.notes.map(noteName => {
+                const noteIndex = Object.keys(chord.noteSpelling).find(idx => chord.noteSpelling[idx] === noteName);
+                return noteIndex !== undefined ? scale.noteToDegree[noteIndex] : null;
+            }).filter(Boolean);
 
         updateInfoPanel({
             title: chord.symbol,
