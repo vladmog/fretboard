@@ -171,6 +171,19 @@
 
         state.fretboard.clearMarkers();
 
+        // Draw all scale tones as greyed-out background context
+        const allScalePositions = MusicTheory.getNotesOnFretboard(
+            scale.noteToDegree, 15, scale.root
+        );
+        for (const pos of allScalePositions) {
+            state.fretboard.setMarker(pos.string, pos.fret, {
+                color: '#fff',
+                borderColor: '#ccc',
+                text: getMarkerLabel(pos, scale.noteSpelling),
+                textColor: '#bbb'
+            });
+        }
+
         // Filter scale's noteToDegree to only notes present in the chord
         const filteredNoteToDegree = {};
         for (const [noteIndex, degree] of Object.entries(scale.noteToDegree)) {
