@@ -88,7 +88,8 @@
         questionStartTime: 0,
         questionTimes: [],
         questionQueue: [],
-        lastDrawnItem: null
+        lastDrawnItem: null,
+        showHint: false
     };
 
     // Stats
@@ -173,6 +174,47 @@
                 tspan2.textContent = items2[i];
                 textEl2.appendChild(tspan2);
             }
+        }
+    }
+
+    function updateBuilderCenterText() {
+        const mode = gameState.activeMode;
+        if (mode !== 'scale-builder' && mode !== 'chord-builder') return;
+
+        const api = gameState.circleApi;
+        if (!api) return;
+
+        const rootText = api.questionGroup.querySelector('.question-root');
+        const notesText = api.questionGroup.querySelector('.question-notes');
+        if (!rootText || !notesText) return;
+
+        const allIntervals = mode === 'scale-builder' ? gameState.scaleDegrees : gameState.chordIntervals;
+        const allNoteIndices = mode === 'scale-builder' ? gameState.scaleNotes : gameState.chordNotes;
+        const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
+        const idx = gameState.currentDegreeIndex;
+
+        if (!gameState.showHint && idx === 0) {
+            rootText.textContent = '';
+            notesText.textContent = '';
+            return;
+        }
+
+        if (gameState.showHint) {
+            var intervals = allIntervals.slice();
+            var notes = allNoteIndices.slice(0, idx).map(function(ni) {
+                return MusicTheory.getNoteName(ni, useFlats);
+            });
+            // Pad notes with empty placeholders for remaining positions
+            while (notes.length < allIntervals.length) {
+                notes.push('');
+            }
+            setCenterColumns(rootText, intervals, notesText, notes, api.center, api.size);
+        } else {
+            var intervals = allIntervals.slice(0, idx);
+            var notes = allNoteIndices.slice(0, idx).map(function(ni) {
+                return MusicTheory.getNoteName(ni, useFlats);
+            });
+            setCenterColumns(rootText, intervals, notesText, notes, api.center, api.size);
         }
     }
 
@@ -1167,6 +1209,7 @@
         gameState.activeMode = settings.gameMode;
         gameState.questionQueue = [];
         gameState.lastDrawnItem = null;
+        gameState.showHint = false;
         fillQuestionQueue();
         nextQuestion();
     }
@@ -1240,19 +1283,54 @@
         const wrapper = document.createElement('div');
         wrapper.className = 'game-play-area';
 
-        // Round counter
+        // Top row: hint toggle (builder only) | round counter | spacer
+        const topRow = document.createElement('div');
+        topRow.className = 'game-top-row';
+
+        const mode = gameState.activeMode;
+        const isBuilder = mode === 'scale-builder' || mode === 'chord-builder';
+
+        if (isBuilder) {
+            const hintToggle = document.createElement('label');
+            hintToggle.className = 'toggle-label game-hint-toggle';
+            if (gameState.showHint) hintToggle.classList.add('checked');
+            const hintInput = document.createElement('input');
+            hintInput.type = 'checkbox';
+            hintInput.checked = gameState.showHint;
+            hintInput.addEventListener('change', function() {
+                gameState.showHint = hintInput.checked;
+                hintToggle.classList.toggle('checked', gameState.showHint);
+                updateBuilderCenterText();
+            });
+            const hintText = document.createElement('span');
+            hintText.className = 'toggle-text';
+            hintText.textContent = 'hint';
+            hintToggle.appendChild(hintInput);
+            hintToggle.appendChild(hintText);
+            topRow.appendChild(hintToggle);
+        } else {
+            const spacerLeft = document.createElement('div');
+            spacerLeft.className = 'game-hint-spacer';
+            topRow.appendChild(spacerLeft);
+        }
+
         const counter = document.createElement('div');
         counter.className = 'game-round-counter';
         counter.textContent = `${gameState.currentRound} / ${gameState.totalRounds}`;
-        wrapper.appendChild(counter);
+        topRow.appendChild(counter);
+
+        const spacerRight = document.createElement('div');
+        spacerRight.className = 'game-hint-spacer';
+        topRow.appendChild(spacerRight);
+
+        wrapper.appendChild(topRow);
 
         // Circle container
         const circleContainer = document.createElement('div');
         circleContainer.className = 'game-circle-container';
 
-        const mode = gameState.activeMode;
         const circleOptions = {};
-        if (mode === 'scale-builder' || mode === 'chord-builder') {
+        if (isBuilder) {
             circleOptions.neutralColors = !settings.showColors;
         } else if (mode !== 'root-to-interval') {
             circleOptions.neutralColors = !settings.showColors;
@@ -1271,6 +1349,7 @@
 
         // Set question text
         updateQuestionText();
+        updateBuilderCenterText();
 
         wrapper.appendChild(circleContainer);
 
@@ -1560,17 +1639,7 @@
 
         gameState.currentDegreeIndex++;
 
-        // Update progress text with intervals and notes built so far
-        const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
-        const rootText = api.questionGroup.querySelector('.question-root');
-        const notesText = api.questionGroup.querySelector('.question-notes');
-        if (rootText && notesText) {
-            var intervals = gameState.scaleDegrees.slice(0, gameState.currentDegreeIndex);
-            var notes = gameState.scaleNotes.slice(0, gameState.currentDegreeIndex).map(function(idx) {
-                return MusicTheory.getNoteName(idx, useFlats);
-            });
-            setCenterColumns(rootText, intervals, notesText, notes, api.center, api.size);
-        }
+        updateBuilderCenterText();
 
         if (gameState.currentDegreeIndex === gameState.scaleNotes.length) {
             handleScaleComplete();
@@ -1632,15 +1701,7 @@
             // Reset sequence
             gameState.currentDegreeIndex = 0;
 
-            // Clear progress text
-            const rootText = api.questionGroup.querySelector('.question-root');
-            if (rootText) {
-                rootText.textContent = '';
-            }
-            const notesText = api.questionGroup.querySelector('.question-notes');
-            if (notesText) {
-                notesText.textContent = '';
-            }
+            updateBuilderCenterText();
         }, 400);
     }
 
@@ -1777,17 +1838,7 @@
 
         gameState.currentDegreeIndex++;
 
-        // Update progress text with intervals and notes built so far
-        const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
-        const rootText = api.questionGroup.querySelector('.question-root');
-        const notesText = api.questionGroup.querySelector('.question-notes');
-        if (rootText && notesText) {
-            var intervals = gameState.chordIntervals.slice(0, gameState.currentDegreeIndex);
-            var notes = gameState.chordNotes.slice(0, gameState.currentDegreeIndex).map(function(idx) {
-                return MusicTheory.getNoteName(idx, useFlats);
-            });
-            setCenterColumns(rootText, intervals, notesText, notes, api.center, api.size);
-        }
+        updateBuilderCenterText();
 
         if (gameState.currentDegreeIndex === gameState.chordNotes.length) {
             handleChordComplete();
@@ -1844,15 +1895,7 @@
             // Reset sequence
             gameState.currentDegreeIndex = 0;
 
-            // Clear progress text
-            const rootText = api.questionGroup.querySelector('.question-root');
-            if (rootText) {
-                rootText.textContent = '';
-            }
-            const notesText = api.questionGroup.querySelector('.question-notes');
-            if (notesText) {
-                notesText.textContent = '';
-            }
+            updateBuilderCenterText();
         }, 400);
     }
 
