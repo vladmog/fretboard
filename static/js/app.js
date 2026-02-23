@@ -526,7 +526,11 @@
             ? MusicTheory.findChords(noteSet)
             : MusicTheory.findScales(noteSet);
         state.findSelectedIndex = -1;
+        state.activeScaleChord = null;
         renderFindResults();
+        if (state.mode === 'f.scale') {
+            renderFindScaleChords();
+        }
     }
 
     /**
@@ -624,6 +628,7 @@
      * @param {number} index - Index in findResults
      */
     function selectFindResult(index) {
+        state.activeScaleChord = null;
         if (state.findSelectedIndex === index) {
             // Deselect — show user markers
             state.findSelectedIndex = -1;
@@ -644,6 +649,9 @@
             }
         }
         renderFindResults();
+        if (state.mode === 'f.scale') {
+            renderFindScaleChords();
+        }
     }
 
     /**
@@ -662,7 +670,11 @@
         state.findMarkers = {};
         state.findResults = [];
         state.findSelectedIndex = -1;
+        state.activeScaleChord = null;
         renderFindResults();
+        if (state.mode === 'f.scale') {
+            renderFindScaleChords();
+        }
         displayFindMarkers();
     }
 
@@ -704,7 +716,13 @@
             } else {
                 const result = state.findResults[state.findSelectedIndex];
                 if (state.mode === 'f.scale') {
-                    displayScale(result);
+                    if (state.activeScaleChord) {
+                        const scale = MusicTheory.buildScale(result.root, result.type);
+                        const chord = MusicTheory.buildChord(state.activeScaleChord.root, state.activeScaleChord.type);
+                        displayScaleChord(chord, scale);
+                    } else {
+                        displayScale(result);
+                    }
                 } else {
                     displayChord(result);
                 }
@@ -918,6 +936,62 @@
     }
 
     /**
+     * Render scale chord builder for f.scale mode
+     * Uses the selected find result scale to populate diatonic chords
+     */
+    function renderFindScaleChords() {
+        const builderSection = document.getElementById('scale-chord-builder');
+        const container = document.getElementById('scale-chords');
+        if (!builderSection || !container) return;
+
+        if (state.findSelectedIndex < 0 || state.findSelectedIndex >= state.findResults.length) {
+            builderSection.classList.add('disabled');
+            container.innerHTML = '<p class="scale-chords-note">Select a scale to see chords</p>';
+            return;
+        }
+
+        builderSection.classList.remove('disabled');
+        const selectedScale = state.findResults[state.findSelectedIndex];
+        const chords = MusicTheory.buildScaleChords(selectedScale.root, selectedScale.type, state.showSevenths);
+
+        if (chords.length === 0) {
+            container.innerHTML = '<p class="scale-chords-note">Scale chords not available for this scale type</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        const chordsRow = document.createElement('div');
+        chordsRow.className = 'scale-chords-list';
+
+        chords.forEach((chord) => {
+            const btn = document.createElement('button');
+            btn.className = 'scale-chord-item';
+            if (state.activeScaleChord && state.activeScaleChord.root === chord.root && state.activeScaleChord.type === chord.type) {
+                btn.classList.add('selected');
+            }
+            btn.innerHTML = `<span class="numeral">${chord.numeral}</span><span class="chord-name">${chord.symbol}</span>`;
+            btn.addEventListener('click', () => {
+                if (state.activeScaleChord && state.activeScaleChord.root === chord.root && state.activeScaleChord.type === chord.type) {
+                    state.activeScaleChord = null;
+                } else {
+                    state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol };
+                    if (state.soundEnabled) {
+                        const builtChord = MusicTheory.buildChord(chord.root, chord.type);
+                        Sound.playChord(builtChord.notes);
+                    }
+                }
+                state.selectedChordIndex = -1;
+                renderFindScaleChords();
+                renderChordList();
+                updateDisplay();
+            });
+            chordsRow.appendChild(btn);
+        });
+
+        container.appendChild(chordsRow);
+    }
+
+    /**
      * Update scale type dropdown options based on mode
      * Uses optgroups to organize options by category
      */
@@ -1084,6 +1158,8 @@
             state.findResults = [];
             state.findSelectedIndex = -1;
             document.body.classList.remove('find-mode-active');
+            const builderSection = document.getElementById('scale-chord-builder');
+            if (builderSection) builderSection.classList.remove('disabled');
         }
 
         state.mode = mode;
@@ -1137,17 +1213,17 @@
         // Show/hide scale chord builder (scale and modes)
         const builderSection = document.getElementById('scale-chord-builder');
         if (builderSection) {
-            builderSection.style.display = (mode === 'scale' || mode === 'modes') ? 'block' : 'none';
+            builderSection.style.display = (mode === 'scale' || mode === 'modes' || mode === 'f.scale') ? 'block' : 'none';
         }
 
         // Hide relative toggle in modes mode (not applicable)
         const relativeLabel = document.getElementById('relative-toggle')?.closest('.toggle-label');
         if (relativeLabel) {
-            relativeLabel.style.display = mode === 'modes' ? 'none' : '';
+            relativeLabel.style.display = (mode === 'modes' || mode === 'f.scale') ? 'none' : '';
         }
 
-        // Reset relative state when entering modes
-        if (mode === 'modes') {
+        // Reset relative state when entering modes or f.scale
+        if (mode === 'modes' || mode === 'f.scale') {
             state.showRelative = false;
             const relativeToggle = document.getElementById('relative-toggle');
             if (relativeToggle) {
@@ -1165,11 +1241,13 @@
         // Show/hide Add button based on mode
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
-            addChordBtn.style.display = (mode === 'chord' || mode === 'scale' || mode === 'modes') ? 'flex' : 'none';
+            addChordBtn.style.display = (mode === 'chord' || mode === 'scale' || mode === 'modes' || mode === 'f.scale') ? 'flex' : 'none';
         }
 
         if (mode === 'scale' || mode === 'modes') {
             renderScaleChords();
+        } else if (mode === 'f.scale') {
+            renderFindScaleChords();
         }
 
         // Enter Find mode
@@ -1264,7 +1342,11 @@
             seventhsToggle.addEventListener('change', (e) => {
                 state.showSevenths = e.target.checked;
                 state.activeScaleChord = null;
-                renderScaleChords();
+                if (state.mode === 'f.scale') {
+                    renderFindScaleChords();
+                } else {
+                    renderScaleChords();
+                }
                 updateDisplay();
             });
         }
@@ -1368,8 +1450,10 @@
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
             addChordBtn.addEventListener('click', () => {
-                if ((state.mode === 'scale' || state.mode === 'modes') && state.activeScaleChord) {
+                if ((state.mode === 'scale' || state.mode === 'modes' || state.mode === 'f.scale') && state.activeScaleChord) {
                     addChordToList(state.activeScaleChord.root, state.activeScaleChord.type);
+                } else if (state.mode === 'f.scale') {
+                    return; // No active scale chord in f.scale — do nothing
                 } else {
                     addChordToList(state.root, state.chordType);
                 }
@@ -1420,7 +1504,7 @@
         // Set initial mode-dependent UI states
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
-            addChordBtn.style.display = (state.mode === 'chord' || state.mode === 'scale' || state.mode === 'modes') ? 'flex' : 'none';
+            addChordBtn.style.display = (state.mode === 'chord' || state.mode === 'scale' || state.mode === 'modes' || state.mode === 'f.scale') ? 'flex' : 'none';
         }
 
         // Hide type selector in interval/find mode

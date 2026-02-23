@@ -214,6 +214,19 @@ body {
         margin-top: 0.5rem !important;
         padding-top: 0 !important;
     }
+
+    /* In f.scale mode, show matching scales above scale chords */
+    .find-mode-active .mode-controls {
+        display: flex;
+        flex-direction: column;
+    }
+    .find-mode-active .mode-controls #scale-chord-builder {
+        order: 2;
+        margin-top: 0.75rem;
+    }
+    .find-mode-active .mode-controls #find-controls {
+        order: 1;
+    }
 }
 
 /* Tablet: apply mobile mode-section behavior (no border) */
@@ -408,6 +421,11 @@ select:hover {
 /* Scale chord builder */
 #scale-chord-builder {
     transition: opacity 0.2s;
+}
+
+#scale-chord-builder.disabled {
+    opacity: 0.35;
+    pointer-events: none;
 }
 
 .scale-chords-list {
