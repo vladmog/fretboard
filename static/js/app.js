@@ -207,13 +207,17 @@
         );
 
         const chordRootIndex = MusicTheory.getNoteIndex(chord.root);
+        const scaleRootIndex = MusicTheory.getNoteIndex(scale.root);
         for (const pos of positions) {
             const colors = MusicTheory.getIntervalColor(pos.label);
             let borderColor = colors.border;
             let borderWidth = 2;
-            if (pos.noteIndex === chordRootIndex && pos.label !== '1') {
+            if (pos.noteIndex === chordRootIndex && chordRootIndex !== scaleRootIndex) {
                 borderColor = '#000000';
                 borderWidth = 3.5;
+            }
+            if (pos.noteIndex === scaleRootIndex) {
+                borderColor = '#FF0000';
             }
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
