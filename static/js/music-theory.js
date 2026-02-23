@@ -193,6 +193,16 @@ const CHORD_TYPES = {
         name: 'Minor 6th',
         symbol: 'm6',
         intervals: ['1', 'b3', '5', '6']
+    },
+    'minmaj7': {
+        name: 'Minor Major 7th',
+        symbol: 'mMaj7',
+        intervals: ['1', 'b3', '5', '7']
+    },
+    'augmaj7': {
+        name: 'Augmented Major 7th',
+        symbol: 'augMaj7',
+        intervals: ['1', '3', '#5', '7']
     }
 };
 
@@ -556,49 +566,79 @@ function getIntervalColor(interval) {
     };
 }
 
+// Diatonic chord data for each supported heptatonic scale
+const SCALE_CHORD_DATA = {
+    'major': {
+        triads:          ['maj', 'min', 'min', 'maj', 'maj', 'min', 'dim'],
+        sevenths:        ['maj7', 'min7', 'min7', 'maj7', '7', 'min7', 'min7b5'],
+        numerals:        ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'],
+        numeralSevenths: ['Imaj7', 'ii7', 'iii7', 'IVmaj7', 'V7', 'vi7', 'viiø7']
+    },
+    'natural_minor': {
+        triads:          ['min', 'dim', 'maj', 'min', 'min', 'maj', 'maj'],
+        sevenths:        ['min7', 'min7b5', 'maj7', 'min7', 'min7', 'maj7', '7'],
+        numerals:        ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'],
+        numeralSevenths: ['i7', 'iiø7', 'IIImaj7', 'iv7', 'v7', 'VImaj7', 'VII7']
+    },
+    'dorian': {
+        triads:          ['min', 'min', 'maj', 'maj', 'min', 'dim', 'maj'],
+        sevenths:        ['min7', 'min7', 'maj7', '7', 'min7', 'min7b5', 'maj7'],
+        numerals:        ['i', 'ii', 'III', 'IV', 'v', 'vi°', 'VII'],
+        numeralSevenths: ['i7', 'ii7', 'IIImaj7', 'IV7', 'v7', 'viø7', 'VIImaj7']
+    },
+    'phrygian': {
+        triads:          ['min', 'maj', 'maj', 'min', 'dim', 'maj', 'min'],
+        sevenths:        ['min7', 'maj7', '7', 'min7', 'min7b5', 'maj7', 'min7'],
+        numerals:        ['i', 'II', 'III', 'iv', 'v°', 'VI', 'vii'],
+        numeralSevenths: ['i7', 'IImaj7', 'III7', 'iv7', 'vø7', 'VImaj7', 'vii7']
+    },
+    'lydian': {
+        triads:          ['maj', 'maj', 'min', 'dim', 'maj', 'min', 'min'],
+        sevenths:        ['maj7', '7', 'min7', 'min7b5', 'maj7', 'min7', 'min7'],
+        numerals:        ['I', 'II', 'iii', 'iv°', 'V', 'vi', 'vii'],
+        numeralSevenths: ['Imaj7', 'II7', 'iii7', 'ivø7', 'Vmaj7', 'vi7', 'vii7']
+    },
+    'mixolydian': {
+        triads:          ['maj', 'min', 'dim', 'maj', 'min', 'min', 'maj'],
+        sevenths:        ['7', 'min7', 'min7b5', 'maj7', 'min7', 'min7', 'maj7'],
+        numerals:        ['I', 'ii', 'iii°', 'IV', 'v', 'vi', 'VII'],
+        numeralSevenths: ['I7', 'ii7', 'iiiø7', 'IVmaj7', 'v7', 'vi7', 'VIImaj7']
+    },
+    'locrian': {
+        triads:          ['dim', 'maj', 'min', 'min', 'maj', 'maj', 'min'],
+        sevenths:        ['min7b5', 'maj7', 'min7', 'min7', 'maj7', '7', 'min7'],
+        numerals:        ['i°', 'II', 'iii', 'iv', 'V', 'VI', 'vii'],
+        numeralSevenths: ['iø7', 'IImaj7', 'iii7', 'iv7', 'Vmaj7', 'VI7', 'vii7']
+    },
+    'harmonic_minor': {
+        triads:          ['min', 'dim', 'aug', 'min', 'maj', 'maj', 'dim'],
+        sevenths:        ['minmaj7', 'min7b5', 'augmaj7', 'min7', '7', 'maj7', 'dim7'],
+        numerals:        ['i', 'ii°', 'III+', 'iv', 'V', 'VI', 'vii°'],
+        numeralSevenths: ['imMaj7', 'iiø7', 'III+maj7', 'iv7', 'V7', 'VImaj7', 'vii°7']
+    },
+    'melodic_minor': {
+        triads:          ['min', 'min', 'aug', 'maj', 'maj', 'dim', 'dim'],
+        sevenths:        ['minmaj7', 'min7', 'augmaj7', '7', '7', 'min7b5', 'min7b5'],
+        numerals:        ['i', 'ii', 'III+', 'IV', 'V', 'vi°', 'vii°'],
+        numeralSevenths: ['imMaj7', 'ii7', 'III+maj7', 'IV7', 'V7', 'viø7', 'viiø7']
+    }
+};
+
 /**
  * Build diatonic chords for a scale
  * @param {string} root - Root note
- * @param {string} scaleType - Scale type (currently supports 'major' and 'natural_minor')
+ * @param {string} scaleType - Scale type
  * @param {boolean} sevenths - Whether to include 7th chords
- * @returns {Array} Array of chord objects with degree information
+ * @returns {Array} Array of chord objects with degree information (empty for unsupported scales)
  */
 function buildScaleChords(root, scaleType, sevenths = false) {
+    const data = SCALE_CHORD_DATA[scaleType];
+    if (!data) return [];
+
     const scale = buildScale(root, scaleType);
     const chords = [];
-
-    // Diatonic chord qualities for major scale
-    const majorTriadQualities = ['maj', 'min', 'min', 'maj', 'maj', 'min', 'dim'];
-    const majorSeventhQualities = ['maj7', 'min7', 'min7', 'maj7', '7', 'min7', 'min7b5'];
-
-    // Diatonic chord qualities for natural minor scale
-    const minorTriadQualities = ['min', 'dim', 'maj', 'min', 'min', 'maj', 'maj'];
-    const minorSeventhQualities = ['min7', 'min7b5', 'maj7', 'min7', 'min7', 'maj7', '7'];
-
-    // Roman numeral labels
-    const majorNumerals = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
-    const minorNumerals = ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'];
-
-    let qualities, numerals;
-
-    if (scaleType === 'major') {
-        qualities = sevenths ? majorSeventhQualities : majorTriadQualities;
-        numerals = majorNumerals;
-    } else if (scaleType === 'natural_minor') {
-        qualities = sevenths ? minorSeventhQualities : minorTriadQualities;
-        numerals = minorNumerals;
-    } else {
-        // Default to major for other scale types
-        qualities = sevenths ? majorSeventhQualities : majorTriadQualities;
-        numerals = majorNumerals;
-    }
-
-    // Update numerals for 7th chords
-    if (sevenths && scaleType === 'major') {
-        numerals = ['Imaj7', 'ii7', 'iii7', 'IVmaj7', 'V7', 'vi7', 'viiø7'];
-    } else if (sevenths && scaleType === 'natural_minor') {
-        numerals = ['i7', 'iiø7', 'IIImaj7', 'iv7', 'v7', 'VImaj7', 'VII7'];
-    }
+    const qualities = sevenths ? data.sevenths : data.triads;
+    const numerals = sevenths ? data.numeralSevenths : data.numerals;
 
     for (let i = 0; i < scale.notes.length && i < 7; i++) {
         const chordRoot = scale.notes[i];
