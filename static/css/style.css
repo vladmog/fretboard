@@ -368,6 +368,7 @@ select:hover {
     margin-bottom: 0.75rem;
     display: flex;
     gap: 0.5rem;
+    overflow-x: auto;
 }
 
 .toggle-label {
