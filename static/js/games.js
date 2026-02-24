@@ -11,12 +11,14 @@
     const GAMES = {
         'interval-training': window.IntervalTraining,
         'blind-interval-training': window.BlindIntervalTraining,
+        'ear-training': window.EarTraining,
         'chromatic-circle-drills': window.ChromaticCircleDrills
     };
 
     const GAME_NAMES = {
         'interval-training': 'Interval Training',
         'blind-interval-training': 'Blind Interval Training',
+        'ear-training': 'Ear Training',
         'chromatic-circle-drills': 'Chromatic Circle Drills'
     };
 
