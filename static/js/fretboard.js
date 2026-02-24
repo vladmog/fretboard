@@ -22,6 +22,17 @@ const DOUBLE_INLAY_FRETS = [12];
 // SVG namespace
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
+function getFretPosition(f, totalFrets, totalLength) {
+    if (f <= 0) return 0;
+    const ratio = 1 - 1 / Math.pow(2, f / 12);
+    const maxRatio = 1 - 1 / Math.pow(2, totalFrets / 12);
+    return totalLength * ratio / maxRatio;
+}
+
+function getMidFretPosition(f, totalFrets, totalLength) {
+    return (getFretPosition(f - 1, totalFrets, totalLength) + getFretPosition(f, totalFrets, totalLength)) / 2;
+}
+
 // Current markers storage
 let currentMarkers = [];
 
@@ -75,7 +86,7 @@ function isVerticalOrientation() {
  * @returns {Object|null} - {string, fret} or null if out of bounds
  */
 function getStringFretFromPoint(config, svgX, svgY) {
-    const { padding, stringSpacing, fretSpacing, isVertical, numStrings, frets } = config;
+    const { padding, stringSpacing, isVertical, numStrings, frets, fretPositions } = config;
 
     let stringCoord, fretCoord;
     if (isVertical) {
@@ -98,15 +109,15 @@ function getStringFretFromPoint(config, svgX, svgY) {
         string = stringIndex + 1;
     }
 
-    // Snap to nearest fret
-    let fret;
-    const fretPos = (fretCoord - padding) / fretSpacing;
-    if (fretPos < 0.25) {
-        fret = 0; // Open string zone
-    } else {
-        fret = Math.round(fretPos + 0.5);
-        if (fret < 1) fret = 1;
-        if (fret > frets) fret = frets;
+    // Snap to nearest fret using precomputed positions
+    let fret = 0;
+    const rel = fretCoord - padding;
+    for (let f = 1; f <= frets; f++) {
+        if (rel >= (fretPositions[f - 1] + fretPositions[f]) / 2) {
+            fret = f;
+        } else {
+            break;
+        }
     }
 
     return { string, fret };
@@ -132,6 +143,13 @@ function createFretboard(container, config = {}) {
     const fretSpacing = 70;
     const padding = 50;
     const nutWidth = 8;
+    const totalLength = frets * fretSpacing;
+
+    // Precompute fret positions
+    const fretPositions = [];
+    for (let f = 0; f <= frets; f++) {
+        fretPositions.push(getFretPosition(f, frets, totalLength));
+    }
 
     // Calculate SVG dimensions based on orientation
     let svgWidth, svgHeight, fretboardWidth, fretboardHeight;
@@ -139,12 +157,12 @@ function createFretboard(container, config = {}) {
     if (isVertical) {
         // Vertical: strings go left-right, frets go top-bottom
         fretboardWidth = (numStrings - 1) * stringSpacing;
-        fretboardHeight = frets * fretSpacing;
+        fretboardHeight = totalLength;
         svgWidth = fretboardWidth + padding * 2;
         svgHeight = fretboardHeight + padding * 2;
     } else {
         // Horizontal: strings go top-bottom, frets go left-right
-        fretboardWidth = frets * fretSpacing;
+        fretboardWidth = totalLength;
         fretboardHeight = (numStrings - 1) * stringSpacing;
         svgWidth = fretboardWidth + padding * 2;
         svgHeight = fretboardHeight + padding * 2;
@@ -204,7 +222,7 @@ function createFretboard(container, config = {}) {
     // Draw frets
     for (let f = 1; f <= frets; f++) {
         if (isVertical) {
-            const y = padding + f * fretSpacing;
+            const y = padding + getFretPosition(f, frets, totalLength);
             const fret = createSVGElement('line', {
                 x1: padding - 10,
                 y1: y,
@@ -213,7 +231,7 @@ function createFretboard(container, config = {}) {
             }, styles.fret);
             fretGroup.appendChild(fret);
         } else {
-            const x = padding + f * fretSpacing;
+            const x = padding + getFretPosition(f, frets, totalLength);
             const fret = createSVGElement('line', {
                 x1: x,
                 y1: padding - 10,
@@ -231,7 +249,7 @@ function createFretboard(container, config = {}) {
         const isDouble = DOUBLE_INLAY_FRETS.includes(f);
 
         if (isVertical) {
-            const y = padding + (f - 0.5) * fretSpacing;
+            const y = padding + getMidFretPosition(f, frets, totalLength);
             const centerX = padding + fretboardWidth / 2;
 
             if (isDouble) {
@@ -250,7 +268,7 @@ function createFretboard(container, config = {}) {
                 inlayGroup.appendChild(inlay);
             }
         } else {
-            const x = padding + (f - 0.5) * fretSpacing;
+            const x = padding + getMidFretPosition(f, frets, totalLength);
             const centerY = padding + fretboardHeight / 2;
 
             if (isDouble) {
@@ -278,7 +296,7 @@ function createFretboard(container, config = {}) {
         const isDouble = DOUBLE_INLAY_FRETS.includes(f);
 
         if (isVertical) {
-            const y = padding + (f - 0.5) * fretSpacing;
+            const y = padding + getMidFretPosition(f, frets, totalLength);
             const x = padding - 30;
 
             if (isDouble) {
@@ -297,7 +315,7 @@ function createFretboard(container, config = {}) {
                 inlayGroup.appendChild(inlay);
             }
         } else {
-            const x = padding + (f - 0.5) * fretSpacing;
+            const x = padding + getMidFretPosition(f, frets, totalLength);
             const y = padding + fretboardHeight + 30;
 
             if (isDouble) {
@@ -365,6 +383,8 @@ function createFretboard(container, config = {}) {
         padding,
         stringSpacing,
         fretSpacing,
+        totalLength,
+        fretPositions,
         isVertical,
         tuning
     };
@@ -398,19 +418,19 @@ function createFretboard(container, config = {}) {
  * @returns {Object} - {x, y} coordinates
  */
 function getMarkerPosition(config, string, fret) {
-    const { padding, stringSpacing, fretSpacing, isVertical, numStrings } = config;
+    const { padding, stringSpacing, isVertical, numStrings, frets, totalLength } = config;
 
     // Convert string number (1 = high E) to index
     const stringIndex = numStrings - string;
 
     if (isVertical) {
         const x = padding + stringIndex * stringSpacing;
-        const y = fret === 0 ? padding - 15 : padding + (fret - 0.5) * fretSpacing;
+        const y = fret === 0 ? padding - 15 : padding + getMidFretPosition(fret, frets, totalLength);
         return { x, y };
     } else {
         // Horizontal: match reversed string order (high E at top, low E at bottom)
         const y = padding + (numStrings - 1 - stringIndex) * stringSpacing;
-        const x = fret === 0 ? padding - 15 : padding + (fret - 0.5) * fretSpacing;
+        const x = fret === 0 ? padding - 15 : padding + getMidFretPosition(fret, frets, totalLength);
         return { x, y };
     }
 }
