@@ -10,11 +10,13 @@
     // Game registry - maps game IDs to game modules
     const GAMES = {
         'interval-training': window.IntervalTraining,
+        'blind-interval-training': window.BlindIntervalTraining,
         'chromatic-circle-drills': window.ChromaticCircleDrills
     };
 
     const GAME_NAMES = {
         'interval-training': 'Interval Training',
+        'blind-interval-training': 'Blind Interval Training',
         'chromatic-circle-drills': 'Chromatic Circle Drills'
     };
 

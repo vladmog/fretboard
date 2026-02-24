@@ -4,11 +4,13 @@
  * Loaded before games.js so it can register itself
  */
 
-(function() {
+function createIntervalTrainingGame(config) {
     'use strict';
 
-    const STORAGE_KEY_SETTINGS = 'fretboard-interval-training-settings';
-    const STORAGE_KEY_STATS = 'fretboard-games-stats';
+    const STORAGE_KEY_SETTINGS = config.settingsKey;
+    const STORAGE_KEY_STATS = config.statsKey;
+    const STATS_PREFIX = config.statsPrefix || '';
+    const GAME_TITLE = config.title || 'Interval Training';
 
     // Interval labels for semitones 0-24
     const SIMPLE_LABELS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
@@ -219,10 +221,10 @@
     }
 
     function getStatsKey() {
-        if (gameState.activeMode === 'root-to-interval') return 'interval-training';
-        if (gameState.activeMode === 'scale-builder') return 'scale-builder';
-        if (gameState.activeMode === 'chord-builder') return 'chord-builder';
-        return gameState.activeMode;
+        if (gameState.activeMode === 'root-to-interval') return STATS_PREFIX + 'interval-training';
+        if (gameState.activeMode === 'scale-builder') return STATS_PREFIX + 'scale-builder';
+        if (gameState.activeMode === 'chord-builder') return STATS_PREFIX + 'chord-builder';
+        return STATS_PREFIX + gameState.activeMode;
     }
 
     function recordStat(root, semitone, isCorrect) {
@@ -609,7 +611,7 @@
 
         const title = document.createElement('h1');
         title.className = 'game-title';
-        title.textContent = 'Interval Training';
+        title.textContent = GAME_TITLE;
         wrapper.appendChild(title);
 
         const explanation = document.createElement('p');
@@ -2571,9 +2573,22 @@
     loadSettings();
     loadStats();
 
-    window.IntervalTraining = {
+    return {
         renderTitlePage,
         renderSettings,
         cleanup
     };
-})();
+}
+
+window.IntervalTraining = createIntervalTrainingGame({
+    settingsKey: 'fretboard-interval-training-settings',
+    statsKey: 'fretboard-games-stats',
+    statsPrefix: '',
+    title: 'Interval Training'
+});
+window.BlindIntervalTraining = createIntervalTrainingGame({
+    settingsKey: 'fretboard-blind-interval-training-settings',
+    statsKey: 'fretboard-games-stats',
+    statsPrefix: 'blind-',
+    title: 'Blind Interval Training'
+});
