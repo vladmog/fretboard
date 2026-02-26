@@ -414,12 +414,12 @@ function createEarTrainingGame(config) {
 
     function fillQuestionQueue() {
         const pool = buildQuestionPool();
-        shuffleArray(pool);
-        if (pool.length > 1 && gameState.lastDrawnItem && questionsEqual(pool[0], gameState.lastDrawnItem)) {
-            const swapIdx = 1 + Math.floor(Math.random() * (pool.length - 1));
-            [pool[0], pool[swapIdx]] = [pool[swapIdx], pool[0]];
-        }
-        gameState.questionQueue = pool;
+        loadStats();
+        const key = getStatsKey();
+        const statsData = stats[key] || {};
+        gameState.questionQueue = WeightedSelection.buildWeightedQueue(
+            pool, statsData, function(item) { return item.chordType; }, gameState.lastDrawnItem, questionsEqual
+        );
     }
 
     function startGame() {

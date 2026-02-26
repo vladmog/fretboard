@@ -1193,14 +1193,22 @@ function createIntervalTrainingGame(config) {
         return JSON.stringify(a) === JSON.stringify(b);
     }
 
+    function getColumnForItem(item) {
+        const mode = gameState.activeMode;
+        if (mode === 'scale-builder') return item.scaleType;
+        if (mode === 'chord-builder') return item.chordType;
+        if (mode === 'interval-to-interval') return item.targetSemitone;
+        return item.semitone;
+    }
+
     function fillQuestionQueue() {
         const pool = buildQuestionPool(gameState.activeMode);
-        shuffleArray(pool);
-        if (pool.length > 1 && gameState.lastDrawnItem && questionsEqual(pool[0], gameState.lastDrawnItem)) {
-            const swapIdx = 1 + Math.floor(Math.random() * (pool.length - 1));
-            [pool[0], pool[swapIdx]] = [pool[swapIdx], pool[0]];
-        }
-        gameState.questionQueue = pool;
+        loadStats();
+        const key = getStatsKey();
+        const statsData = stats[key] || {};
+        gameState.questionQueue = WeightedSelection.buildWeightedQueue(
+            pool, statsData, getColumnForItem, gameState.lastDrawnItem, questionsEqual
+        );
     }
 
     function startGame() {
