@@ -2067,6 +2067,15 @@ function createIntervalTrainingGame(config) {
         });
         btnRow.appendChild(logBtn);
 
+        const logMenuBtn = document.createElement('button');
+        logMenuBtn.className = 'game-start-btn game-btn-secondary';
+        logMenuBtn.textContent = 'Log & Menu';
+        logMenuBtn.addEventListener('click', () => {
+            commitSessionStats();
+            renderTitlePage();
+        });
+        btnRow.appendChild(logMenuBtn);
+
         const playAgainBtn = document.createElement('button');
         playAgainBtn.className = 'game-start-btn game-btn-secondary';
         playAgainBtn.textContent = 'Play Again';
