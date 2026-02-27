@@ -1620,3 +1620,132 @@ input[name="caged-shape"][value="D"] ~ * {
 .rainbow-border {
     animation: rainbow-stroke 0.5s linear infinite;
 }
+
+/* Fretboard Drills game styles */
+.game-fretboard-question {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.game-fretboard-hint {
+    text-align: center;
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: #666;
+    padding: 0 1rem 0.25rem;
+    min-height: 1.2em;
+}
+
+.game-fretboard-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+}
+
+.game-fretboard-container svg {
+    max-width: 100%;
+    max-height: 60vh;
+}
+
+/* ---- Fretboard Drills: split-screen layout ---- */
+
+/* Override game-content when split layout is active */
+.fretboard-drills-active .game-content {
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+}
+
+.game-split-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    align-items: stretch;
+}
+
+.game-split-fretboard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    overflow: hidden;
+    background-color: #f5f5f5;
+    border-right: 1px solid #000;
+}
+
+.game-split-fretboard .game-fretboard-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-split-fretboard .game-fretboard-container svg {
+    max-height: 100%;
+}
+
+.game-split-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    padding-bottom: 1rem;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* Mobile: tighter padding */
+@media (max-width: 768px) {
+    .fretboard-drills-active .game-content {
+        padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 calc(4rem + env(safe-area-inset-bottom, 0px)) 0;
+    }
+
+    .fretboard-drills-active .games-back-btn {
+        top: calc(0.25rem + env(safe-area-inset-top, 0px));
+        right: calc(0.25rem + env(safe-area-inset-right, 0px));
+        padding: 0.3rem 0.6rem;
+        font-size: 0.5rem;
+    }
+
+    .game-split-controls {
+        padding: 0.5rem;
+        padding-bottom: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .game-split-controls .game-fretboard-question {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .game-split-controls .game-fretboard-hint {
+        font-size: 0.625rem;
+        padding: 0 0.5rem 0.25rem;
+    }
+
+    .game-split-fretboard {
+        order: 2;
+        border-right: none;
+        border-left: 1px solid #000;
+    }
+
+    .game-split-controls {
+        order: 1;
+    }
+}
