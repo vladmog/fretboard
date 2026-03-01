@@ -993,6 +993,15 @@ function findScales(noteSet) {
     return results;
 }
 
+function getChromaticNoteColor(noteIndex) {
+    const idx = noteIndex % 12;
+    return {
+        fill: lightenColor(INTERVAL_BORDER_COLORS[idx]),
+        border: INTERVAL_BORDER_COLORS[idx],
+        text: '#000'
+    };
+}
+
 // Export for use in other modules
 window.MusicTheory = {
     CHROMATIC_NOTES,
@@ -1021,5 +1030,6 @@ window.MusicTheory = {
     getDegreeNumber,
     findChords,
     findScales,
-    getOctaveAt
+    getOctaveAt,
+    getChromaticNoteColor
 };
