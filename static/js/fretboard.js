@@ -113,7 +113,7 @@ function getStringFretFromPoint(config, svgX, svgY) {
     let fret = 0;
     const rel = fretCoord - padding;
     for (let f = 1; f <= frets; f++) {
-        if (rel >= (fretPositions[f - 1] + fretPositions[f]) / 2) {
+        if (rel >= fretPositions[f - 1]) {
             fret = f;
         } else {
             break;
