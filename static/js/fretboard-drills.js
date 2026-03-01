@@ -23,6 +23,21 @@
         'P1', 'm2', 'M2', 'm3', 'M3', 'P4', 'TT', 'P5', 'm6', 'M6', 'm7', 'M7'
     ];
 
+    function applyMarkerTextRotation(rotated) {
+        const container = document.getElementById('fb-drills-fretboard');
+        if (!container) return;
+        const textElements = container.querySelectorAll('.marker text');
+        textElements.forEach(text => {
+            if (rotated) {
+                const x = parseFloat(text.getAttribute('x')) || 0;
+                const y = parseFloat(text.getAttribute('y')) || 0;
+                text.setAttribute('transform', `rotate(90, ${x}, ${y})`);
+            } else {
+                text.removeAttribute('transform');
+            }
+        });
+    }
+
     const ALL_ROOTS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
     const ALL_SCALE_TYPES = Object.keys(MusicTheory.SCALES);
     const ALL_CHORD_TYPES = Object.keys(MusicTheory.CHORD_TYPES);
@@ -367,6 +382,10 @@
                 }
             }
         }
+
+        if (gameState.rotateQuestion) {
+            applyMarkerTextRotation(true);
+        }
     }
 
     // ---- Sound helpers ----
@@ -533,7 +552,6 @@
         // Left half: fretboard
         const fretboardPanel = document.createElement('div');
         fretboardPanel.className = 'game-split-fretboard';
-        if (gameState.rotateQuestion) fretboardPanel.classList.add('rotated-markers');
 
         const fbContainer = document.createElement('div');
         fbContainer.className = 'game-fretboard-container';
@@ -560,8 +578,7 @@
             rotateToggle.classList.toggle('checked', gameState.rotateQuestion);
             const inner = document.getElementById('fb-drills-controls-inner');
             if (inner) inner.classList.toggle('rotated', gameState.rotateQuestion);
-            const fbPanel = document.querySelector('.game-split-fretboard');
-            if (fbPanel) fbPanel.classList.toggle('rotated-markers', gameState.rotateQuestion);
+            applyMarkerTextRotation(gameState.rotateQuestion);
         });
         const rotateText = document.createElement('span');
         rotateText.className = 'toggle-text';
