@@ -1710,6 +1710,10 @@ input[name="caged-shape"][value="D"] ~ * {
     overflow-y: auto;
 }
 
+.game-rotate-toggle {
+    display: none;
+}
+
 /* Mobile: tighter padding */
 @media (max-width: 768px) {
     .fretboard-drills-active .game-content {
@@ -1737,6 +1741,15 @@ input[name="caged-shape"][value="D"] ~ * {
     .game-split-controls .game-fretboard-hint {
         font-size: 0.625rem;
         padding: 0 0.5rem 0.25rem;
+    }
+
+    .game-rotate-toggle {
+        display: flex;
+    }
+
+    .game-fretboard-question.rotated {
+        transform: rotate(90deg);
+        white-space: nowrap;
     }
 
     .game-split-fretboard {

@@ -267,18 +267,35 @@
 
     // ---- Highlight helpers ----
 
-    function highlightNotePositions(noteIndex, intervalLabel, api) {
+    function highlightNotePositions(noteIndex, intervalLabel, api, displayText) {
         const colors = MusicTheory.getIntervalColor(intervalLabel);
         const positions = findNotePositions(noteIndex);
+        const label = displayText !== undefined ? displayText : intervalLabel;
         positions.forEach(pos => {
             api.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
                 borderWidth: 2,
-                text: intervalLabel,
+                text: label,
                 textColor: colors.text
             });
         });
+    }
+
+    function showAllNotesGreyedOut(api) {
+        for (let stringIndex = 0; stringIndex < 6; stringIndex++) {
+            for (let fret = 0; fret <= NUM_FRETS; fret++) {
+                const noteIndex = MusicTheory.getNoteAt(stringIndex, fret);
+                const noteName = getDisplayNoteName(noteIndex);
+                api.setMarker(6 - stringIndex, fret, {
+                    color: '#fff',
+                    borderColor: '#ccc',
+                    borderWidth: 2,
+                    text: noteName,
+                    textColor: '#bbb'
+                });
+            }
+        }
     }
 
     function highlightSinglePosition(string, fret, intervalLabel) {
@@ -512,6 +529,25 @@
         const topRow = document.createElement('div');
         topRow.className = 'game-top-row';
 
+        // Rotate toggle — small button in the top row (visible on mobile only via CSS)
+        const rotateToggle = document.createElement('label');
+        rotateToggle.className = 'toggle-label game-rotate-toggle';
+        if (gameState.rotateQuestion) rotateToggle.classList.add('checked');
+        const rotateInput = document.createElement('input');
+        rotateInput.type = 'checkbox';
+        rotateInput.checked = gameState.rotateQuestion || false;
+        rotateInput.addEventListener('change', function() {
+            gameState.rotateQuestion = rotateInput.checked;
+            rotateToggle.classList.toggle('checked', gameState.rotateQuestion);
+            const qDiv = document.getElementById('fb-drills-question');
+            if (qDiv) qDiv.classList.toggle('rotated', gameState.rotateQuestion);
+        });
+        const rotateText = document.createElement('span');
+        rotateText.className = 'toggle-text';
+        rotateText.textContent = '\u21bb';
+        rotateToggle.appendChild(rotateInput);
+        rotateToggle.appendChild(rotateText);
+
         if (isBuilder) {
             const hintToggle = document.createElement('label');
             hintToggle.className = 'toggle-label game-hint-toggle';
@@ -530,10 +566,9 @@
             hintToggle.appendChild(hintInput);
             hintToggle.appendChild(hintText);
             topRow.appendChild(hintToggle);
+            topRow.appendChild(rotateToggle);
         } else {
-            const spacerLeft = document.createElement('div');
-            spacerLeft.className = 'game-hint-spacer';
-            topRow.appendChild(spacerLeft);
+            topRow.appendChild(rotateToggle);
         }
 
         const counter = document.createElement('div');
@@ -551,6 +586,7 @@
         const questionDiv = document.createElement('div');
         questionDiv.className = 'game-fretboard-question';
         questionDiv.id = 'fb-drills-question';
+        if (gameState.rotateQuestion) questionDiv.classList.add('rotated');
         questionDiv.textContent = getQuestionText();
         controlsPanel.appendChild(questionDiv);
 
@@ -720,7 +756,9 @@
         if (!api) return;
 
         api.clearMarkers();
-        highlightNotePositions(gameState.currentRootIndex, '1', api);
+        showAllNotesGreyedOut(api);
+        const noteName = getDisplayNoteName(gameState.currentRootIndex);
+        highlightNotePositions(gameState.currentRootIndex, '1', api, noteName);
 
         const questionDiv = document.getElementById('fb-drills-question');
         if (questionDiv) {
