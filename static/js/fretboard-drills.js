@@ -39,7 +39,8 @@
         showColors: true,
         enabledScales: [...ALL_SCALE_TYPES],
         enabledChords: [...ALL_CHORD_TYPES],
-        enabledNotes: [...ALL_ROOTS]
+        enabledNotes: [...ALL_ROOTS],
+        showNoteHints: false
     };
 
     // Game runtime state
@@ -282,18 +283,29 @@
         });
     }
 
-    function showAllNotesGreyedOut(api) {
+    function showAllNotesGreyedOut(api, useFlats, colored) {
         for (let stringIndex = 0; stringIndex < 6; stringIndex++) {
             for (let fret = 0; fret <= NUM_FRETS; fret++) {
                 const noteIndex = MusicTheory.getNoteAt(stringIndex, fret);
-                const noteName = getDisplayNoteName(noteIndex);
-                api.setMarker(6 - stringIndex, fret, {
-                    color: '#fff',
-                    borderColor: '#ccc',
-                    borderWidth: 2,
-                    text: noteName,
-                    textColor: '#bbb'
-                });
+                const noteName = MusicTheory.getNoteName(noteIndex, useFlats);
+                if (colored) {
+                    const colors = MusicTheory.getChromaticNoteColor(noteIndex);
+                    api.setMarker(6 - stringIndex, fret, {
+                        color: colors.fill,
+                        borderColor: colors.border,
+                        borderWidth: 2,
+                        text: noteName,
+                        textColor: colors.text
+                    });
+                } else {
+                    api.setMarker(6 - stringIndex, fret, {
+                        color: '#fff',
+                        borderColor: '#ccc',
+                        borderWidth: 2,
+                        text: noteName,
+                        textColor: '#bbb'
+                    });
+                }
             }
         }
     }
@@ -336,6 +348,12 @@
         const api = createFretboard(container);
         gameState.fretboardApi = api;
         api.onFretClick(handleFretClick);
+
+        // Re-show note hints if enabled in note-finding mode
+        if (gameState.activeMode === 'note-finding' && settings.showNoteHints) {
+            const useFlats = gameState.currentRoot.includes('b');
+            showAllNotesGreyedOut(api, useFlats, settings.showColors);
+        }
 
         // Re-highlight already-found builder steps
         const mode = gameState.activeMode;
@@ -446,7 +464,7 @@
     function getQuestionText() {
         const mode = gameState.activeMode;
         if (mode === 'note-finding') {
-            return 'Find: ' + getDisplayNoteName(gameState.currentRootIndex);
+            return 'Find: ' + gameState.currentRoot;
         }
         if (mode === 'root-to-interval') {
             return 'Find the ' + formatIntervalName(gameState.currentSemitone, settings.notationStyle) + ' from ' + gameState.currentRoot;
@@ -515,6 +533,7 @@
         // Left half: fretboard
         const fretboardPanel = document.createElement('div');
         fretboardPanel.className = 'game-split-fretboard';
+        if (gameState.rotateQuestion) fretboardPanel.classList.add('rotated-markers');
 
         const fbContainer = document.createElement('div');
         fbContainer.className = 'game-fretboard-container';
@@ -539,8 +558,10 @@
         rotateInput.addEventListener('change', function() {
             gameState.rotateQuestion = rotateInput.checked;
             rotateToggle.classList.toggle('checked', gameState.rotateQuestion);
-            const qDiv = document.getElementById('fb-drills-question');
-            if (qDiv) qDiv.classList.toggle('rotated', gameState.rotateQuestion);
+            const inner = document.getElementById('fb-drills-controls-inner');
+            if (inner) inner.classList.toggle('rotated', gameState.rotateQuestion);
+            const fbPanel = document.querySelector('.game-split-fretboard');
+            if (fbPanel) fbPanel.classList.toggle('rotated-markers', gameState.rotateQuestion);
         });
         const rotateText = document.createElement('span');
         rotateText.className = 'toggle-text';
@@ -580,15 +601,20 @@
         spacerRight.className = 'game-hint-spacer';
         topRow.appendChild(spacerRight);
 
-        controlsPanel.appendChild(topRow);
+        // Inner wrapper for rotatable controls
+        const controlsInner = document.createElement('div');
+        controlsInner.className = 'game-controls-inner';
+        controlsInner.id = 'fb-drills-controls-inner';
+        if (gameState.rotateQuestion) controlsInner.classList.add('rotated');
+
+        controlsInner.appendChild(topRow);
 
         // Question prompt
         const questionDiv = document.createElement('div');
         questionDiv.className = 'game-fretboard-question';
         questionDiv.id = 'fb-drills-question';
-        if (gameState.rotateQuestion) questionDiv.classList.add('rotated');
         questionDiv.textContent = getQuestionText();
-        controlsPanel.appendChild(questionDiv);
+        controlsInner.appendChild(questionDiv);
 
         // Builder hint line
         if (isBuilder) {
@@ -596,10 +622,12 @@
             hintDiv.className = 'game-fretboard-hint';
             hintDiv.id = 'fb-drills-hint';
             hintDiv.textContent = getBuilderHintText();
-            controlsPanel.appendChild(hintDiv);
+            controlsInner.appendChild(hintDiv);
         }
 
-        // Next button (hidden initially)
+        controlsPanel.appendChild(controlsInner);
+
+        // Next button (hidden initially, outside wrapper so it doesn't rotate)
         const nextBtn = document.createElement('button');
         nextBtn.className = 'game-next-btn';
         nextBtn.id = 'game-next-btn';
@@ -616,6 +644,11 @@
         const api = createFretboard(fbContainer);
         gameState.fretboardApi = api;
         api.onFretClick(handleFretClick);
+
+        if (mode === 'note-finding' && settings.showNoteHints) {
+            const useFlats = gameState.currentRoot.includes('b');
+            showAllNotesGreyedOut(api, useFlats, settings.showColors);
+        }
 
         gameState.questionStartTime = performance.now();
 
@@ -755,14 +788,14 @@
         const api = gameState.fretboardApi;
         if (!api) return;
 
+        const useFlats = gameState.currentRoot.includes('b');
         api.clearMarkers();
-        showAllNotesGreyedOut(api);
-        const noteName = getDisplayNoteName(gameState.currentRootIndex);
-        highlightNotePositions(gameState.currentRootIndex, '1', api, noteName);
+        showAllNotesGreyedOut(api, useFlats, settings.showColors);
+        highlightNotePositions(gameState.currentRootIndex, '1', api, gameState.currentRoot);
 
         const questionDiv = document.getElementById('fb-drills-question');
         if (questionDiv) {
-            questionDiv.textContent = getDisplayNoteName(gameState.currentRootIndex);
+            questionDiv.textContent = gameState.currentRoot;
         }
 
         setTimeout(() => {
@@ -1875,10 +1908,40 @@
         colorsSelect.addEventListener('change', () => {
             settings.showColors = colorsSelect.value === 'on';
             saveSettings();
+            rebuildFretboard();
         });
         colorsGroup.appendChild(colorsLabel);
         colorsGroup.appendChild(colorsSelect);
         modalBody.appendChild(colorsGroup);
+
+        // Show Notes toggle (Note Finding mode only)
+        if (settings.gameMode === 'note-finding') {
+            const showNotesGroup = document.createElement('div');
+            showNotesGroup.className = 'game-setting-group';
+            const showNotesLabel = document.createElement('label');
+            showNotesLabel.textContent = 'Show Notes';
+            showNotesLabel.className = 'game-setting-label';
+            const showNotesSelect = document.createElement('select');
+            showNotesSelect.className = 'game-setting-select';
+            [
+                { value: 'on', text: 'On' },
+                { value: 'off', text: 'Off' }
+            ].forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.textContent = opt.text;
+                if ((opt.value === 'on') === settings.showNoteHints) option.selected = true;
+                showNotesSelect.appendChild(option);
+            });
+            showNotesSelect.addEventListener('change', () => {
+                settings.showNoteHints = showNotesSelect.value === 'on';
+                saveSettings();
+                rebuildFretboard();
+            });
+            showNotesGroup.appendChild(showNotesLabel);
+            showNotesGroup.appendChild(showNotesSelect);
+            modalBody.appendChild(showNotesGroup);
+        }
 
         // Type-specific checkboxes
         if (settings.gameMode === 'note-finding') {
