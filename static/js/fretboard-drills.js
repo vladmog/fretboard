@@ -296,6 +296,7 @@
                 textColor: colors.text
             });
         });
+        if (gameState.rotateQuestion) applyMarkerTextRotation(true);
     }
 
     function showAllNotesGreyedOut(api, useFlats, colored) {
@@ -323,6 +324,7 @@
                 }
             }
         }
+        if (gameState.rotateQuestion) applyMarkerTextRotation(true);
     }
 
     function highlightSinglePosition(string, fret, intervalLabel) {
@@ -336,6 +338,7 @@
             text: intervalLabel,
             textColor: colors.text
         });
+        if (gameState.rotateQuestion) applyMarkerTextRotation(true);
     }
 
     function flashRedAtPosition(string, fret) {
@@ -383,9 +386,6 @@
             }
         }
 
-        if (gameState.rotateQuestion) {
-            applyMarkerTextRotation(true);
-        }
     }
 
     // ---- Sound helpers ----
