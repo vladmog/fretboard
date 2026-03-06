@@ -515,6 +515,16 @@ select:hover {
     color: #fff;
 }
 
+.prog-fav-btn {
+    flex: none;
+    width: 2.25rem;
+}
+
+.prog-fav-btn.active {
+    background: #000;
+    color: #fff;
+}
+
 /* Chord list header */
 .chord-list-header {
     display: flex;
