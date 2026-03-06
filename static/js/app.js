@@ -200,23 +200,26 @@
 
         state.fretboard.clearMarkers();
 
-        // Draw all scale tones as greyed-out background context
-        const allScalePositions = MusicTheory.getNotesOnFretboard(
-            scale.noteToDegree, 15, scale.root
-        );
-        for (const pos of allScalePositions) {
-            state.fretboard.setMarker(pos.string, pos.fret, {
-                color: '#fff',
-                borderColor: '#ccc',
-                text: state.showScaleDegrees
-                    ? getMarkerLabel(pos, scale.noteSpelling)
-                    : (state.showNoteNames ? getMarkerLabel(pos, scale.noteSpelling) : ''),
-                textColor: '#bbb'
-            });
+        // Draw all scale tones as greyed-out background context (not in prog mode)
+        if (state.mode !== 'prog') {
+            const allScalePositions = MusicTheory.getNotesOnFretboard(
+                scale.noteToDegree, 15, scale.root
+            );
+            for (const pos of allScalePositions) {
+                state.fretboard.setMarker(pos.string, pos.fret, {
+                    color: '#fff',
+                    borderColor: '#ccc',
+                    text: state.showScaleDegrees
+                        ? getMarkerLabel(pos, scale.noteSpelling)
+                        : (state.showNoteNames ? getMarkerLabel(pos, scale.noteSpelling) : ''),
+                    textColor: '#bbb'
+                });
+            }
         }
 
         // Choose between scale degrees and chord intervals for labels
-        const chordNoteToDegree = state.showScaleDegrees
+        const useScaleDegrees = state.showScaleDegrees && state.mode !== 'prog';
+        const chordNoteToDegree = useScaleDegrees
             ? (() => {
                 const filtered = {};
                 for (const [noteIndex, degree] of Object.entries(scale.noteToDegree)) {
@@ -228,12 +231,12 @@
             })()
             : chord.noteToInterval;
 
-        const labelSpelling = state.showScaleDegrees ? scale.noteSpelling : chord.noteSpelling;
+        const labelSpelling = useScaleDegrees ? scale.noteSpelling : chord.noteSpelling;
 
         const positions = MusicTheory.getNotesOnFretboard(
             chordNoteToDegree,
             15,
-            state.showScaleDegrees ? scale.root : chord.root
+            useScaleDegrees ? scale.root : chord.root
         );
 
         const chordRootIndex = MusicTheory.getNoteIndex(chord.root);
@@ -283,7 +286,7 @@
         }
 
         // Build info panel: show chord symbol, chord notes, and their intervals
-        const displayIntervals = state.showScaleDegrees
+        const displayIntervals = useScaleDegrees
             ? chord.notes.map(noteName => {
                 const noteIndex = Object.keys(chord.noteSpelling).find(idx => chord.noteSpelling[idx] === noteName);
                 return noteIndex !== undefined ? scale.noteToDegree[noteIndex] : null;
@@ -1398,7 +1401,10 @@
         if (mode === 'prog') {
             if (seventhsLabel) seventhsLabel.style.display = 'none';
             if (relativeLabel) relativeLabel.style.display = 'none';
-            if (scaleLabel) scaleLabel.style.display = '';
+            if (scaleLabel) scaleLabel.style.display = 'none';
+            state.showScaleDegrees = false;
+            const scaleToggleEl = document.getElementById('chord-intervals-toggle');
+            if (scaleToggleEl) scaleToggleEl.checked = false;
         } else {
             if (seventhsLabel) seventhsLabel.style.display = '';
             // relativeLabel visibility handled by updateRelToggleVisibility()
