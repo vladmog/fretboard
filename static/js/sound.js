@@ -1,13 +1,39 @@
 /**
  * Sound Module - Audio playback for chords using Tone.js
- * Exposes window.Sound with playChord(notes) function
+ * Exposes window.Sound with playChord, playNote, playInterval, playArpeggio,
+ * getParams, getDefaults, setParam
  */
 
 (function() {
     'use strict';
 
+    const defaults = {
+        oscillatorType: 'sawtooth',
+        attack: 0.005,
+        decay: 0.49,
+        sustain: 0,
+        release: 0.71,
+        volume: -12,
+        limiterThreshold: -6,
+        strumDelay: 0.08,
+        arpeggioDelay: 0.15,
+        noteDuration: 0.8,
+        arpeggioNoteDuration: 1,
+        filterType: 'lowpass',
+        filterFrequency: 4140,
+        filterQ: 0.1,
+        reverbDecay: 2.4,
+        reverbWet: 0.5
+    };
+
+    const params = { ...defaults };
+
     let synth = null;
-    const limiter = new Tone.Limiter(-6).toDestination();
+    const filter = new Tone.Filter({ type: params.filterType, frequency: params.filterFrequency, Q: params.filterQ });
+    const reverb = new Tone.Reverb({ decay: params.reverbDecay, wet: params.reverbWet });
+    const limiter = new Tone.Limiter(params.limiterThreshold).toDestination();
+    filter.connect(reverb);
+    reverb.connect(limiter);
 
     /**
      * Lazy-initialize the PolySynth on first use
@@ -15,15 +41,70 @@
     function ensureSynth() {
         if (!synth) {
             synth = new Tone.PolySynth(Tone.Synth, {
-                oscillator: { type: 'triangle' },
+                oscillator: { type: params.oscillatorType },
                 envelope: {
-                    attack: 0.005,
-                    decay: 0.4,
-                    sustain: 0.05,
-                    release: 1.0
+                    attack: params.attack,
+                    decay: params.decay,
+                    sustain: params.sustain,
+                    release: params.release
                 }
-            }).connect(limiter);
-            synth.volume.value = -12;
+            }).connect(filter);
+            synth.volume.value = params.volume;
+        }
+    }
+
+    function getParams() {
+        return { ...params };
+    }
+
+    function getDefaults() {
+        return { ...defaults };
+    }
+
+    function setParam(key, value) {
+        if (!(key in defaults)) return;
+        params[key] = value;
+
+        // Effect nodes exist at module scope — always update
+        switch (key) {
+            case 'limiterThreshold':
+                limiter.threshold.value = value;
+                return;
+            case 'filterType':
+                filter.type = value;
+                return;
+            case 'filterFrequency':
+                filter.frequency.value = value;
+                return;
+            case 'filterQ':
+                filter.Q.value = value;
+                return;
+            case 'reverbDecay':
+                reverb.decay = value;
+                reverb.generate();
+                return;
+            case 'reverbWet':
+                reverb.wet.value = value;
+                return;
+        }
+
+        if (!synth) return;
+
+        switch (key) {
+            case 'oscillatorType':
+                synth.set({ oscillator: { type: value } });
+                break;
+            case 'attack':
+            case 'decay':
+            case 'sustain':
+            case 'release':
+                synth.set({ envelope: { [key]: value } });
+                break;
+            case 'volume':
+                synth.volume.value = value;
+                break;
+            // strumDelay, arpeggioDelay, noteDuration, arpeggioNoteDuration
+            // are read at call time — no live update needed
         }
     }
 
@@ -77,10 +158,9 @@
             notesWithOctaves = assignOctaves(noteNames, startOctave);
         }
 
-        const strumDelay = 0.08; // 80ms between each note
         const now = Tone.now();
         notesWithOctaves.forEach((note, i) => {
-            synth.triggerAttackRelease(note, 0.8, now + i * strumDelay);
+            synth.triggerAttackRelease(note, params.noteDuration, now + i * params.strumDelay);
         });
     }
 
@@ -88,11 +168,11 @@
      * Play a single note
      * @param {string} noteName - Note name (e.g. 'C', 'Eb')
      * @param {number} octave - Octave number (default 4)
-     * @param {number} duration - Duration in seconds (default 0.8)
+     * @param {number} duration - Duration in seconds (default params.noteDuration)
      */
     async function playNote(noteName, octave, duration) {
         if (octave === undefined) octave = 4;
-        if (duration === undefined) duration = 0.8;
+        if (duration === undefined) duration = params.noteDuration;
 
         await Tone.start();
         ensureSynth();
@@ -128,8 +208,8 @@
         }
 
         const now = Tone.now();
-        synth.triggerAttackRelease(rootSharp + rootOctave, 0.8, now);
-        synth.triggerAttackRelease(targetSharp + targetOctave, 0.8, now + 0.08);
+        synth.triggerAttackRelease(rootSharp + rootOctave, params.noteDuration, now);
+        synth.triggerAttackRelease(targetSharp + targetOctave, params.noteDuration, now + params.strumDelay);
     }
 
     /**
@@ -143,12 +223,11 @@
         ensureSynth();
 
         const notesWithOctaves = assignOctaves(noteNames);
-        const delay = 0.1;
         const now = Tone.now();
         notesWithOctaves.forEach((note, i) => {
-            synth.triggerAttackRelease(note, 0.5, now + i * delay);
+            synth.triggerAttackRelease(note, params.arpeggioNoteDuration, now + i * params.arpeggioDelay);
         });
     }
 
-    window.Sound = { playChord, playNote, playInterval, playArpeggio };
+    window.Sound = { playChord, playNote, playInterval, playArpeggio, getParams, getDefaults, setParam };
 })();
