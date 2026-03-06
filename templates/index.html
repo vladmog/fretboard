@@ -44,6 +44,10 @@
                             Modes
                         </label>
                         <label class="radio-label">
+                            <input type="radio" name="mode" value="prog">
+                            Prog
+                        </label>
+                        <label class="radio-label">
                             <input type="radio" name="mode" value="f.chord">
                             f.chord
                         </label>
@@ -81,6 +85,11 @@
                         <select id="type-select">
                             <!-- Options populated by JavaScript based on mode -->
                         </select>
+                    </div>
+
+                    <div id="prog-nav" class="prog-nav" style="display: none;">
+                        <button id="prog-prev" class="prog-nav-btn">&#9650;</button>
+                        <button id="prog-next" class="prog-nav-btn">&#9660;</button>
                     </div>
 
                     <div id="caged-shape-selector" class="control-group" style="display: none;">
@@ -259,6 +268,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tone/build/Tone.js"></script>
     <script src="{{ url_for('static', filename='js/fretboard.js') }}"></script>
     <script src="{{ url_for('static', filename='js/music-theory.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chord-progressions.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sound.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/weighted-selection.js') }}"></script>

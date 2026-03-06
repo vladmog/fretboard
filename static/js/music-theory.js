@@ -203,6 +203,36 @@ const CHORD_TYPES = {
         name: 'Augmented Major 7th',
         symbol: 'augMaj7',
         intervals: ['1', '3', '#5', '7']
+    },
+    'maj9': {
+        name: 'Major 9th',
+        symbol: 'maj9',
+        intervals: ['1', '3', '5', '7', '2']
+    },
+    'min9': {
+        name: 'Minor 9th',
+        symbol: 'm9',
+        intervals: ['1', 'b3', '5', 'b7', '2']
+    },
+    '9': {
+        name: 'Dominant 9th',
+        symbol: '9',
+        intervals: ['1', '3', '5', 'b7', '2']
+    },
+    '13': {
+        name: 'Dominant 13th',
+        symbol: '13',
+        intervals: ['1', '3', '5', 'b7', '6']
+    },
+    '7sus4': {
+        name: 'Dominant 7th sus4',
+        symbol: '7sus4',
+        intervals: ['1', '4', '5', 'b7']
+    },
+    '5': {
+        name: 'Power Chord',
+        symbol: '5',
+        intervals: ['1', '5']
     }
 };
 
