@@ -733,6 +733,10 @@
         if (!gridEl) return;
         gridEl.innerHTML = '';
 
+        // Remove any existing description element
+        var existingDesc = gridEl.parentNode.querySelector('.info-grid-description');
+        if (existingDesc) existingDesc.remove();
+
         // Prog mode fallback: no intervals means show notes as plain text
         if (!info.intervals || info.intervals.length === 0) {
             gridEl.style.display = 'block';
@@ -761,6 +765,14 @@
             cell.textContent = note;
             gridEl.appendChild(cell);
         });
+
+        // Optional description below grid (used in Prog mode)
+        if (info.description) {
+            const descEl = document.createElement('div');
+            descEl.className = 'info-grid-description';
+            descEl.textContent = info.description;
+            gridEl.parentNode.appendChild(descEl);
+        }
     }
 
     /**
@@ -842,12 +854,14 @@
                 // Restore progression info panel (displayScale overwrites it)
                 const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(state.progressionIndex);
                 const category = ChordProgressions.PROGRESSION_CATEGORIES[categoryIndex];
+                const chords = ChordProgressions.buildProgressionChords(categoryIndex, progressionIndex, state.root);
                 const progression = category ? category.progressions[progressionIndex] : null;
-                if (progression) {
+                if (category && chords.length > 0) {
                     updateInfoPanel({
                         title: category.name,
-                        notes: [progression.description],
-                        intervals: []
+                        notes: chords.map(c => c.symbol),
+                        intervals: chords.map(c => c.numeral),
+                        description: progression ? progression.description : ''
                     });
                 }
             }
@@ -1084,11 +1098,12 @@
         container.appendChild(chordsRow);
 
         // Update info panel based on selection state
-        if (!state.activeScaleChord && progression) {
+        if (!state.activeScaleChord && category && chords.length > 0) {
             updateInfoPanel({
                 title: category.name,
-                notes: [progression.description],
-                intervals: []
+                notes: chords.map(c => c.symbol),
+                intervals: chords.map(c => c.numeral),
+                description: progression ? progression.description : ''
             });
         }
     }

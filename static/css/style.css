@@ -691,9 +691,17 @@ select:hover {
     font-weight: 700;
 }
 
+.info-grid-description {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.75rem;
+    color: #333;
+    margin-top: 0.5rem;
+}
+
 @container (max-width: 180px) {
     .info-grid-interval,
     .info-grid-note { font-size: 0.6875rem; }
+    .info-grid-description { font-size: 0.625rem; }
 }
 
 /* Mode section container - groups mode toggle with dependent controls */
