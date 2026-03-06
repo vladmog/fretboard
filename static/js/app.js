@@ -726,12 +726,41 @@
      */
     function updateInfoPanel(info) {
         const titleEl = document.getElementById('info-title');
-        const notesEl = document.getElementById('info-notes');
-        const intervalsEl = document.getElementById('info-intervals');
+        const gridEl = document.getElementById('info-grid');
 
         if (titleEl) titleEl.textContent = info.title;
-        if (notesEl) notesEl.textContent = info.notes.join(' ');
-        if (intervalsEl) intervalsEl.textContent = info.intervals.join(' ');
+
+        if (!gridEl) return;
+        gridEl.innerHTML = '';
+
+        // Prog mode fallback: no intervals means show notes as plain text
+        if (!info.intervals || info.intervals.length === 0) {
+            gridEl.style.display = 'block';
+            gridEl.style.gridTemplateColumns = '';
+            gridEl.textContent = info.notes.join(' ');
+            gridEl.className = 'info-grid info-grid-text';
+            return;
+        }
+
+        gridEl.className = 'info-grid';
+        gridEl.style.display = 'grid';
+        gridEl.style.gridTemplateColumns = 'repeat(' + info.notes.length + ', 1fr)';
+
+        // Row 1: intervals
+        info.intervals.forEach(function(interval) {
+            const cell = document.createElement('div');
+            cell.className = 'info-grid-cell info-grid-interval';
+            cell.textContent = interval;
+            gridEl.appendChild(cell);
+        });
+
+        // Row 2: notes
+        info.notes.forEach(function(note) {
+            const cell = document.createElement('div');
+            cell.className = 'info-grid-cell info-grid-note';
+            cell.textContent = note;
+            gridEl.appendChild(cell);
+        });
     }
 
     /**
