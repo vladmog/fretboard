@@ -1675,7 +1675,7 @@ input[name="caged-shape"][value="D"] ~ * {
     min-height: 0;
     overflow: hidden;
     background-color: #f5f5f5;
-    border-bottom: 1px solid #000;
+    border: 1px solid #000;
 }
 
 .game-split-fretboard .game-fretboard-container {
