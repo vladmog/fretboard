@@ -1668,7 +1668,8 @@ input[name="caged-shape"][value="D"] ~ * {
 
 .game-split-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    grid-template-rows: 3fr 2fr;
     gap: 0;
     width: 100%;
     height: 100%;
@@ -1683,7 +1684,7 @@ input[name="caged-shape"][value="D"] ~ * {
     min-height: 0;
     overflow: hidden;
     background-color: #f5f5f5;
-    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
 }
 
 .game-split-fretboard .game-fretboard-container {
@@ -1727,6 +1728,11 @@ input[name="caged-shape"][value="D"] ~ * {
         font-size: 0.5rem;
     }
 
+    .game-split-layout {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr;
+    }
+
     .game-split-controls {
         padding: 0.5rem;
         padding-bottom: 0.5rem;
@@ -1763,7 +1769,7 @@ input[name="caged-shape"][value="D"] ~ * {
 
     .game-split-fretboard {
         order: 2;
-        border-right: none;
+        border-bottom: none;
         border-left: 1px solid #000;
     }
 
