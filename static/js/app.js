@@ -275,7 +275,7 @@
         }
 
         // Choose between scale degrees and chord intervals for labels
-        const useScaleDegrees = state.showScaleDegrees && state.mode !== 'prog';
+        const useScaleDegrees = state.showScaleDegrees;
         const chordNoteToDegree = useScaleDegrees
             ? (() => {
                 const filtered = {};
@@ -1526,16 +1526,19 @@
         if (mode === 'prog') {
             if (seventhsLabel) seventhsLabel.style.display = 'none';
             if (relativeLabel) relativeLabel.style.display = 'none';
-            if (scaleLabel) scaleLabel.style.display = 'none';
-            if (toggleRow) toggleRow.style.display = 'none';
-            state.showScaleDegrees = false;
-            const scaleToggleEl = document.getElementById('chord-intervals-toggle');
-            if (scaleToggleEl) scaleToggleEl.checked = false;
+            if (scaleLabel) scaleLabel.style.display = '';
+            if (toggleRow) toggleRow.style.display = '';
         } else {
             if (seventhsLabel) seventhsLabel.style.display = '';
             // relativeLabel visibility handled by updateRelToggleVisibility()
             if (scaleLabel) scaleLabel.style.display = '';
             if (toggleRow) toggleRow.style.display = '';
+        }
+
+        // Rename scale toggle label contextually
+        const scaleToggleText = scaleLabel?.querySelector('.toggle-text');
+        if (scaleToggleText) {
+            scaleToggleText.textContent = mode === 'prog' ? 'key' : 'scale';
         }
 
         // Update relative toggle visibility for current mode
