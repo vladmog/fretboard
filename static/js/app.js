@@ -1398,10 +1398,12 @@
         const seventhsLabel = document.getElementById('sevenths-toggle')?.closest('.toggle-label');
         const relativeLabel = document.getElementById('relative-toggle')?.closest('.toggle-label');
         const scaleLabel = document.getElementById('chord-intervals-toggle')?.closest('.toggle-label');
+        const toggleRow = document.querySelector('#scale-chord-builder .toggle-row');
         if (mode === 'prog') {
             if (seventhsLabel) seventhsLabel.style.display = 'none';
             if (relativeLabel) relativeLabel.style.display = 'none';
             if (scaleLabel) scaleLabel.style.display = 'none';
+            if (toggleRow) toggleRow.style.display = 'none';
             state.showScaleDegrees = false;
             const scaleToggleEl = document.getElementById('chord-intervals-toggle');
             if (scaleToggleEl) scaleToggleEl.checked = false;
@@ -1409,6 +1411,7 @@
             if (seventhsLabel) seventhsLabel.style.display = '';
             // relativeLabel visibility handled by updateRelToggleVisibility()
             if (scaleLabel) scaleLabel.style.display = '';
+            if (toggleRow) toggleRow.style.display = '';
         }
 
         // Update relative toggle visibility for current mode

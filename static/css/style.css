@@ -141,8 +141,8 @@ body {
 
     /* Selects — compact */
     select {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.6875rem;
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
     }
 
     /* Control group labels — tighter */
@@ -422,6 +422,10 @@ select:hover {
 /* Scale chord builder */
 #scale-chord-builder {
     transition: opacity 0.2s;
+}
+
+#scale-chord-builder > label {
+    margin-bottom: 0.25rem;
 }
 
 #scale-chord-builder.disabled {
