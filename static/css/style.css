@@ -496,6 +496,7 @@ select:hover {
     flex: 1;
     padding: 0.45rem 0;
     font-size: 0.65rem;
+    color: #000;
     background: #fff;
     border: 1px solid #000;
     cursor: pointer;
@@ -503,6 +504,8 @@ select:hover {
     letter-spacing: 0.02em;
     text-transform: uppercase;
     line-height: 1;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .prog-nav-btn:hover {
