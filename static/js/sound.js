@@ -33,8 +33,8 @@
      * @param {string[]} noteNames - Array of note names (e.g. ['C', 'E', 'G'])
      * @returns {string[]} Notes with octaves (e.g. ['C3', 'E3', 'G3'])
      */
-    function assignOctaves(noteNames) {
-        let octave = 3;
+    function assignOctaves(noteNames, startOctave) {
+        let octave = startOctave || 3;
         let prevIndex = -1;
         const result = [];
 
@@ -56,7 +56,7 @@
      * Play a chord given an array of note names
      * @param {string[]} noteNames - Note names from buildChord() (e.g. ['C', 'E', 'G'])
      */
-    async function playChord(noteNames) {
+    async function playChord(noteNames, startOctave) {
         if (!noteNames || noteNames.length === 0) return;
 
         await Tone.start();
@@ -74,7 +74,7 @@
                 return n;
             });
         } else {
-            notesWithOctaves = assignOctaves(noteNames);
+            notesWithOctaves = assignOctaves(noteNames, startOctave);
         }
 
         const strumDelay = 0.08; // 80ms between each note

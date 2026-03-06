@@ -959,7 +959,10 @@
                     state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol };
                     if (state.soundEnabled) {
                         const builtChord = MusicTheory.buildChord(chord.root, chord.type);
-                        Sound.playChord(builtChord.notes);
+                        const scaleRootIndex = MusicTheory.getNoteIndex(chordRoot);
+                        const chordRootIndex = MusicTheory.getNoteIndex(chord.root);
+                        const startOctave = chordRootIndex < scaleRootIndex ? 4 : 3;
+                        Sound.playChord(builtChord.notes, startOctave);
                     }
                 }
                 state.selectedChordIndex = -1;
