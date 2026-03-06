@@ -195,16 +195,14 @@ body {
     }
 
     .info-title {
-        font-size: 0.8125rem;
+        font-size: 0.875rem;
         margin-bottom: 0.375rem;
+        padding-bottom: 0.25rem;
     }
 
-    .info-row {
-        margin-bottom: 0.375rem;
-    }
-
-    .info-value {
-        font-size: 0.625rem;
+    .info-grid-interval,
+    .info-grid-note {
+        font-size: 0.6875rem;
     }
 
     /* Remove mode-controls internal border in mobile */
@@ -643,10 +641,7 @@ select:hover {
     background-color: #f5f5f5;
     border: 1px solid #999;
     padding: 1rem;
-}
-
-#info-panel > label {
-    margin-bottom: 0.5rem;
+    container-type: inline-size;
 }
 
 .info-content {
@@ -654,32 +649,51 @@ select:hover {
 }
 
 .info-title {
-    font-size: 1rem;
-    font-weight: 400;
+    font-size: 1.125rem;
+    font-weight: 700;
     letter-spacing: 0.1em;
     margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid #ccc;
 }
 
-.info-row {
-    margin-bottom: 0.75rem;
+.info-grid {
+    display: grid;
+    gap: 0;
+    width: 100%;
+    overflow: hidden;
 }
 
-.info-label {
-    display: block;
-    font-size: 0.625rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #666;
-    margin-bottom: 0.25rem;
-}
-
-.info-value {
-    display: block;
+.info-grid-text {
     font-family: 'Monaco', 'Consolas', monospace;
     font-size: 0.75rem;
-    letter-spacing: 0.15em;
+    color: #333;
+}
+
+.info-grid-cell {
+    text-align: center;
+    font-family: 'Monaco', 'Consolas', monospace;
+    min-width: 0;
+    border: 1px solid #ccc;
+    margin-top: -1px;
+    margin-left: -1px;
+    padding: 0.125rem 0;
+}
+
+.info-grid-interval {
+    font-size: 0.875rem;
+    color: #666;
+    padding-bottom: 0.125rem;
+}
+
+.info-grid-note {
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+@container (max-width: 180px) {
+    .info-grid-interval,
+    .info-grid-note { font-size: 0.6875rem; }
 }
 
 /* Mode section container - groups mode toggle with dependent controls */
@@ -746,20 +760,6 @@ select:hover {
     color: #444;
 }
 
-/* Info panel typography - secondary */
-#info-panel > label {
-    font-size: 0.625rem;
-    color: #666;
-}
-
-/* Interval hint/scaffolding */
-.info-hint {
-    display: block;
-    font-size: 0.5625rem;
-    color: #888;
-    margin-top: 0.25rem;
-    font-style: italic;
-}
 
 /* Spacing scale consistency */
 .control-group {
@@ -847,12 +847,9 @@ input[name="caged-shape"][value="D"] ~ * {
     }
 
     .info-title {
+        font-size: 1rem;
         margin-bottom: 0.5rem;
         padding-bottom: 0.25rem;
-    }
-
-    .info-row {
-        margin-bottom: 0.5rem;
     }
 }
 
