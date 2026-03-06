@@ -482,6 +482,37 @@ select:hover {
     font-style: italic;
 }
 
+/* Prog mode navigation */
+.prog-nav {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.prog-nav-btn {
+    flex: 1;
+    padding: 0.45rem 0;
+    font-size: 0.65rem;
+    background: #fff;
+    border: 1px solid #000;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.prog-nav-btn:hover {
+    background: #000;
+    color: #fff;
+}
+
+.prog-nav-btn:active {
+    background: #333;
+    color: #fff;
+}
+
 /* Chord list header */
 .chord-list-header {
     display: flex;

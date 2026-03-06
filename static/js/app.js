@@ -8,7 +8,7 @@
 
     // Application state
     const state = {
-        mode: 'scale',          // 'scale', 'chord', 'interval', 'caged', 'modes', 'f.chord', 'f.scale', or 'games'
+        mode: 'scale',          // 'scale', 'chord', 'interval', 'caged', 'modes', 'prog', 'f.chord', 'f.scale', or 'games'
         root: 'C',
         scaleType: 'major',
         chordType: 'maj',
@@ -26,6 +26,7 @@
         findResults: [],        // Find mode: results from MusicTheory.findChords()
         findSelectedIndex: -1,  // Find mode: index in findResults, -1 = user markers view
         activeScaleChord: null, // Scale mode: previewed chord { root, type, symbol } or null
+        progressionIndex: 0,   // Prog mode: flat index into all progressions
         intervalFilter: new Set(['1','b2','2','b3','3','4','b5','5','b6','6','b7','7'])
     };
 
@@ -799,6 +800,25 @@
                 const scale = MusicTheory.buildScale(state.root, state.scaleType);
                 displayScale(scale);
             }
+        } else if (state.mode === 'prog') {
+            const scale = MusicTheory.buildScale(state.root, 'major');
+            if (state.activeScaleChord) {
+                const chord = MusicTheory.buildChord(state.activeScaleChord.root, state.activeScaleChord.type);
+                displayScaleChord(chord, scale);
+            } else {
+                displayScale(scale);
+                // Restore progression info panel (displayScale overwrites it)
+                const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(state.progressionIndex);
+                const category = ChordProgressions.PROGRESSION_CATEGORIES[categoryIndex];
+                const progression = category ? category.progressions[progressionIndex] : null;
+                if (progression) {
+                    updateInfoPanel({
+                        title: category.name,
+                        notes: [progression.description],
+                        intervals: []
+                    });
+                }
+            }
         } else {
             const chord = MusicTheory.buildChord(state.root, state.chordType);
             displayChord(chord);
@@ -977,6 +997,71 @@
     }
 
     /**
+     * Render progression chords for prog mode
+     */
+    function renderProgressionChords() {
+        const container = document.getElementById('scale-chords');
+        if (!container) return;
+
+        const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(state.progressionIndex);
+        const chords = ChordProgressions.buildProgressionChords(categoryIndex, progressionIndex, state.root);
+        const category = ChordProgressions.PROGRESSION_CATEGORIES[categoryIndex];
+        const progression = category ? category.progressions[progressionIndex] : null;
+
+        if (chords.length === 0) {
+            container.innerHTML = '<p class="scale-chords-note">No chords available</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        const chordsRow = document.createElement('div');
+        chordsRow.className = 'scale-chords-list';
+
+        const keyRootIndex = MusicTheory.getNoteIndex(state.root);
+
+        chords.forEach((chord) => {
+            const btn = document.createElement('button');
+            btn.className = 'scale-chord-item';
+            if (state.activeScaleChord && state.activeScaleChord.root === chord.root && state.activeScaleChord.type === chord.type
+                && state.activeScaleChord._progIdx === chords.indexOf(chord)) {
+                btn.classList.add('selected');
+            }
+            btn.innerHTML = `<span class="numeral">${chord.numeral}</span><span class="chord-name">${chord.symbol}</span>`;
+            btn.addEventListener('click', () => {
+                const idx = chords.indexOf(chord);
+                if (state.activeScaleChord && state.activeScaleChord.root === chord.root
+                    && state.activeScaleChord.type === chord.type && state.activeScaleChord._progIdx === idx) {
+                    state.activeScaleChord = null;
+                } else {
+                    state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol, _progIdx: idx };
+                    if (state.soundEnabled) {
+                        const builtChord = MusicTheory.buildChord(chord.root, chord.type);
+                        const chordRootIndex = MusicTheory.getNoteIndex(chord.root);
+                        const startOctave = chordRootIndex < keyRootIndex ? 4 : 3;
+                        Sound.playChord(builtChord.notes, startOctave);
+                    }
+                }
+                state.selectedChordIndex = -1;
+                renderProgressionChords();
+                renderChordList();
+                updateDisplay();
+            });
+            chordsRow.appendChild(btn);
+        });
+
+        container.appendChild(chordsRow);
+
+        // Update info panel based on selection state
+        if (!state.activeScaleChord && progression) {
+            updateInfoPanel({
+                title: category.name,
+                notes: [progression.description],
+                intervals: []
+            });
+        }
+    }
+
+    /**
      * Render scale chord builder for f.scale mode
      * Uses the selected find result scale to populate diatonic chords
      */
@@ -1125,6 +1210,27 @@
                     dropdown.appendChild(option);
                 }
             }
+        } else if (state.mode === 'prog') {
+            // Populate with progression categories as optgroups
+            let flatIdx = 0;
+            for (let ci = 0; ci < ChordProgressions.PROGRESSION_CATEGORIES.length; ci++) {
+                const cat = ChordProgressions.PROGRESSION_CATEGORIES[ci];
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = cat.name;
+
+                for (let pi = 0; pi < cat.progressions.length; pi++) {
+                    const prog = cat.progressions[pi];
+                    const option = document.createElement('option');
+                    option.value = flatIdx;
+                    option.textContent = prog.numerals;
+                    if (flatIdx === state.progressionIndex) {
+                        option.selected = true;
+                    }
+                    optgroup.appendChild(option);
+                    flatIdx++;
+                }
+                dropdown.appendChild(optgroup);
+            }
         } else {
             // Organize chords into categories
             const chordCategories = {
@@ -1238,6 +1344,8 @@
                 typeLabel.textContent = 'Scale Type';
             } else if (mode === 'modes') {
                 typeLabel.textContent = 'Mode';
+            } else if (mode === 'prog') {
+                typeLabel.textContent = 'Progression';
             } else {
                 typeLabel.textContent = 'Chord Type';
             }
@@ -1246,7 +1354,7 @@
         // Update root label based on mode
         const rootLabel = document.getElementById('root-label');
         if (rootLabel) {
-            rootLabel.textContent = mode === 'modes' ? 'Major Key' : 'Root Note';
+            rootLabel.textContent = (mode === 'modes' || mode === 'prog') ? 'Key' : 'Root Note';
         }
 
         // Show/hide root note selector (hide in find mode)
@@ -1267,10 +1375,34 @@
             intervalFilter.style.display = mode === 'interval' ? 'block' : 'none';
         }
 
-        // Show/hide scale chord builder (scale and modes)
+        // Show/hide scale chord builder (scale, modes, prog)
         const builderSection = document.getElementById('scale-chord-builder');
         if (builderSection) {
-            builderSection.style.display = (mode === 'scale' || mode === 'modes' || mode === 'f.scale') ? 'block' : 'none';
+            builderSection.style.display = (mode === 'scale' || mode === 'modes' || mode === 'f.scale' || mode === 'prog') ? 'block' : 'none';
+            const builderLabel = builderSection.querySelector('label');
+            if (builderLabel) {
+                builderLabel.textContent = mode === 'prog' ? 'Progression Chords' : 'Scale Chords';
+            }
+        }
+
+        // Show/hide prog navigation buttons
+        const progNav = document.getElementById('prog-nav');
+        if (progNav) {
+            progNav.style.display = mode === 'prog' ? 'flex' : 'none';
+        }
+
+        // Show/hide toggles based on mode
+        const seventhsLabel = document.getElementById('sevenths-toggle')?.closest('.toggle-label');
+        const relativeLabel = document.getElementById('relative-toggle')?.closest('.toggle-label');
+        const scaleLabel = document.getElementById('chord-intervals-toggle')?.closest('.toggle-label');
+        if (mode === 'prog') {
+            if (seventhsLabel) seventhsLabel.style.display = 'none';
+            if (relativeLabel) relativeLabel.style.display = 'none';
+            if (scaleLabel) scaleLabel.style.display = '';
+        } else {
+            if (seventhsLabel) seventhsLabel.style.display = '';
+            // relativeLabel visibility handled by updateRelToggleVisibility()
+            if (scaleLabel) scaleLabel.style.display = '';
         }
 
         // Update relative toggle visibility for current mode
@@ -1285,13 +1417,15 @@
         // Show/hide Add button based on mode
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
-            addChordBtn.style.display = (mode === 'chord' || mode === 'scale' || mode === 'modes' || mode === 'f.scale') ? 'flex' : 'none';
+            addChordBtn.style.display = (mode === 'chord' || mode === 'scale' || mode === 'modes' || mode === 'f.scale' || mode === 'prog') ? 'flex' : 'none';
         }
 
         if (mode === 'scale' || mode === 'modes') {
             renderScaleChords();
         } else if (mode === 'f.scale') {
             renderFindScaleChords();
+        } else if (mode === 'prog') {
+            renderProgressionChords();
         }
 
         // Enter Find mode
@@ -1337,6 +1471,8 @@
                 renderChordList();
                 if (state.mode === 'scale' || state.mode === 'modes') {
                     renderScaleChords();
+                } else if (state.mode === 'prog') {
+                    renderProgressionChords();
                 }
                 updateDisplay();
                 if (state.mode === 'chord' && state.soundEnabled) {
@@ -1359,6 +1495,10 @@
                     state.modeType = e.target.value;
                     state.activeScaleChord = null;
                     renderScaleChords();
+                } else if (state.mode === 'prog') {
+                    state.progressionIndex = parseInt(e.target.value) || 0;
+                    state.activeScaleChord = null;
+                    renderProgressionChords();
                 } else {
                     state.chordType = e.target.value;
                 }
@@ -1486,11 +1626,35 @@
             });
         });
 
+        // Prog mode navigation buttons
+        const progPrev = document.getElementById('prog-prev');
+        const progNext = document.getElementById('prog-next');
+        if (progPrev) {
+            progPrev.addEventListener('click', () => {
+                const total = ChordProgressions.getTotalProgressionCount();
+                state.progressionIndex = (state.progressionIndex - 1 + total) % total;
+                state.activeScaleChord = null;
+                updateTypeDropdown();
+                renderProgressionChords();
+                updateDisplay();
+            });
+        }
+        if (progNext) {
+            progNext.addEventListener('click', () => {
+                const total = ChordProgressions.getTotalProgressionCount();
+                state.progressionIndex = (state.progressionIndex + 1) % total;
+                state.activeScaleChord = null;
+                updateTypeDropdown();
+                renderProgressionChords();
+                updateDisplay();
+            });
+        }
+
         // Add chord button (from dropdowns)
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
             addChordBtn.addEventListener('click', () => {
-                if ((state.mode === 'scale' || state.mode === 'modes' || state.mode === 'f.scale') && state.activeScaleChord) {
+                if ((state.mode === 'scale' || state.mode === 'modes' || state.mode === 'f.scale' || state.mode === 'prog') && state.activeScaleChord) {
                     addChordToList(state.activeScaleChord.root, state.activeScaleChord.type);
                 } else if (state.mode === 'f.scale') {
                     return; // No active scale chord in f.scale — do nothing
@@ -1602,7 +1766,7 @@
         // Set initial mode-dependent UI states
         const addChordBtn = document.getElementById('add-chord-btn');
         if (addChordBtn) {
-            addChordBtn.style.display = (state.mode === 'chord' || state.mode === 'scale' || state.mode === 'modes' || state.mode === 'f.scale') ? 'flex' : 'none';
+            addChordBtn.style.display = (state.mode === 'chord' || state.mode === 'scale' || state.mode === 'modes' || state.mode === 'f.scale' || state.mode === 'prog') ? 'flex' : 'none';
         }
 
         // Hide type selector in interval/find mode
