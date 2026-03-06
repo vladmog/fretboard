@@ -27,11 +27,14 @@
         findSelectedIndex: -1,  // Find mode: index in findResults, -1 = user markers view
         activeScaleChord: null, // Scale mode: previewed chord { root, type, symbol } or null
         progressionIndex: 0,   // Prog mode: flat index into all progressions
+        favoriteProgressions: [],    // Prog mode: array of "categoryName|numerals" keys
+        browsingFavorites: false,    // Prog mode: currently in favorites section
         intervalFilter: new Set(['1','b2','2','b3','3','4','b5','5','b6','6','b7','7'])
     };
 
     // Storage key for chord list persistence
     const STORAGE_KEY = 'fretboard-chord-list';
+    const FAVORITES_STORAGE_KEY = 'fretboard-prog-favorites';
 
     /**
      * Check if the current mode is a find mode (f.chord or f.scale)
@@ -66,6 +69,60 @@
         } catch (e) {
             console.error('Failed to save chord list:', e);
         }
+    }
+
+    function getProgressionKey(flatIndex) {
+        const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(flatIndex);
+        const cat = ChordProgressions.PROGRESSION_CATEGORIES[categoryIndex];
+        if (!cat) return null;
+        const prog = cat.progressions[progressionIndex];
+        if (!prog) return null;
+        return cat.name + '|' + prog.numerals;
+    }
+
+    function favKeyToFlatIndex(key) {
+        const sep = key.indexOf('|');
+        if (sep < 0) return -1;
+        const catName = key.substring(0, sep);
+        const numerals = key.substring(sep + 1);
+        let flatIdx = 0;
+        for (const cat of ChordProgressions.PROGRESSION_CATEGORIES) {
+            for (const prog of cat.progressions) {
+                if (cat.name === catName && prog.numerals === numerals) return flatIdx;
+                flatIdx++;
+            }
+        }
+        return -1;
+    }
+
+    function getResolvedFavorites() {
+        return state.favoriteProgressions
+            .map(favKeyToFlatIndex)
+            .filter(idx => idx >= 0);
+    }
+
+    function loadFavorites() {
+        try {
+            const saved = localStorage.getItem(FAVORITES_STORAGE_KEY);
+            if (saved) state.favoriteProgressions = JSON.parse(saved);
+        } catch (e) {
+            state.favoriteProgressions = [];
+        }
+    }
+
+    function saveFavorites() {
+        try {
+            localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(state.favoriteProgressions));
+        } catch (e) { /* ignore */ }
+    }
+
+    function updateFavButton() {
+        const btn = document.getElementById('prog-fav');
+        if (!btn) return;
+        const key = getProgressionKey(state.progressionIndex);
+        const isFav = key && state.favoriteProgressions.includes(key);
+        btn.innerHTML = isFav ? '&#9829;' : '&#9825;';
+        btn.classList.toggle('active', isFav);
     }
 
     /**
@@ -1106,6 +1163,8 @@
                 description: progression ? progression.description : ''
             });
         }
+
+        updateFavButton();
     }
 
     /**
@@ -1258,7 +1317,27 @@
                 }
             }
         } else if (state.mode === 'prog') {
-            // Populate with progression categories as optgroups
+            // Favorites optgroup
+            const resolvedFavs = getResolvedFavorites();
+            if (resolvedFavs.length > 0) {
+                const favGroup = document.createElement('optgroup');
+                favGroup.label = '\u2665 Favorites';
+                resolvedFavs.forEach(flatIdx => {
+                    const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(flatIdx);
+                    const cat = ChordProgressions.PROGRESSION_CATEGORIES[categoryIndex];
+                    const prog = cat.progressions[progressionIndex];
+                    const option = document.createElement('option');
+                    option.value = 'fav-' + flatIdx;
+                    option.textContent = prog.numerals;
+                    if (state.browsingFavorites && flatIdx === state.progressionIndex) {
+                        option.selected = true;
+                    }
+                    favGroup.appendChild(option);
+                });
+                dropdown.appendChild(favGroup);
+            }
+
+            // Regular progression categories as optgroups
             let flatIdx = 0;
             for (let ci = 0; ci < ChordProgressions.PROGRESSION_CATEGORIES.length; ci++) {
                 const cat = ChordProgressions.PROGRESSION_CATEGORIES[ci];
@@ -1270,7 +1349,7 @@
                     const option = document.createElement('option');
                     option.value = flatIdx;
                     option.textContent = prog.numerals;
-                    if (flatIdx === state.progressionIndex) {
+                    if (!state.browsingFavorites && flatIdx === state.progressionIndex) {
                         option.selected = true;
                     }
                     optgroup.appendChild(option);
@@ -1369,6 +1448,7 @@
         state.mode = mode;
         state.selectedChordIndex = -1; // Deselect list item when changing mode
         state.activeScaleChord = null;
+        state.browsingFavorites = false;
         updateTypeDropdown();
         renderChordList();
 
@@ -1549,8 +1629,16 @@
                     state.activeScaleChord = null;
                     renderScaleChords();
                 } else if (state.mode === 'prog') {
-                    state.progressionIndex = parseInt(e.target.value) || 0;
+                    const val = e.target.value;
+                    if (val.startsWith('fav-')) {
+                        state.progressionIndex = parseInt(val.slice(4)) || 0;
+                        state.browsingFavorites = true;
+                    } else {
+                        state.progressionIndex = parseInt(val) || 0;
+                        state.browsingFavorites = false;
+                    }
                     state.activeScaleChord = null;
+                    updateFavButton();
                     renderProgressionChords();
                 } else {
                     state.chordType = e.target.value;
@@ -1680,26 +1768,84 @@
         });
 
         // Prog mode navigation buttons
+        function navigateProgression(direction) {
+            const favs = getResolvedFavorites();
+            const total = ChordProgressions.getTotalProgressionCount();
+
+            if (state.browsingFavorites && favs.length > 0) {
+                const favIdx = favs.indexOf(state.progressionIndex);
+                if (direction === 'next') {
+                    if (favIdx >= favs.length - 1) {
+                        state.browsingFavorites = false;
+                        state.progressionIndex = 0;
+                    } else {
+                        state.progressionIndex = favs[favIdx + 1];
+                    }
+                } else {
+                    if (favIdx <= 0) {
+                        state.browsingFavorites = false;
+                        state.progressionIndex = total - 1;
+                    } else {
+                        state.progressionIndex = favs[favIdx - 1];
+                    }
+                }
+            } else {
+                if (direction === 'next') {
+                    if (state.progressionIndex >= total - 1) {
+                        if (favs.length > 0) {
+                            state.browsingFavorites = true;
+                            state.progressionIndex = favs[0];
+                        } else {
+                            state.progressionIndex = 0;
+                        }
+                    } else {
+                        state.progressionIndex++;
+                    }
+                } else {
+                    if (state.progressionIndex <= 0) {
+                        if (favs.length > 0) {
+                            state.browsingFavorites = true;
+                            state.progressionIndex = favs[favs.length - 1];
+                        } else {
+                            state.progressionIndex = total - 1;
+                        }
+                    } else {
+                        state.progressionIndex--;
+                    }
+                }
+            }
+
+            state.activeScaleChord = null;
+            updateFavButton();
+            updateTypeDropdown();
+            renderProgressionChords();
+            updateDisplay();
+        }
+
         const progPrev = document.getElementById('prog-prev');
         const progNext = document.getElementById('prog-next');
         if (progPrev) {
-            progPrev.addEventListener('click', () => {
-                const total = ChordProgressions.getTotalProgressionCount();
-                state.progressionIndex = (state.progressionIndex - 1 + total) % total;
-                state.activeScaleChord = null;
-                updateTypeDropdown();
-                renderProgressionChords();
-                updateDisplay();
-            });
+            progPrev.addEventListener('click', () => navigateProgression('prev'));
         }
         if (progNext) {
-            progNext.addEventListener('click', () => {
-                const total = ChordProgressions.getTotalProgressionCount();
-                state.progressionIndex = (state.progressionIndex + 1) % total;
-                state.activeScaleChord = null;
+            progNext.addEventListener('click', () => navigateProgression('next'));
+        }
+
+        // Prog mode favorite toggle button
+        const progFav = document.getElementById('prog-fav');
+        if (progFav) {
+            progFav.addEventListener('click', () => {
+                const key = getProgressionKey(state.progressionIndex);
+                if (!key) return;
+                const pos = state.favoriteProgressions.indexOf(key);
+                if (pos >= 0) {
+                    state.favoriteProgressions.splice(pos, 1);
+                } else {
+                    state.favoriteProgressions.push(key);
+                }
+                saveFavorites();
+                updateFavButton();
                 updateTypeDropdown();
-                renderProgressionChords();
-                updateDisplay();
             });
         }
 
@@ -1790,8 +1936,9 @@
      * Initialize the application
      */
     function init() {
-        // Load persisted chord list
+        // Load persisted data
         loadChordList();
+        loadFavorites();
 
         // Initialize fretboard
         const container = document.getElementById('fretboard-panel');
