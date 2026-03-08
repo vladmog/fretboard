@@ -1306,7 +1306,7 @@
      * Render the chromatic circle SVG showing active notes with interval colors
      * @param {Object} noteToInterval - Map of semitone index (0-11) to interval name
      */
-    function renderChromaticCircle(noteToInterval, rainbowNoteIndex) {
+    function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNotes) {
         const svg = document.getElementById('chromatic-circle-svg');
         if (!svg) return;
 
@@ -1337,6 +1337,13 @@
                 circle.setAttribute('fill', isRoot ? '#000' : colors.fill);
                 circle.setAttribute('stroke', colors.border);
                 circle.setAttribute('stroke-width', '2');
+            } else if (highlightedNotes && highlightedNotes.has(i)) {
+                const hlInterval = SEMITONE_LABELS[(i - rootIndex + 12) % 12];
+                const hlColors = MusicTheory.getIntervalColor(hlInterval);
+                const hlIsRoot = hlInterval === '1';
+                circle.setAttribute('fill', hlIsRoot ? '#000' : hlColors.fill);
+                circle.setAttribute('stroke', hlColors.border);
+                circle.setAttribute('stroke-width', '2');
             } else {
                 circle.setAttribute('fill', '#ddd');
                 circle.setAttribute('stroke', '#bbb');
@@ -1362,6 +1369,11 @@
                 const colors = MusicTheory.getIntervalColor(interval);
                 const isRoot = interval === '1';
                 text.setAttribute('fill', isRoot ? '#fff' : colors.text);
+            } else if (highlightedNotes && highlightedNotes.has(i)) {
+                const hlInterval = SEMITONE_LABELS[(i - rootIndex + 12) % 12];
+                const hlColors = MusicTheory.getIntervalColor(hlInterval);
+                const hlIsRoot = hlInterval === '1';
+                text.setAttribute('fill', hlIsRoot ? '#fff' : hlColors.text);
             } else {
                 text.setAttribute('fill', '#999');
             }
@@ -1377,10 +1389,11 @@
             label.setAttribute('y', ly);
             label.setAttribute('text-anchor', 'middle');
             label.setAttribute('dominant-baseline', 'central');
-            label.setAttribute('font-size', isActive ? '10' : '8');
+            const isHighlighted = highlightedNotes && highlightedNotes.has(i);
+            label.setAttribute('font-size', (isActive || isHighlighted) ? '10' : '8');
             label.setAttribute('font-weight', '600');
             label.setAttribute('font-family', 'Monaco, Consolas, monospace');
-            label.setAttribute('fill', isActive ? '#000' : '#ccc');
+            label.setAttribute('fill', (isActive || isHighlighted) ? '#000' : '#ccc');
             label.textContent = isActive ? interval : SEMITONE_LABELS[(i - rootIndex + 12) % 12];
             svg.appendChild(label);
         }
@@ -1409,7 +1422,7 @@
             gridEl.style.gridTemplateColumns = '';
             gridEl.textContent = info.notes.join(' ');
             gridEl.className = 'info-grid info-grid-text';
-            renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex);
+            renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex, info.highlightedNotes);
             return;
         }
 
@@ -1441,7 +1454,7 @@
             gridEl.parentNode.appendChild(descEl);
         }
 
-        renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex);
+        renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex, info.highlightedNotes);
     }
 
     /**
@@ -1530,7 +1543,8 @@
                                 title: 'My Progressions',
                                 notes: chords.map(c => c.symbol),
                                 intervals: chords.map(c => c.numeral),
-                                description: userProg.description || ''
+                                description: userProg.description || '',
+                                highlightedNotes: new Set(chords.map(c => MusicTheory.getNoteIndex(c.root)))
                             });
                         }
                     }
@@ -1544,7 +1558,8 @@
                             title: category.name,
                             notes: chords.map(c => c.symbol),
                             intervals: chords.map(c => c.numeral),
-                            description: progression ? progression.description : ''
+                            description: progression ? progression.description : '',
+                            highlightedNotes: new Set(chords.map(c => MusicTheory.getNoteIndex(c.root)))
                         });
                     }
                 }
@@ -1801,7 +1816,8 @@
                 title: category.name,
                 notes: chords.map(c => c.symbol),
                 intervals: chords.map(c => c.numeral),
-                description: progression ? progression.description : ''
+                description: progression ? progression.description : '',
+                highlightedNotes: new Set(chords.map(c => MusicTheory.getNoteIndex(c.root)))
             });
         }
 
