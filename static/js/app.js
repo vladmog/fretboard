@@ -737,13 +737,21 @@
         const useScaleDegrees = state.showScaleDegrees;
         const chordNoteToDegree = useScaleDegrees
             ? (() => {
-                const filtered = {};
-                for (const [noteIndex, degree] of Object.entries(scale.noteToDegree)) {
-                    if (chord.noteToInterval.hasOwnProperty(noteIndex)) {
-                        filtered[noteIndex] = degree;
+                const merged = {};
+                const scaleRootIdx = MusicTheory.getNoteIndex(scale.root);
+                for (const [noteIndex, interval] of Object.entries(chord.noteToInterval)) {
+                    if (scale.noteToDegree.hasOwnProperty(noteIndex)) {
+                        merged[noteIndex] = scale.noteToDegree[noteIndex];
+                    } else {
+                        // Compute interval relative to scale root, not chord root
+                        const semitones = (parseInt(noteIndex) - scaleRootIdx + 12) % 12;
+                        const scaleInterval = Object.keys(MusicTheory.INTERVALS).find(
+                            name => MusicTheory.INTERVALS[name] === semitones
+                        );
+                        merged[noteIndex] = scaleInterval || interval;
                     }
                 }
-                return filtered;
+                return merged;
             })()
             : chord.noteToInterval;
 
@@ -803,10 +811,19 @@
 
         // Build info panel: show chord symbol, chord notes, and their intervals
         const displayIntervals = useScaleDegrees
-            ? chord.notes.map(noteName => {
+            ? chord.notes.map((noteName, i) => {
                 const noteIndex = Object.keys(chord.noteSpelling).find(idx => chord.noteSpelling[idx] === noteName);
-                return noteIndex !== undefined ? scale.noteToDegree[noteIndex] : null;
-            }).filter(Boolean)
+                if (noteIndex !== undefined && scale.noteToDegree[noteIndex]) {
+                    return scale.noteToDegree[noteIndex];
+                }
+                // Compute interval relative to scale root, not chord root
+                const scaleRootIdx = MusicTheory.getNoteIndex(scale.root);
+                const semitones = (parseInt(noteIndex) - scaleRootIdx + 12) % 12;
+                const scaleInterval = Object.keys(MusicTheory.INTERVALS).find(
+                    name => MusicTheory.INTERVALS[name] === semitones
+                );
+                return scaleInterval || chord.intervals[i];
+            })
             : chord.intervals;
 
         updateInfoPanel({
