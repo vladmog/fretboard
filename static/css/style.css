@@ -528,6 +528,83 @@ select:hover {
     color: #fff;
 }
 
+/* Prog builder */
+.prog-builder-row {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.prog-numeral-select {
+    flex: 1.2;
+    min-width: 0;
+    padding: 0.3rem;
+    border: 1px solid #000;
+    background: #fff;
+    font-size: 0.75rem;
+}
+
+.prog-quality-select {
+    flex: 1;
+    min-width: 0;
+    padding: 0.3rem;
+    border: 1px solid #000;
+    background: #fff;
+    font-size: 0.75rem;
+}
+
+.prog-chord-readout {
+    flex: 0 0 3.5rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.prog-row-delete {
+    flex: 0 0 1.5rem;
+    height: 1.5rem;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.prog-row-delete:hover {
+    background: #000;
+    color: #fff;
+}
+
+.prog-builder-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.prog-builder-desc {
+    margin-top: 0.5rem;
+}
+
+.prog-builder-desc input {
+    width: 100%;
+    padding: 0.3rem;
+    border: 1px solid #000;
+    background: #fff;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.prog-builder-save-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
 /* Chord list header */
 .chord-list-header {
     display: flex;

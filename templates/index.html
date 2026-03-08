@@ -87,6 +87,20 @@
                         </select>
                     </div>
 
+                    <div id="prog-submode" class="control-group" style="display: none;">
+                        <div class="radio-group">
+                            <label class="radio-label checked">
+                                <input type="radio" name="prog-submode" value="play" checked> Play
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="prog-submode" value="create"> Create
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="prog-submode" value="edit"> Edit
+                            </label>
+                        </div>
+                    </div>
+
                     <div id="prog-nav" class="prog-nav" style="display: none;">
                         <button id="prog-prev" class="prog-nav-btn">&#9650;</button>
                         <button id="prog-next" class="prog-nav-btn">&#9660;</button>
@@ -196,6 +210,28 @@
                         <div class="find-actions">
                             <button id="find-add-btn" class="btn btn-add" disabled>+ Add</button>
                             <button id="find-clear-btn" class="btn btn-clear">Clear</button>
+                        </div>
+                    </div>
+
+                    <div id="prog-edit-selector" class="control-group" style="display: none;">
+                        <label for="prog-edit-select">Choose Progression</label>
+                        <select id="prog-edit-select"></select>
+                    </div>
+
+                    <div id="prog-builder" class="control-group" style="display: none;">
+                        <label>Build Progression</label>
+                        <div id="prog-builder-rows"></div>
+                        <div class="prog-builder-actions">
+                            <button id="prog-builder-add-row" class="btn btn-sm">+ Add Chord</button>
+                            <button id="prog-builder-from-list" class="btn btn-sm">Add from Chord List</button>
+                        </div>
+                        <div class="prog-builder-desc">
+                            <label for="prog-builder-description">Description</label>
+                            <input type="text" id="prog-builder-description" placeholder="Describe this progression..." maxlength="200">
+                        </div>
+                        <div class="prog-builder-save-actions">
+                            <button id="prog-builder-save" class="btn btn-add">Save</button>
+                            <button id="prog-builder-delete" class="btn btn-clear" style="display: none;">Delete</button>
                         </div>
                     </div>
                 </div>
