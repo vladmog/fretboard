@@ -62,7 +62,7 @@
                     </div>
                 </div>
                 <div class="mode-controls">
-                    <div class="control-group">
+                    <div id="root-group" class="control-group">
                         <label for="root-note" id="root-label">Root Note</label>
                         <select id="root-note">
                             <option value="C">C</option>
@@ -80,13 +80,6 @@
                         </select>
                     </div>
 
-                    <div class="control-group">
-                        <label for="type-select" id="type-label">Scale Type</label>
-                        <select id="type-select">
-                            <!-- Options populated by JavaScript based on mode -->
-                        </select>
-                    </div>
-
                     <div id="prog-submode" class="control-group" style="display: none;">
                         <div class="radio-group">
                             <label class="radio-label checked">
@@ -99,6 +92,13 @@
                                 <input type="radio" name="prog-submode" value="edit"> Edit
                             </label>
                         </div>
+                    </div>
+
+                    <div id="type-group" class="control-group">
+                        <label for="type-select" id="type-label">Scale Type</label>
+                        <select id="type-select">
+                            <!-- Options populated by JavaScript based on mode -->
+                        </select>
                     </div>
 
                     <div id="prog-nav" class="prog-nav" style="display: none;">
