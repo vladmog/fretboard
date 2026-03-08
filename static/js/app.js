@@ -1368,17 +1368,32 @@
             } else {
                 displayScale(scale);
                 // Restore progression info panel (displayScale overwrites it)
-                const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(state.progressionIndex);
-                const category = ChordProgressions.PROGRESSION_CATEGORIES[categoryIndex];
-                const chords = ChordProgressions.buildProgressionChords(categoryIndex, progressionIndex, state.root);
-                const progression = category ? category.progressions[progressionIndex] : null;
-                if (category && chords.length > 0) {
-                    updateInfoPanel({
-                        title: category.name,
-                        notes: chords.map(c => c.symbol),
-                        intervals: chords.map(c => c.numeral),
-                        description: progression ? progression.description : ''
-                    });
+                if (state._selectedUserProgId) {
+                    const userProg = state.userProgressions.find(p => p.id === state._selectedUserProgId);
+                    if (userProg) {
+                        const chords = ChordProgressions.buildProgressionChordsFromTokens(userProg.chords, state.root);
+                        if (chords.length > 0) {
+                            updateInfoPanel({
+                                title: 'My Progressions',
+                                notes: chords.map(c => c.symbol),
+                                intervals: chords.map(c => c.numeral),
+                                description: userProg.description || ''
+                            });
+                        }
+                    }
+                } else {
+                    const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(state.progressionIndex);
+                    const category = ChordProgressions.PROGRESSION_CATEGORIES[categoryIndex];
+                    const chords = ChordProgressions.buildProgressionChords(categoryIndex, progressionIndex, state.root);
+                    const progression = category ? category.progressions[progressionIndex] : null;
+                    if (category && chords.length > 0) {
+                        updateInfoPanel({
+                            title: category.name,
+                            notes: chords.map(c => c.symbol),
+                            intervals: chords.map(c => c.numeral),
+                            description: progression ? progression.description : ''
+                        });
+                    }
                 }
             }
         } else {
@@ -1817,7 +1832,7 @@
                 state.userProgressions.forEach(prog => {
                     const option = document.createElement('option');
                     option.value = 'user-' + prog.id;
-                    option.textContent = prog.numerals + (prog.description ? ' - ' + prog.description : '');
+                    option.textContent = prog.numerals;
                     if (state._selectedUserProgId === prog.id) {
                         option.selected = true;
                     }
