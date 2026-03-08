@@ -613,11 +613,7 @@ select:hover {
     margin-top: 0.5rem;
 }
 
-.prog-builder-desc {
-    margin-top: 0.5rem;
-}
-
-.prog-builder-desc input {
+#prog-builder-desc-group input {
     width: 100%;
     padding: 0.3rem;
     border: 1px solid #000;
@@ -954,8 +950,11 @@ input[name="caged-shape"][value="D"] ~ * {
     /* Prog builder — right column, spanning rows */
     #prog-builder { grid-column: 2; grid-row: 1 / 4; }
 
-    /* Prog edit selector — right column */
-    #prog-edit-selector { grid-column: 2; }
+    /* Prog edit selector — left column */
+    #prog-edit-selector { grid-column: 1; }
+
+    /* Prog description — left column */
+    #prog-builder-desc-group { grid-column: 1; }
 
     /* Chord list takes full height on desktop */
     #controls-panel > .control-group,
