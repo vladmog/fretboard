@@ -1308,9 +1308,12 @@
 
         svg.innerHTML = '';
         const ns = 'http://www.w3.org/2000/svg';
-        const cx = 100, cy = 100, radius = 72, noteRadius = 16;
+        const cx = 100, cy = 100, radius = 58, noteRadius = 13;
         const useFlats = MusicTheory.shouldUseFlats(state.root);
         const noteNames = useFlats ? MusicTheory.FLAT_NOTES : MusicTheory.CHROMATIC_NOTES;
+        const SEMITONE_LABELS = ['1','b2','2','b3','3','4','b5','5','#5','6','b7','7'];
+        const rootEntry = Object.entries(noteToInterval).find(([, v]) => v === '1');
+        const rootIndex = rootEntry ? parseInt(rootEntry[0]) : MusicTheory.getNoteIndex(state.root);
 
         for (let i = 0; i < 12; i++) {
             const angle = (i * 30 - 90) * Math.PI / 180;
@@ -1343,7 +1346,7 @@
             text.setAttribute('y', y);
             text.setAttribute('text-anchor', 'middle');
             text.setAttribute('dominant-baseline', 'central');
-            text.setAttribute('font-size', '10');
+            text.setAttribute('font-size', '9');
             text.setAttribute('font-family', 'Monaco, Consolas, monospace');
             text.setAttribute('font-weight', '700');
 
@@ -1357,6 +1360,21 @@
 
             text.textContent = noteNames[i];
             svg.appendChild(text);
+
+            const ilRadius = radius + noteRadius + 7;
+            const lx = cx + ilRadius * Math.cos(angle);
+            const ly = cy + ilRadius * Math.sin(angle);
+            const label = document.createElementNS(ns, 'text');
+            label.setAttribute('x', lx);
+            label.setAttribute('y', ly);
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('dominant-baseline', 'central');
+            label.setAttribute('font-size', '8');
+            label.setAttribute('font-weight', '600');
+            label.setAttribute('font-family', 'Monaco, Consolas, monospace');
+            label.setAttribute('fill', isActive ? '#000' : '#999');
+            label.textContent = isActive ? interval : SEMITONE_LABELS[(i - rootIndex + 12) % 12];
+            svg.appendChild(label);
         }
     }
 
