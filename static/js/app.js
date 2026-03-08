@@ -2167,6 +2167,12 @@
             rootGroup.style.display = isFindMode(mode) ? 'none' : 'block';
         }
 
+        const rootSelect = document.getElementById('root-note');
+        if (rootSelect) {
+            const rainbowModes = ['scale', 'interval', 'modes', 'prog'];
+            rootSelect.classList.toggle('rainbow-select', rainbowModes.includes(mode));
+        }
+
         // Show/hide CAGED shape selector
         const cagedSelector = document.getElementById('caged-shape-selector');
         if (cagedSelector) {
@@ -2780,6 +2786,13 @@
         const typeGroup = document.querySelector('.control-group:has(#type-select)');
         if (typeGroup) {
             typeGroup.style.display = (state.mode === 'interval' || isFindMode(state.mode)) ? 'none' : 'block';
+        }
+
+        // Apply rainbow border on root-note select for applicable modes
+        const rootSelect = document.getElementById('root-note');
+        if (rootSelect) {
+            const rainbowModes = ['scale', 'interval', 'modes', 'prog'];
+            rootSelect.classList.toggle('rainbow-select', rainbowModes.includes(state.mode));
         }
 
         // Initial display
