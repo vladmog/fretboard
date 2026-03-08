@@ -287,6 +287,20 @@
             // Readout
             const readout = document.createElement('span');
             readout.className = 'prog-chord-readout';
+            readout.addEventListener('click', () => {
+                const row = state.builderRows[idx];
+                const token = buildTokenFromRow(row);
+                const parsed = ChordProgressions.parseRomanNumeral(token, state.root);
+                if (!parsed) return;
+                const chord = MusicTheory.buildChord(parsed.root, parsed.type);
+                displayChord(chord);
+                if (state.soundEnabled) {
+                    const scaleRootIndex = MusicTheory.getNoteIndex(state.root);
+                    const chordRootIndex = MusicTheory.getNoteIndex(parsed.root);
+                    const startOctave = chordRootIndex < scaleRootIndex ? 4 : 3;
+                    Sound.playChord(chord.notes, startOctave);
+                }
+            });
 
             // Delete button
             const delBtn = document.createElement('button');
