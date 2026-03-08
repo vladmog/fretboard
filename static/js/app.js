@@ -160,6 +160,7 @@
         { value: 'sus4', label: 'sus4' },
         { value: '7sus4', label: '7sus4' },
         { value: 'add9', label: 'add9' },
+        { value: 'madd9', label: 'madd9' },
         { value: '6', label: '6' },
         { value: '9', label: '9' },
         { value: 'm9', label: 'm9' },
@@ -562,7 +563,7 @@
         const typeToSuffix = {
             'maj': '', 'min': '', 'maj7': 'maj7', 'min7': 'm7', '7': '7',
             'dom7': '7', 'dim': '', 'dim7': 'dim7', 'min7b5': 'm7b5', 'aug': '+',
-            'sus2': 'sus2', 'sus4': 'sus4', '7sus4': '7sus4', 'add9': 'add9',
+            'sus2': 'sus2', 'sus4': 'sus4', '7sus4': '7sus4', 'add9': 'add9', 'madd9': 'madd9',
             '6': '6', 'min6': '6', '9': '9', 'dom9': '9', 'min9': 'm9',
             'maj9': 'maj9', '13': '13', 'dom13': '13', '5': '5',
             'minmaj7': 'maj7', 'augmaj7': '+maj7'
@@ -2044,7 +2045,7 @@
                 'Sevenths': ['maj7', 'min7', 'dom7', 'dim7', 'min7b5', 'minmaj7', 'augmaj7'],
                 'Extended': ['maj9', 'min9', 'dom9', 'maj11', 'min11', 'dom11', 'maj13', 'min13', 'dom13'],
                 'Suspended': ['sus2', 'sus4', '7sus4'],
-                'Added': ['add9', 'add11', '6', 'min6']
+                'Added': ['add9', 'madd9', 'add11', '6', 'min6']
             };
 
             for (const [category, chordKeys] of Object.entries(chordCategories)) {
