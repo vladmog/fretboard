@@ -1762,6 +1762,7 @@ const SUFFIX_MAP = [
     ['maj7', 'maj7'],
     ['m7b5', 'min7b5'],
     ['add9', 'add9'],
+    ['madd9', 'madd9'],
     ['7sus4', '7sus4'],
     ['sus2', 'sus2'],
     ['sus4', 'sus4'],

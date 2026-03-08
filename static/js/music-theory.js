@@ -184,6 +184,11 @@ const CHORD_TYPES = {
         symbol: 'add9',
         intervals: ['1', '3', '5', '2']
     },
+    'madd9': {
+        name: 'Minor Add 9',
+        symbol: 'madd9',
+        intervals: ['1', 'b3', '5', '2']
+    },
     '6': {
         name: 'Major 6th',
         symbol: '6',
