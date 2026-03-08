@@ -1308,7 +1308,7 @@
 
         svg.innerHTML = '';
         const ns = 'http://www.w3.org/2000/svg';
-        const cx = 100, cy = 100, radius = 58, noteRadius = 13;
+        const cx = 100, cy = 100, radius = 72, noteRadius = 13;
         const useFlats = MusicTheory.shouldUseFlats(state.root);
         const noteNames = useFlats ? MusicTheory.FLAT_NOTES : MusicTheory.CHROMATIC_NOTES;
         const SEMITONE_LABELS = ['1','b2','2','b3','3','4','b5','5','#5','6','b7','7'];
@@ -1361,7 +1361,7 @@
             text.textContent = noteNames[i];
             svg.appendChild(text);
 
-            const ilRadius = radius + noteRadius + 7;
+            const ilRadius = radius - noteRadius - 12;
             const lx = cx + ilRadius * Math.cos(angle);
             const ly = cy + ilRadius * Math.sin(angle);
             const label = document.createElementNS(ns, 'text');
@@ -1369,10 +1369,10 @@
             label.setAttribute('y', ly);
             label.setAttribute('text-anchor', 'middle');
             label.setAttribute('dominant-baseline', 'central');
-            label.setAttribute('font-size', '8');
+            label.setAttribute('font-size', isActive ? '10' : '8');
             label.setAttribute('font-weight', '600');
             label.setAttribute('font-family', 'Monaco, Consolas, monospace');
-            label.setAttribute('fill', isActive ? '#000' : '#999');
+            label.setAttribute('fill', isActive ? '#000' : '#ccc');
             label.textContent = isActive ? interval : SEMITONE_LABELS[(i - rootIndex + 12) % 12];
             svg.appendChild(label);
         }
