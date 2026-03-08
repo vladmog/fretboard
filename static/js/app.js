@@ -729,7 +729,7 @@
      * @param {Object} chord - Chord instance from buildChord()
      * @param {Object} scale - Scale instance from buildScale() (parent scale)
      */
-    function displayScaleChord(chord, scale) {
+    function displayScaleChord(chord, scale, parentRoot) {
         if (!state.fretboard) return;
 
         state.fretboard.clearMarkers();
@@ -855,7 +855,7 @@
             notes: chord.notes,
             intervals: displayIntervals,
             noteToInterval: useScaleDegrees ? chordNoteToDegree : chord.noteToInterval,
-            rainbowNoteIndex: MusicTheory.getNoteIndex(scale.root),
+            rainbowNoteIndex: MusicTheory.getNoteIndex(parentRoot || scale.root),
             useScaleDegrees: useScaleDegrees
         });
     }
@@ -1066,13 +1066,15 @@
             scale.root
         );
 
+        const parentRootIndex = MusicTheory.getNoteIndex(parentRoot);
+
         for (const pos of positions) {
             const colors = MusicTheory.getIntervalColor(pos.label);
-            const isRoot = pos.label === '1';
+            const isParentRoot = pos.noteIndex === parentRootIndex;
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
-                rainbowBorder: isRoot,
+                rainbowBorder: isParentRoot,
                 text: getMarkerLabel(pos, scale.noteSpelling),
                 textColor: colors.text
             });
@@ -1087,7 +1089,7 @@
             notes: scale.notes,
             intervals: scale.degrees,
             noteToInterval: scale.noteToDegree,
-            rainbowNoteIndex: MusicTheory.getNoteIndex(modeRoot)
+            rainbowNoteIndex: MusicTheory.getNoteIndex(parentRoot)
         });
     }
 
@@ -1502,7 +1504,7 @@
                 const modeScaleType = MusicTheory.MODES[state.modeType].scaleType;
                 const scale = MusicTheory.buildScale(modeRoot, modeScaleType);
                 const chord = MusicTheory.buildChord(state.activeScaleChord.root, state.activeScaleChord.type);
-                displayScaleChord(chord, scale);
+                displayScaleChord(chord, scale, state.root);
             } else {
                 displayMode(state.root, state.modeType);
             }
