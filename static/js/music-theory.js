@@ -570,12 +570,12 @@ function getIntervalColor(interval) {
     // Get semitone distance for this interval
     const semitones = INTERVALS[interval];
 
-    // Root is special: black fill with white text
+    // Root: lightened red fill (same pattern as other intervals)
     if (interval === '1') {
         return {
-            fill: '#000',
+            fill: lightenColor(INTERVAL_BORDER_COLORS[0]),
             border: INTERVAL_BORDER_COLORS[0],
-            text: '#fff'
+            text: '#000'
         };
     }
 

@@ -1056,11 +1056,6 @@ input[name="caged-shape"][value="D"] ~ * {
     color: #fff;
 }
 
-/* Root interval (1) uses black fill like the fretboard marker */
-.interval-check[data-interval="1"].checked span {
-    background-color: #000;
-    color: #fff;
-}
 
 @media (max-width: 768px) {
     .interval-checkboxes {

@@ -686,11 +686,12 @@
 
         for (const pos of positions) {
             const colors = MusicTheory.getIntervalColor(pos.label);
+            const isRoot = pos.label === '1';
             state.fretboard.setMarker(pos.string, pos.fret, {
-                color: colors.fill,
+                color: isRoot ? '#000' : colors.fill,
                 borderColor: colors.border,
                 text: getMarkerLabel(pos, chord.noteSpelling),
-                textColor: colors.text
+                textColor: isRoot ? '#fff' : colors.text
             });
         }
 
@@ -767,23 +768,29 @@
         const scaleRootIndex = MusicTheory.getNoteIndex(scale.root);
         for (const pos of positions) {
             const colors = MusicTheory.getIntervalColor(pos.label);
+            let fillColor = colors.fill;
+            let textColor = colors.text;
             let borderColor = colors.border;
             let borderWidth = 2;
-            if (pos.noteIndex === chordRootIndex && chordRootIndex !== scaleRootIndex) {
+            if (pos.noteIndex === chordRootIndex) {
                 borderColor = '#000000';
                 borderWidth = 3.5;
+                if (!useScaleDegrees) {
+                    fillColor = '#000';
+                    textColor = '#fff';
+                }
             }
             const isScaleRoot = pos.noteIndex === scaleRootIndex;
             if (isScaleRoot) {
                 borderColor = '#FF0000';
             }
             state.fretboard.setMarker(pos.string, pos.fret, {
-                color: colors.fill,
+                color: fillColor,
                 borderColor: borderColor,
                 borderWidth: borderWidth,
                 rainbowBorder: isScaleRoot,
                 text: getMarkerLabel(pos, labelSpelling),
-                textColor: colors.text
+                textColor: textColor
             });
         }
 
@@ -869,14 +876,27 @@
         );
 
         for (const pos of positions) {
-            if (!state.intervalFilter.has(pos.label)) continue;
+            const isRoot = pos.label === '1';
+            if (!isRoot && !state.intervalFilter.has(pos.label)) continue;
             const colors = MusicTheory.getIntervalColor(pos.label);
-            state.fretboard.setMarker(pos.string, pos.fret, {
-                color: colors.fill,
-                borderColor: colors.border,
-                text: getMarkerLabel(pos, noteSpelling),
-                textColor: colors.text
-            });
+            const showMarker = state.intervalFilter.has(pos.label);
+            if (isRoot) {
+                state.fretboard.setMarker(pos.string, pos.fret, {
+                    color: showMarker ? colors.fill : 'transparent',
+                    borderColor: colors.border,
+                    borderWidth: 3.5,
+                    text: showMarker ? getMarkerLabel(pos, noteSpelling) : '',
+                    textColor: colors.text,
+                    rainbowBorder: true
+                });
+            } else {
+                state.fretboard.setMarker(pos.string, pos.fret, {
+                    color: colors.fill,
+                    borderColor: colors.border,
+                    text: getMarkerLabel(pos, noteSpelling),
+                    textColor: colors.text
+                });
+            }
         }
 
         // Apply current rotation to newly created markers
@@ -959,11 +979,12 @@
 
                 for (const pos of positions) {
                     const colors = MusicTheory.getIntervalColor(pos.label);
+                    const isRoot = pos.label === '1';
                     state.fretboard.setMarker(pos.string, pos.fret, {
-                        color: pos.label === '1' ? colors.fill : MusicTheory.lightenColor(borderColor),
+                        color: isRoot ? '#000' : MusicTheory.lightenColor(borderColor),
                         borderColor: borderColor,
                         text: getMarkerLabel(pos, chord.noteSpelling),
-                        textColor: colors.text
+                        textColor: isRoot ? '#fff' : colors.text
                     });
                 }
             }
@@ -972,11 +993,12 @@
 
             for (const pos of positions) {
                 const colors = MusicTheory.getIntervalColor(pos.label);
+                const isRoot = pos.label === '1';
                 state.fretboard.setMarker(pos.string, pos.fret, {
-                    color: colors.fill,
+                    color: isRoot ? '#000' : colors.fill,
                     borderColor: colors.border,
                     text: getMarkerLabel(pos, chord.noteSpelling),
-                    textColor: colors.text
+                    textColor: isRoot ? '#fff' : colors.text
                 });
             }
         }
