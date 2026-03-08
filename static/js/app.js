@@ -180,12 +180,14 @@
         const builderSection = document.getElementById('scale-chord-builder');
         const progBuilder = document.getElementById('prog-builder');
         const progEditSelector = document.getElementById('prog-edit-selector');
+        const progDescGroup = document.getElementById('prog-builder-desc-group');
         const toggleRow = document.querySelector('#scale-chord-builder .toggle-row');
 
         if (state.mode !== 'prog') {
             if (progSubMode) progSubMode.style.display = 'none';
             if (progBuilder) progBuilder.style.display = 'none';
             if (progEditSelector) progEditSelector.style.display = 'none';
+            if (progDescGroup) progDescGroup.style.display = 'none';
             return;
         }
 
@@ -198,12 +200,14 @@
             if (toggleRow) toggleRow.style.display = '';
             if (progBuilder) progBuilder.style.display = 'none';
             if (progEditSelector) progEditSelector.style.display = 'none';
+            if (progDescGroup) progDescGroup.style.display = 'none';
         } else if (state.progSubMode === 'create') {
             if (typeGroup) typeGroup.style.display = 'none';
             if (progNav) progNav.style.display = 'none';
             if (builderSection) builderSection.style.display = 'none';
             if (progBuilder) progBuilder.style.display = 'block';
             if (progEditSelector) progEditSelector.style.display = 'none';
+            if (progDescGroup) progDescGroup.style.display = 'block';
             const deleteBtn = document.getElementById('prog-builder-delete');
             if (deleteBtn) deleteBtn.style.display = 'none';
             state.editingProgressionId = null;
@@ -220,6 +224,7 @@
             if (builderSection) builderSection.style.display = 'none';
             if (progBuilder) progBuilder.style.display = 'block';
             if (progEditSelector) progEditSelector.style.display = 'block';
+            if (progDescGroup) progDescGroup.style.display = 'block';
             const deleteBtn = document.getElementById('prog-builder-delete');
             if (deleteBtn) deleteBtn.style.display = '';
             populateEditSelector();
