@@ -659,9 +659,10 @@
             displayScale.root
         );
 
+        const originalRootIndex = MusicTheory.getNoteIndex(scale.root);
         for (const pos of positions) {
             const colors = MusicTheory.getIntervalColor(pos.label);
-            const isRoot = pos.label === '1';
+            const isRoot = state.showRelative ? (pos.noteIndex === originalRootIndex) : (pos.label === '1');
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: colors.fill,
                 borderColor: colors.border,
@@ -681,7 +682,7 @@
             notes: displayScale.notes,
             intervals: displayScale.degrees,
             noteToInterval: displayScale.noteToDegree,
-            rainbowNoteIndex: MusicTheory.getNoteIndex(displayScale.root)
+            rainbowNoteIndex: MusicTheory.getNoteIndex(scale.root)
         });
     }
 
@@ -1320,7 +1321,7 @@
         const noteNames = useFlats ? MusicTheory.FLAT_NOTES : MusicTheory.CHROMATIC_NOTES;
         const SEMITONE_LABELS = ['1','b2','2','b3','3','4','b5','5','#5','6','b7','7'];
         const rootEntry = Object.entries(noteToInterval).find(([, v]) => v === '1');
-        const rootIndex = rootEntry ? parseInt(rootEntry[0]) : MusicTheory.getNoteIndex(state.root);
+        const rootIndex = rootEntry ? parseInt(rootEntry[0]) : (rainbowNoteIndex !== undefined ? rainbowNoteIndex : MusicTheory.getNoteIndex(state.root));
 
         for (let i = 0; i < 12; i++) {
             const angle = (i * 30 - 90) * Math.PI / 180;
