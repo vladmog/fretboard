@@ -853,7 +853,7 @@
             title: chord.symbol,
             notes: chord.notes,
             intervals: displayIntervals,
-            noteToInterval: chord.noteToInterval
+            noteToInterval: useScaleDegrees ? chordNoteToDegree : chord.noteToInterval
         });
     }
 
