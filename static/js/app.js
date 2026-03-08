@@ -680,7 +680,8 @@
             title: `${displayScale.root} ${displayScale.name}`,
             notes: displayScale.notes,
             intervals: displayScale.degrees,
-            noteToInterval: displayScale.noteToDegree
+            noteToInterval: displayScale.noteToDegree,
+            rainbowNoteIndex: MusicTheory.getNoteIndex(displayScale.root)
         });
     }
 
@@ -853,7 +854,8 @@
             title: chord.symbol,
             notes: chord.notes,
             intervals: displayIntervals,
-            noteToInterval: useScaleDegrees ? chordNoteToDegree : chord.noteToInterval
+            noteToInterval: useScaleDegrees ? chordNoteToDegree : chord.noteToInterval,
+            rainbowNoteIndex: MusicTheory.getNoteIndex(scale.root)
         });
     }
 
@@ -938,7 +940,8 @@
             title: `${root} Chromatic Intervals`,
             notes: filteredNotes,
             intervals: filteredIntervals,
-            noteToInterval: filteredNoteToInterval
+            noteToInterval: filteredNoteToInterval,
+            rainbowNoteIndex: rootIndex
         });
     }
 
@@ -1082,7 +1085,8 @@
             title: `${modeRoot} ${mode.name} (${parentRoot} Major)`,
             notes: scale.notes,
             intervals: scale.degrees,
-            noteToInterval: scale.noteToDegree
+            noteToInterval: scale.noteToDegree,
+            rainbowNoteIndex: MusicTheory.getNoteIndex(modeRoot)
         });
     }
 
@@ -1302,7 +1306,7 @@
      * Render the chromatic circle SVG showing active notes with interval colors
      * @param {Object} noteToInterval - Map of semitone index (0-11) to interval name
      */
-    function renderChromaticCircle(noteToInterval) {
+    function renderChromaticCircle(noteToInterval, rainbowNoteIndex) {
         const svg = document.getElementById('chromatic-circle-svg');
         if (!svg) return;
 
@@ -1337,6 +1341,10 @@
                 circle.setAttribute('fill', '#ddd');
                 circle.setAttribute('stroke', '#bbb');
                 circle.setAttribute('stroke-width', '1.5');
+            }
+
+            if (i === rainbowNoteIndex) {
+                circle.classList.add('rainbow-border');
             }
 
             svg.appendChild(circle);
@@ -1401,7 +1409,7 @@
             gridEl.style.gridTemplateColumns = '';
             gridEl.textContent = info.notes.join(' ');
             gridEl.className = 'info-grid info-grid-text';
-            renderChromaticCircle(info.noteToInterval || {});
+            renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex);
             return;
         }
 
@@ -1433,7 +1441,7 @@
             gridEl.parentNode.appendChild(descEl);
         }
 
-        renderChromaticCircle(info.noteToInterval || {});
+        renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex);
     }
 
     /**
