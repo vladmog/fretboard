@@ -536,22 +536,25 @@ select:hover {
     margin-bottom: 0.25rem;
 }
 
-.prog-numeral-select {
-    flex: 1.2;
+.prog-numeral-select,
+.prog-quality-select {
     min-width: 0;
     padding: 0.3rem;
     border: 1px solid #000;
     background-color: #fff;
     font-size: 0.75rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none;
+}
+
+.prog-numeral-select {
+    flex: 1.2;
 }
 
 .prog-quality-select {
     flex: 1;
-    min-width: 0;
-    padding: 0.3rem;
-    border: 1px solid #000;
-    background-color: #fff;
-    font-size: 0.75rem;
 }
 
 .prog-chord-readout {
@@ -559,6 +562,30 @@ select:hover {
     text-align: center;
     font-weight: 700;
     font-size: 0.8rem;
+}
+
+.prog-row-move {
+    flex: 0 0 1.5rem;
+    height: 1.5rem;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.6rem;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.prog-row-move:hover:not(:disabled) {
+    background: #000;
+    color: #fff;
+}
+
+.prog-row-move:disabled {
+    opacity: 0.3;
+    pointer-events: none;
 }
 
 .prog-row-delete {
