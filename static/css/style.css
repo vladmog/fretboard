@@ -613,6 +613,10 @@ select:hover {
     margin-top: 0.5rem;
 }
 
+#prog-builder-from-list {
+    white-space: nowrap;
+}
+
 #prog-builder-desc-group input {
     width: 100%;
     padding: 0.3rem;
