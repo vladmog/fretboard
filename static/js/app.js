@@ -148,7 +148,7 @@
 
     // Quality options for builder dropdowns
     const BUILDER_QUALITIES = [
-        { value: '', label: '(default)' },
+        { value: '', label: 'maj' },
         { value: 'maj7', label: 'maj7' },
         { value: 'm7', label: 'm7' },
         { value: '7', label: '7' },
@@ -297,7 +297,31 @@
 
             rowEl.appendChild(numeralSelect);
             rowEl.appendChild(qualitySelect);
+            // Up button
+            const upBtn = document.createElement('button');
+            upBtn.className = 'prog-row-move prog-row-move-up';
+            upBtn.innerHTML = '&#9650;';
+            upBtn.disabled = idx === 0;
+            upBtn.addEventListener('click', () => {
+                [state.builderRows[idx - 1], state.builderRows[idx]] =
+                    [state.builderRows[idx], state.builderRows[idx - 1]];
+                renderBuilderRows();
+            });
+
+            // Down button
+            const downBtn = document.createElement('button');
+            downBtn.className = 'prog-row-move prog-row-move-down';
+            downBtn.innerHTML = '&#9660;';
+            downBtn.disabled = idx === state.builderRows.length - 1;
+            downBtn.addEventListener('click', () => {
+                [state.builderRows[idx], state.builderRows[idx + 1]] =
+                    [state.builderRows[idx + 1], state.builderRows[idx]];
+                renderBuilderRows();
+            });
+
             rowEl.appendChild(readout);
+            rowEl.appendChild(upBtn);
+            rowEl.appendChild(downBtn);
             rowEl.appendChild(delBtn);
             container.appendChild(rowEl);
 
