@@ -679,7 +679,8 @@
         updateInfoPanel({
             title: `${displayScale.root} ${displayScale.name}`,
             notes: displayScale.notes,
-            intervals: displayScale.degrees
+            intervals: displayScale.degrees,
+            noteToInterval: displayScale.noteToDegree
         });
     }
 
@@ -717,7 +718,8 @@
         updateInfoPanel({
             title: chord.symbol,
             notes: chord.notes,
-            intervals: chord.intervals
+            intervals: chord.intervals,
+            noteToInterval: chord.noteToInterval
         });
     }
 
@@ -850,7 +852,8 @@
         updateInfoPanel({
             title: chord.symbol,
             notes: chord.notes,
-            intervals: displayIntervals
+            intervals: displayIntervals,
+            noteToInterval: chord.noteToInterval
         });
     }
 
@@ -921,17 +924,21 @@
         // Filter info panel to only show checked intervals
         const filteredNotes = [];
         const filteredIntervals = [];
+        const filteredNoteToInterval = {};
         for (let i = 0; i < allIntervals.length; i++) {
             if (state.intervalFilter.has(allIntervals[i])) {
                 filteredNotes.push(allNotes[i]);
                 filteredIntervals.push(allIntervals[i]);
+                const noteIndex = (rootIndex + i) % 12;
+                filteredNoteToInterval[noteIndex] = allIntervals[i];
             }
         }
 
         updateInfoPanel({
             title: `${root} Chromatic Intervals`,
             notes: filteredNotes,
-            intervals: filteredIntervals
+            intervals: filteredIntervals,
+            noteToInterval: filteredNoteToInterval
         });
     }
 
@@ -1030,7 +1037,8 @@
         updateInfoPanel({
             title: title,
             notes: chord.notes,
-            intervals: chord.intervals
+            intervals: chord.intervals,
+            noteToInterval: chord.noteToInterval
         });
     }
 
@@ -1073,7 +1081,8 @@
         updateInfoPanel({
             title: `${modeRoot} ${mode.name} (${parentRoot} Major)`,
             notes: scale.notes,
-            intervals: scale.degrees
+            intervals: scale.degrees,
+            noteToInterval: scale.noteToDegree
         });
     }
 
@@ -1290,8 +1299,70 @@
     }
 
     /**
+     * Render the chromatic circle SVG showing active notes with interval colors
+     * @param {Object} noteToInterval - Map of semitone index (0-11) to interval name
+     */
+    function renderChromaticCircle(noteToInterval) {
+        const svg = document.getElementById('chromatic-circle-svg');
+        if (!svg) return;
+
+        svg.innerHTML = '';
+        const ns = 'http://www.w3.org/2000/svg';
+        const cx = 100, cy = 100, radius = 72, noteRadius = 16;
+        const useFlats = MusicTheory.shouldUseFlats(state.root);
+        const noteNames = useFlats ? MusicTheory.FLAT_NOTES : MusicTheory.CHROMATIC_NOTES;
+
+        for (let i = 0; i < 12; i++) {
+            const angle = (i * 30 - 90) * Math.PI / 180;
+            const x = cx + radius * Math.cos(angle);
+            const y = cy + radius * Math.sin(angle);
+            const interval = noteToInterval[i];
+            const isActive = interval !== undefined;
+
+            const circle = document.createElementNS(ns, 'circle');
+            circle.setAttribute('cx', x);
+            circle.setAttribute('cy', y);
+            circle.setAttribute('r', noteRadius);
+
+            if (isActive) {
+                const colors = MusicTheory.getIntervalColor(interval);
+                const isRoot = interval === '1';
+                circle.setAttribute('fill', isRoot ? '#000' : colors.fill);
+                circle.setAttribute('stroke', colors.border);
+                circle.setAttribute('stroke-width', '2');
+            } else {
+                circle.setAttribute('fill', '#ddd');
+                circle.setAttribute('stroke', '#bbb');
+                circle.setAttribute('stroke-width', '1.5');
+            }
+
+            svg.appendChild(circle);
+
+            const text = document.createElementNS(ns, 'text');
+            text.setAttribute('x', x);
+            text.setAttribute('y', y);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dominant-baseline', 'central');
+            text.setAttribute('font-size', '10');
+            text.setAttribute('font-family', 'Monaco, Consolas, monospace');
+            text.setAttribute('font-weight', '700');
+
+            if (isActive) {
+                const colors = MusicTheory.getIntervalColor(interval);
+                const isRoot = interval === '1';
+                text.setAttribute('fill', isRoot ? '#fff' : colors.text);
+            } else {
+                text.setAttribute('fill', '#999');
+            }
+
+            text.textContent = noteNames[i];
+            svg.appendChild(text);
+        }
+    }
+
+    /**
      * Update the info panel with current selection details
-     * @param {Object} info - { title, notes, intervals }
+     * @param {Object} info - { title, notes, intervals, noteToInterval }
      */
     function updateInfoPanel(info) {
         const titleEl = document.getElementById('info-title');
@@ -1312,6 +1383,7 @@
             gridEl.style.gridTemplateColumns = '';
             gridEl.textContent = info.notes.join(' ');
             gridEl.className = 'info-grid info-grid-text';
+            renderChromaticCircle(info.noteToInterval || {});
             return;
         }
 
@@ -1342,6 +1414,8 @@
             descEl.textContent = info.description;
             gridEl.parentNode.appendChild(descEl);
         }
+
+        renderChromaticCircle(info.noteToInterval || {});
     }
 
     /**

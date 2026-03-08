@@ -205,6 +205,11 @@ body {
         font-size: 0.6875rem;
     }
 
+    .chromatic-circle svg {
+        width: 120px;
+        height: 120px;
+    }
+
     /* Remove mode-controls internal border in mobile */
     .mode-section .mode-controls {
         border-left: none !important;
@@ -820,6 +825,17 @@ select:hover {
     .info-grid-interval,
     .info-grid-note { font-size: 0.6875rem; }
     .info-grid-description { font-size: 0.625rem; }
+}
+
+.chromatic-circle {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.75rem;
+}
+
+.chromatic-circle svg {
+    width: 160px;
+    height: 160px;
 }
 
 /* Mode section container - groups mode toggle with dependent controls */
