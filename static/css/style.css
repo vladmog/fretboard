@@ -528,6 +528,110 @@ select:hover {
     color: #fff;
 }
 
+/* Prog builder */
+.prog-builder-row {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.prog-numeral-select,
+.prog-quality-select {
+    min-width: 0;
+    padding: 0.3rem;
+    border: 1px solid #000;
+    background-color: #fff;
+    font-size: 0.75rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none;
+}
+
+.prog-numeral-select {
+    flex: 1.2;
+}
+
+.prog-quality-select {
+    flex: 1;
+}
+
+.prog-chord-readout {
+    flex: 0 0 3.5rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.prog-row-move {
+    flex: 0 0 1.5rem;
+    height: 1.5rem;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.6rem;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.prog-row-move:hover:not(:disabled) {
+    background: #000;
+    color: #fff;
+}
+
+.prog-row-move:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.prog-row-delete {
+    flex: 0 0 1.5rem;
+    height: 1.5rem;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.prog-row-delete:hover {
+    background: #000;
+    color: #fff;
+}
+
+.prog-builder-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+#prog-builder-from-list {
+    white-space: nowrap;
+}
+
+#prog-builder-desc-group input {
+    width: 100%;
+    padding: 0.3rem;
+    border: 1px solid #000;
+    background: #fff;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.prog-builder-save-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
 /* Chord list header */
 .chord-list-header {
     display: flex;
@@ -828,26 +932,33 @@ input[name="caged-shape"][value="D"] ~ * {
         border-top: 2px solid #333;
     }
 
-    /* Root note in first row, first column */
-    .mode-section .mode-controls .control-group:nth-child(1) {
-        grid-column: 1;
-        grid-row: 1;
-        margin-bottom: 0;
-    }
+    /* Root note — always left column */
+    #root-group { grid-column: 1; grid-row: 1; margin-bottom: 0; }
 
-    /* Scale type in second row, first column */
-    .mode-section .mode-controls .control-group:nth-child(2) {
-        grid-column: 1;
-        grid-row: 2;
-        margin-bottom: 0;
-    }
+    /* Prog sub-mode radios — left column, under key */
+    #prog-submode { grid-column: 1; }
 
-    /* Scale chords spans both rows in second column */
+    /* Type select — left column */
+    #type-group { grid-column: 1; margin-bottom: 0; }
+
+    /* Prog nav — left column */
+    .prog-nav { grid-column: 1; }
+
+    /* Scale chords — right column, spanning rows */
     .mode-section .mode-controls #scale-chord-builder {
         grid-column: 2;
-        grid-row: 1 / 3;
+        grid-row: 1 / 4;
         margin-bottom: 0;
     }
+
+    /* Prog builder — right column, spanning rows */
+    #prog-builder { grid-column: 2; grid-row: 1 / 4; }
+
+    /* Prog edit selector — left column */
+    #prog-edit-selector { grid-column: 1; }
+
+    /* Prog description — left column */
+    #prog-builder-desc-group { grid-column: 1; }
 
     /* Chord list takes full height on desktop */
     #controls-panel > .control-group,
