@@ -1812,6 +1812,21 @@ input[name="caged-shape"][value="D"] ~ * {
     animation: rainbow-stroke 0.5s linear infinite;
 }
 
+@keyframes rainbow-border-color {
+    0%   { border-color: #FF0000; }
+    16%  { border-color: #FF8800; }
+    33%  { border-color: #FFFF00; }
+    50%  { border-color: #00FF00; }
+    66%  { border-color: #0088FF; }
+    83%  { border-color: #8800FF; }
+    100% { border-color: #FF0000; }
+}
+
+select.rainbow-select {
+    border-width: 2px;
+    animation: rainbow-border-color 0.5s linear infinite;
+}
+
 /* Fretboard Drills game styles */
 .game-fretboard-question {
     text-align: center;
