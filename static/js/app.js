@@ -29,12 +29,19 @@
         progressionIndex: 0,   // Prog mode: flat index into all progressions
         favoriteProgressions: [],    // Prog mode: array of "categoryName|numerals" keys
         browsingFavorites: false,    // Prog mode: currently in favorites section
+        progSubMode: 'play',        // Prog mode: 'play', 'create', 'edit'
+        userProgressions: [],       // Loaded from localStorage
+        editingProgressionId: null, // ID of progression being edited (null in create)
+        builderRows: [],            // [{numeral: 'I', quality: ''}, ...]
+        builderDescription: '',     // Description for builder
+        _selectedUserProgId: null,  // ID of currently selected user progression in play mode
         intervalFilter: new Set(['1','b2','2','b3','3','4','b5','5','b6','6','b7','7'])
     };
 
     // Storage key for chord list persistence
     const STORAGE_KEY = 'fretboard-chord-list';
     const FAVORITES_STORAGE_KEY = 'fretboard-prog-favorites';
+    const USER_PROGRESSIONS_STORAGE_KEY = 'fretboard-user-progressions';
 
     /**
      * Check if the current mode is a find mode (f.chord or f.scale)
@@ -116,9 +123,432 @@
         } catch (e) { /* ignore */ }
     }
 
+    // --- User Progressions CRUD ---
+
+    function loadUserProgressions() {
+        try {
+            const saved = localStorage.getItem(USER_PROGRESSIONS_STORAGE_KEY);
+            if (saved) state.userProgressions = JSON.parse(saved);
+        } catch (e) {
+            state.userProgressions = [];
+        }
+    }
+
+    function saveUserProgressions() {
+        try {
+            localStorage.setItem(USER_PROGRESSIONS_STORAGE_KEY, JSON.stringify(state.userProgressions));
+        } catch (e) { /* ignore */ }
+    }
+
+    // Numeral options for builder dropdowns
+    const BUILDER_NUMERALS = [
+        { label: 'Major', options: ['I', '\u266dII', 'II', '\u266dIII', 'III', 'IV', '\u266fIV', 'V', '\u266dVI', 'VI', '\u266dVII', 'VII'] },
+        { label: 'Minor', options: ['i', '\u266dii', 'ii', '\u266diii', 'iii', 'iv', '\u266fiv', 'v', '\u266dvi', 'vi', '\u266dvii', 'vii'] }
+    ];
+
+    // Quality options for builder dropdowns
+    const BUILDER_QUALITIES = [
+        { value: '', label: '(default)' },
+        { value: 'maj7', label: 'maj7' },
+        { value: 'm7', label: 'm7' },
+        { value: '7', label: '7' },
+        { value: 'dim7', label: 'dim7' },
+        { value: '\u00b07', label: '\u00b07' },
+        { value: '\u00f87', label: '\u00f87' },
+        { value: '+', label: '+' },
+        { value: 'sus2', label: 'sus2' },
+        { value: 'sus4', label: 'sus4' },
+        { value: '7sus4', label: '7sus4' },
+        { value: 'add9', label: 'add9' },
+        { value: '6', label: '6' },
+        { value: '9', label: '9' },
+        { value: 'm9', label: 'm9' },
+        { value: 'maj9', label: 'maj9' },
+        { value: '13', label: '13' },
+        { value: '5', label: '5' },
+        { value: 'm7b5', label: 'm7b5' }
+    ];
+
+    function buildTokenFromRow(row) {
+        return row.numeral + row.quality;
+    }
+
+    function renderProgSubModeUI() {
+        const progSubMode = document.getElementById('prog-submode');
+        const progNav = document.getElementById('prog-nav');
+        const typeGroup = document.querySelector('.control-group:has(#type-select)');
+        const builderSection = document.getElementById('scale-chord-builder');
+        const progBuilder = document.getElementById('prog-builder');
+        const progEditSelector = document.getElementById('prog-edit-selector');
+        const toggleRow = document.querySelector('#scale-chord-builder .toggle-row');
+
+        if (state.mode !== 'prog') {
+            if (progSubMode) progSubMode.style.display = 'none';
+            if (progBuilder) progBuilder.style.display = 'none';
+            if (progEditSelector) progEditSelector.style.display = 'none';
+            return;
+        }
+
+        if (progSubMode) progSubMode.style.display = 'block';
+
+        if (state.progSubMode === 'play') {
+            if (typeGroup) typeGroup.style.display = 'block';
+            if (progNav) progNav.style.display = 'flex';
+            if (builderSection) builderSection.style.display = 'block';
+            if (toggleRow) toggleRow.style.display = '';
+            if (progBuilder) progBuilder.style.display = 'none';
+            if (progEditSelector) progEditSelector.style.display = 'none';
+        } else if (state.progSubMode === 'create') {
+            if (typeGroup) typeGroup.style.display = 'none';
+            if (progNav) progNav.style.display = 'none';
+            if (builderSection) builderSection.style.display = 'none';
+            if (progBuilder) progBuilder.style.display = 'block';
+            if (progEditSelector) progEditSelector.style.display = 'none';
+            const deleteBtn = document.getElementById('prog-builder-delete');
+            if (deleteBtn) deleteBtn.style.display = 'none';
+            state.editingProgressionId = null;
+            if (state.builderRows.length === 0) {
+                state.builderRows = [{ numeral: 'I', quality: '' }];
+            }
+            state.builderDescription = '';
+            const descInput = document.getElementById('prog-builder-description');
+            if (descInput) descInput.value = '';
+            renderBuilderRows();
+        } else if (state.progSubMode === 'edit') {
+            if (typeGroup) typeGroup.style.display = 'none';
+            if (progNav) progNav.style.display = 'none';
+            if (builderSection) builderSection.style.display = 'none';
+            if (progBuilder) progBuilder.style.display = 'block';
+            if (progEditSelector) progEditSelector.style.display = 'block';
+            const deleteBtn = document.getElementById('prog-builder-delete');
+            if (deleteBtn) deleteBtn.style.display = '';
+            populateEditSelector();
+            // Load first user progression into builder if available
+            if (state.userProgressions.length > 0) {
+                loadProgressionIntoBuilder(state.userProgressions[0].id);
+            } else {
+                state.builderRows = [{ numeral: 'I', quality: '' }];
+                state.builderDescription = '';
+                state.editingProgressionId = null;
+                renderBuilderRows();
+            }
+        }
+    }
+
+    function renderBuilderRows() {
+        const container = document.getElementById('prog-builder-rows');
+        if (!container) return;
+        container.innerHTML = '';
+
+        state.builderRows.forEach((row, idx) => {
+            const rowEl = document.createElement('div');
+            rowEl.className = 'prog-builder-row';
+
+            // Numeral select
+            const numeralSelect = document.createElement('select');
+            numeralSelect.className = 'prog-numeral-select';
+            BUILDER_NUMERALS.forEach(group => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = group.label;
+                group.options.forEach(num => {
+                    const opt = document.createElement('option');
+                    opt.value = num;
+                    opt.textContent = num;
+                    if (num === row.numeral) opt.selected = true;
+                    optgroup.appendChild(opt);
+                });
+                numeralSelect.appendChild(optgroup);
+            });
+            numeralSelect.addEventListener('change', () => {
+                state.builderRows[idx].numeral = numeralSelect.value;
+                updateBuilderReadout(rowEl, idx);
+            });
+
+            // Quality select
+            const qualitySelect = document.createElement('select');
+            qualitySelect.className = 'prog-quality-select';
+            BUILDER_QUALITIES.forEach(q => {
+                const opt = document.createElement('option');
+                opt.value = q.value;
+                opt.textContent = q.label;
+                if (q.value === row.quality) opt.selected = true;
+                qualitySelect.appendChild(opt);
+            });
+            qualitySelect.addEventListener('change', () => {
+                state.builderRows[idx].quality = qualitySelect.value;
+                updateBuilderReadout(rowEl, idx);
+            });
+
+            // Readout
+            const readout = document.createElement('span');
+            readout.className = 'prog-chord-readout';
+
+            // Delete button
+            const delBtn = document.createElement('button');
+            delBtn.className = 'prog-row-delete';
+            delBtn.innerHTML = '&times;';
+            delBtn.addEventListener('click', () => {
+                state.builderRows.splice(idx, 1);
+                if (state.builderRows.length === 0) {
+                    state.builderRows = [{ numeral: 'I', quality: '' }];
+                }
+                renderBuilderRows();
+            });
+
+            rowEl.appendChild(numeralSelect);
+            rowEl.appendChild(qualitySelect);
+            rowEl.appendChild(readout);
+            rowEl.appendChild(delBtn);
+            container.appendChild(rowEl);
+
+            updateBuilderReadout(rowEl, idx);
+        });
+    }
+
+    function updateBuilderReadout(rowEl, idx) {
+        const readout = rowEl.querySelector('.prog-chord-readout');
+        if (!readout) return;
+        const row = state.builderRows[idx];
+        const token = buildTokenFromRow(row);
+        const parsed = ChordProgressions.parseRomanNumeral(token, state.root);
+        if (parsed) {
+            const chordDef = MusicTheory.CHORD_TYPES[parsed.type];
+            readout.textContent = parsed.root + (chordDef ? chordDef.symbol : '');
+        } else {
+            readout.textContent = '?';
+        }
+    }
+
+    function saveProgression() {
+        if (state.builderRows.length === 0) return;
+
+        const chords = state.builderRows.map(buildTokenFromRow);
+        const numerals = chords.join(' \u2013 ');
+        const description = state.builderDescription || '';
+
+        if (state.editingProgressionId !== null) {
+            // Update existing
+            const prog = state.userProgressions.find(p => p.id === state.editingProgressionId);
+            if (prog) {
+                prog.numerals = numerals;
+                prog.description = description;
+                prog.chords = chords;
+            }
+        } else {
+            // Create new
+            state.userProgressions.push({
+                id: Date.now(),
+                numerals: numerals,
+                description: description,
+                chords: chords
+            });
+        }
+
+        saveUserProgressions();
+
+        // Switch to play mode and select the saved progression
+        state.progSubMode = 'play';
+        const submodeRadios = document.querySelectorAll('input[name="prog-submode"]');
+        submodeRadios.forEach(r => {
+            r.checked = r.value === 'play';
+            const label = r.closest('.radio-label');
+            if (label) label.classList.toggle('checked', r.checked);
+        });
+        state.builderRows = [];
+        state.builderDescription = '';
+        state.editingProgressionId = null;
+        updateTypeDropdown();
+        renderProgSubModeUI();
+        renderProgressionChords();
+        updateDisplay();
+    }
+
+    function deleteProgression() {
+        if (state.editingProgressionId === null) return;
+        state.userProgressions = state.userProgressions.filter(p => p.id !== state.editingProgressionId);
+        saveUserProgressions();
+
+        state.progSubMode = 'play';
+        const submodeRadios = document.querySelectorAll('input[name="prog-submode"]');
+        submodeRadios.forEach(r => {
+            r.checked = r.value === 'play';
+            const label = r.closest('.radio-label');
+            if (label) label.classList.toggle('checked', r.checked);
+        });
+        state.builderRows = [];
+        state.builderDescription = '';
+        state.editingProgressionId = null;
+        updateTypeDropdown();
+        renderProgSubModeUI();
+        renderProgressionChords();
+        updateDisplay();
+    }
+
+    function populateEditSelector() {
+        const select = document.getElementById('prog-edit-select');
+        if (!select) return;
+        select.innerHTML = '';
+
+        if (state.userProgressions.length === 0) {
+            const opt = document.createElement('option');
+            opt.textContent = 'No custom progressions';
+            opt.disabled = true;
+            select.appendChild(opt);
+            return;
+        }
+
+        state.userProgressions.forEach(prog => {
+            const opt = document.createElement('option');
+            opt.value = prog.id;
+            opt.textContent = prog.numerals + (prog.description ? ' - ' + prog.description : '');
+            select.appendChild(opt);
+        });
+    }
+
+    function loadProgressionIntoBuilder(id) {
+        const prog = state.userProgressions.find(p => p.id === id);
+        if (!prog) return;
+
+        state.editingProgressionId = id;
+        state.builderDescription = prog.description || '';
+        state.builderRows = prog.chords.map(token => {
+            // Parse token back into numeral + quality
+            const { numeral, quality } = parseTokenToRow(token);
+            return { numeral, quality };
+        });
+
+        const descInput = document.getElementById('prog-builder-description');
+        if (descInput) descInput.value = state.builderDescription;
+        renderBuilderRows();
+    }
+
+    function parseTokenToRow(token) {
+        // Extract accidental prefix
+        let pos = 0;
+        let prefix = '';
+        if (token[pos] === '\u266d') { prefix = '\u266d'; pos++; }
+        else if (token[pos] === '\u266f') { prefix = '\u266f'; pos++; }
+
+        const rest = token.substring(pos);
+
+        // Match Roman numeral
+        const UPPER = [['VII', 7], ['VI', 6], ['IV', 4], ['V', 5], ['III', 3], ['II', 2], ['I', 1]];
+        const LOWER = [['vii', 7], ['vi', 6], ['iv', 4], ['v', 5], ['iii', 3], ['ii', 2], ['i', 1]];
+
+        let numeral = '';
+        let suffix = '';
+
+        for (const [numStr] of UPPER) {
+            if (rest.startsWith(numStr)) {
+                numeral = prefix + numStr;
+                suffix = rest.substring(numStr.length);
+                break;
+            }
+        }
+        if (!numeral) {
+            for (const [numStr] of LOWER) {
+                if (rest.startsWith(numStr)) {
+                    numeral = prefix + numStr;
+                    suffix = rest.substring(numStr.length);
+                    break;
+                }
+            }
+        }
+        if (!numeral) {
+            return { numeral: 'I', quality: '' };
+        }
+        return { numeral, quality: suffix };
+    }
+
+    function chordToRomanNumeral(root, type, key) {
+        const scale = MusicTheory.buildScale(key, 'major');
+        const rootIndex = MusicTheory.getNoteIndex(root);
+
+        // Find degree match
+        let degree = 0;
+        let accidental = 0;
+        for (let i = 0; i < 7; i++) {
+            const scaleNoteIndex = MusicTheory.getNoteIndex(scale.notes[i]);
+            if (scaleNoteIndex === rootIndex) {
+                degree = i + 1;
+                accidental = 0;
+                break;
+            }
+        }
+
+        // If no exact match, find closest degree with accidental
+        if (degree === 0) {
+            for (let i = 0; i < 7; i++) {
+                const scaleNoteIndex = MusicTheory.getNoteIndex(scale.notes[i]);
+                const diff = ((rootIndex - scaleNoteIndex) + 12) % 12;
+                if (diff === 1) {
+                    degree = i + 1;
+                    // Use ♯ for degree 4, ♭ for degree+1 otherwise
+                    if (i + 1 === 4) {
+                        accidental = 1; // ♯IV
+                    } else {
+                        // This is ♭(next degree)
+                        degree = (i + 1) % 7 + 1;
+                        accidental = -1;
+                    }
+                    break;
+                }
+                if (diff === 11) {
+                    degree = i + 1;
+                    accidental = -1;
+                    break;
+                }
+            }
+        }
+
+        if (degree === 0) degree = 1; // fallback
+
+        // Determine case: minor-quality types → lowercase
+        const minorTypes = ['min', 'min7', 'dim', 'dim7', 'min7b5', 'min9', 'min6', 'minmaj7'];
+        const isMinor = minorTypes.includes(type);
+        const numeralStrings = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+        let numeral = numeralStrings[degree - 1];
+        if (isMinor) numeral = numeral.toLowerCase();
+
+        // Accidental prefix
+        let prefix = '';
+        if (accidental === -1) prefix = '\u266d';
+        else if (accidental === 1) prefix = '\u266f';
+
+        // Quality suffix: reverse-map from chord type to suffix used in tokens
+        const typeToSuffix = {
+            'maj': '', 'min': '', 'maj7': 'maj7', 'min7': 'm7', '7': '7',
+            'dom7': '7', 'dim': '', 'dim7': 'dim7', 'min7b5': 'm7b5', 'aug': '+',
+            'sus2': 'sus2', 'sus4': 'sus4', '7sus4': '7sus4', 'add9': 'add9',
+            '6': '6', 'min6': '6', '9': '9', 'dom9': '9', 'min9': 'm9',
+            'maj9': 'maj9', '13': '13', 'dom13': '13', '5': '5',
+            'minmaj7': 'maj7', 'augmaj7': '+maj7'
+        };
+        const suffix = typeToSuffix[type] || '';
+
+        return prefix + numeral + suffix;
+    }
+
+    function addFromChordList() {
+        if (state.chordList.length === 0) return;
+
+        const newRows = state.chordList.map(chord => {
+            const token = chordToRomanNumeral(chord.root, chord.type, state.root);
+            return parseTokenToRow(token);
+        });
+
+        state.builderRows = state.builderRows.concat(newRows);
+        renderBuilderRows();
+    }
+
     function updateFavButton() {
         const btn = document.getElementById('prog-fav');
         if (!btn) return;
+        if (state._selectedUserProgId) {
+            btn.style.display = 'none';
+            return;
+        }
+        btn.style.display = '';
         const key = getProgressionKey(state.progressionIndex);
         const isFav = key && state.favoriteProgressions.includes(key);
         btn.innerHTML = isFav ? '&#9829;' : '&#9825;';
@@ -1106,10 +1536,24 @@
         const container = document.getElementById('scale-chords');
         if (!container) return;
 
-        const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(state.progressionIndex);
-        const chords = ChordProgressions.buildProgressionChords(categoryIndex, progressionIndex, state.root);
-        const category = ChordProgressions.PROGRESSION_CATEGORIES[categoryIndex];
-        const progression = category ? category.progressions[progressionIndex] : null;
+        let chords, category, progression, isUserProg = false;
+
+        if (state._selectedUserProgId) {
+            const userProg = state.userProgressions.find(p => p.id === state._selectedUserProgId);
+            if (userProg) {
+                chords = ChordProgressions.buildProgressionChordsFromTokens(userProg.chords, state.root);
+                category = { name: 'My Progressions' };
+                progression = userProg;
+                isUserProg = true;
+            }
+        }
+
+        if (!isUserProg) {
+            const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(state.progressionIndex);
+            chords = ChordProgressions.buildProgressionChords(categoryIndex, progressionIndex, state.root);
+            category = ChordProgressions.PROGRESSION_CATEGORIES[categoryIndex];
+            progression = category ? category.progressions[progressionIndex] : null;
+        }
 
         if (chords.length === 0) {
             container.innerHTML = '<p class="scale-chords-note">No chords available</p>';
@@ -1337,6 +1781,22 @@
                 dropdown.appendChild(favGroup);
             }
 
+            // User progressions optgroup
+            if (state.userProgressions.length > 0) {
+                const userGroup = document.createElement('optgroup');
+                userGroup.label = 'My Progressions';
+                state.userProgressions.forEach(prog => {
+                    const option = document.createElement('option');
+                    option.value = 'user-' + prog.id;
+                    option.textContent = prog.numerals + (prog.description ? ' - ' + prog.description : '');
+                    if (state._selectedUserProgId === prog.id) {
+                        option.selected = true;
+                    }
+                    userGroup.appendChild(option);
+                });
+                dropdown.appendChild(userGroup);
+            }
+
             // Regular progression categories as optgroups
             let flatIdx = 0;
             for (let ci = 0; ci < ChordProgressions.PROGRESSION_CATEGORIES.length; ci++) {
@@ -1518,6 +1978,21 @@
             progNav.style.display = mode === 'prog' ? 'flex' : 'none';
         }
 
+        // Reset prog sub-mode when entering prog mode
+        if (mode === 'prog') {
+            state.progSubMode = 'play';
+            state._selectedUserProgId = null;
+            const submodeRadios = document.querySelectorAll('input[name="prog-submode"]');
+            submodeRadios.forEach(r => {
+                r.checked = r.value === 'play';
+                const label = r.closest('.radio-label');
+                if (label) label.classList.toggle('checked', r.checked);
+            });
+            renderProgSubModeUI();
+        } else {
+            renderProgSubModeUI();
+        }
+
         // Show/hide toggles based on mode
         const seventhsLabel = document.getElementById('sevenths-toggle')?.closest('.toggle-label');
         const relativeLabel = document.getElementById('relative-toggle')?.closest('.toggle-label');
@@ -1608,7 +2083,11 @@
                 if (state.mode === 'scale' || state.mode === 'modes') {
                     renderScaleChords();
                 } else if (state.mode === 'prog') {
-                    renderProgressionChords();
+                    if (state.progSubMode === 'play') {
+                        renderProgressionChords();
+                    } else {
+                        renderBuilderRows();
+                    }
                 }
                 updateDisplay();
                 if (state.mode === 'chord' && state.soundEnabled) {
@@ -1633,10 +2112,15 @@
                     renderScaleChords();
                 } else if (state.mode === 'prog') {
                     const val = e.target.value;
-                    if (val.startsWith('fav-')) {
+                    if (val.startsWith('user-')) {
+                        state._selectedUserProgId = parseInt(val.slice(5));
+                        state.browsingFavorites = false;
+                    } else if (val.startsWith('fav-')) {
+                        state._selectedUserProgId = null;
                         state.progressionIndex = parseInt(val.slice(4)) || 0;
                         state.browsingFavorites = true;
                     } else {
+                        state._selectedUserProgId = null;
                         state.progressionIndex = parseInt(val) || 0;
                         state.browsingFavorites = false;
                     }
@@ -1774,13 +2258,52 @@
         function navigateProgression(direction) {
             const favs = getResolvedFavorites();
             const total = ChordProgressions.getTotalProgressionCount();
+            const userProgs = state.userProgressions;
 
-            if (state.browsingFavorites && favs.length > 0) {
+            // Build ordered sections: [favorites] → [user progressions] → [built-in]
+            // Navigation: built-in → (wrap to favs or user or built-in start)
+            //             favs → user progs → built-in
+            //             user progs → built-in
+
+            if (state._selectedUserProgId) {
+                // Currently on a user progression
+                const userIdx = userProgs.findIndex(p => p.id === state._selectedUserProgId);
+                if (direction === 'next') {
+                    if (userIdx >= userProgs.length - 1) {
+                        // Move to first built-in
+                        state._selectedUserProgId = null;
+                        state.browsingFavorites = false;
+                        state.progressionIndex = 0;
+                    } else {
+                        state._selectedUserProgId = userProgs[userIdx + 1].id;
+                    }
+                } else {
+                    if (userIdx <= 0) {
+                        // Move to last favorite, or last built-in
+                        state._selectedUserProgId = null;
+                        if (favs.length > 0) {
+                            state.browsingFavorites = true;
+                            state.progressionIndex = favs[favs.length - 1];
+                        } else {
+                            state.browsingFavorites = false;
+                            state.progressionIndex = total - 1;
+                        }
+                    } else {
+                        state._selectedUserProgId = userProgs[userIdx - 1].id;
+                    }
+                }
+            } else if (state.browsingFavorites && favs.length > 0) {
                 const favIdx = favs.indexOf(state.progressionIndex);
                 if (direction === 'next') {
                     if (favIdx >= favs.length - 1) {
-                        state.browsingFavorites = false;
-                        state.progressionIndex = 0;
+                        // Move to first user prog, or first built-in
+                        if (userProgs.length > 0) {
+                            state._selectedUserProgId = userProgs[0].id;
+                            state.browsingFavorites = false;
+                        } else {
+                            state.browsingFavorites = false;
+                            state.progressionIndex = 0;
+                        }
                     } else {
                         state.progressionIndex = favs[favIdx + 1];
                     }
@@ -1793,11 +2316,15 @@
                     }
                 }
             } else {
+                // Built-in progressions
                 if (direction === 'next') {
                     if (state.progressionIndex >= total - 1) {
+                        // Wrap: go to favs, then user, then built-in start
                         if (favs.length > 0) {
                             state.browsingFavorites = true;
                             state.progressionIndex = favs[0];
+                        } else if (userProgs.length > 0) {
+                            state._selectedUserProgId = userProgs[0].id;
                         } else {
                             state.progressionIndex = 0;
                         }
@@ -1806,7 +2333,10 @@
                     }
                 } else {
                     if (state.progressionIndex <= 0) {
-                        if (favs.length > 0) {
+                        // Wrap backwards: user progs, then favs, then end of built-in
+                        if (userProgs.length > 0) {
+                            state._selectedUserProgId = userProgs[userProgs.length - 1].id;
+                        } else if (favs.length > 0) {
                             state.browsingFavorites = true;
                             state.progressionIndex = favs[favs.length - 1];
                         } else {
@@ -1849,6 +2379,62 @@
                 saveFavorites();
                 updateFavButton();
                 updateTypeDropdown();
+            });
+        }
+
+        // Prog sub-mode radios
+        const progSubModeRadios = document.querySelectorAll('input[name="prog-submode"]');
+        progSubModeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                state.progSubMode = e.target.value;
+                state.builderRows = [];
+                state.builderDescription = '';
+                state.editingProgressionId = null;
+                renderProgSubModeUI();
+            });
+        });
+
+        // Builder: Add Row
+        const addRowBtn = document.getElementById('prog-builder-add-row');
+        if (addRowBtn) {
+            addRowBtn.addEventListener('click', () => {
+                state.builderRows.push({ numeral: 'I', quality: '' });
+                renderBuilderRows();
+            });
+        }
+
+        // Builder: Add from Chord List
+        const fromListBtn = document.getElementById('prog-builder-from-list');
+        if (fromListBtn) {
+            fromListBtn.addEventListener('click', addFromChordList);
+        }
+
+        // Builder: Save
+        const saveBtn = document.getElementById('prog-builder-save');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', saveProgression);
+        }
+
+        // Builder: Delete
+        const delBtn = document.getElementById('prog-builder-delete');
+        if (delBtn) {
+            delBtn.addEventListener('click', deleteProgression);
+        }
+
+        // Builder: Description input
+        const descInput = document.getElementById('prog-builder-description');
+        if (descInput) {
+            descInput.addEventListener('input', (e) => {
+                state.builderDescription = e.target.value;
+            });
+        }
+
+        // Edit selector
+        const editSelect = document.getElementById('prog-edit-select');
+        if (editSelect) {
+            editSelect.addEventListener('change', (e) => {
+                const id = parseInt(e.target.value);
+                if (id) loadProgressionIntoBuilder(id);
             });
         }
 
@@ -1942,6 +2528,7 @@
         // Load persisted data
         loadChordList();
         loadFavorites();
+        loadUserProgressions();
 
         // Initialize fretboard
         const container = document.getElementById('fretboard-panel');

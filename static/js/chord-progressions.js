@@ -1961,11 +1961,36 @@ function categoryToFlatIndex(categoryIndex, progressionIndex) {
     return flat + progressionIndex;
 }
 
+/**
+ * Build chord objects from raw token array (for user progressions)
+ * @param {Array} chords - Array of Roman numeral tokens (e.g., ['I', 'IVmaj7', 'V7', 'vi'])
+ * @param {string} key - Key root note (e.g., 'C')
+ * @returns {Array} Array of { root, type, symbol, numeral }
+ */
+function buildProgressionChordsFromTokens(chords, key) {
+    const results = [];
+    for (const token of chords) {
+        const parsed = parseRomanNumeral(token, key);
+        if (parsed) {
+            const chordDef = MusicTheory.CHORD_TYPES[parsed.type];
+            const symbol = parsed.root + (chordDef ? chordDef.symbol : '');
+            results.push({
+                root: parsed.root,
+                type: parsed.type,
+                symbol: symbol,
+                numeral: parsed.numeral
+            });
+        }
+    }
+    return results;
+}
+
 // Export
 window.ChordProgressions = {
     PROGRESSION_CATEGORIES,
     parseRomanNumeral,
     buildProgressionChords,
+    buildProgressionChordsFromTokens,
     getTotalProgressionCount,
     flatIndexToCategory,
     categoryToFlatIndex
