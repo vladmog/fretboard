@@ -1628,6 +1628,29 @@
     }
 
     /**
+     * Add all chords from the current progression to the chord list
+     */
+    function addProgressionToChordList() {
+        let chords;
+        if (state._selectedUserProgId) {
+            const userProg = state.userProgressions.find(p => p.id === state._selectedUserProgId);
+            if (userProg) {
+                chords = ChordProgressions.buildProgressionChordsFromTokens(userProg.chords, state.root);
+            }
+        }
+        if (!chords) {
+            const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(state.progressionIndex);
+            chords = ChordProgressions.buildProgressionChords(categoryIndex, progressionIndex, state.root);
+        }
+        chords.forEach(chord => {
+            const built = MusicTheory.buildChord(chord.root, chord.type);
+            state.chordList.push({ root: chord.root, type: chord.type, symbol: built.symbol });
+        });
+        saveChordList();
+        renderChordList();
+    }
+
+    /**
      * Remove a chord from the list
      * @param {number} index - Index to remove
      */
@@ -1708,6 +1731,7 @@
 
         if (chords.length === 0) {
             container.innerHTML = '<p class="scale-chords-note">Scale chords not available for this scale type</p>';
+            relocateAddButton(state.mode);
             return;
         }
 
@@ -1746,6 +1770,7 @@
         });
 
         container.appendChild(chordsRow);
+        relocateAddButton(state.mode);
     }
 
     /**
@@ -1776,6 +1801,7 @@
 
         if (chords.length === 0) {
             container.innerHTML = '<p class="scale-chords-note">No chords available</p>';
+            relocateAddButton(state.mode);
             return;
         }
 
@@ -1816,6 +1842,7 @@
         });
 
         container.appendChild(chordsRow);
+        relocateAddButton(state.mode);
 
         // Update info panel based on selection state
         if (!state.activeScaleChord && category && chords.length > 0) {
@@ -1844,6 +1871,7 @@
         if (state.findSelectedIndex < 0 || state.findSelectedIndex >= state.findResults.length) {
             builderSection.classList.add('disabled');
             container.innerHTML = '<p class="scale-chords-note">Select a scale to see chords</p>';
+            relocateAddButton(state.mode);
             return;
         }
 
@@ -1863,6 +1891,7 @@
 
         if (chords.length === 0) {
             container.innerHTML = '<p class="scale-chords-note">Scale chords not available for this scale type</p>';
+            relocateAddButton(state.mode);
             return;
         }
 
@@ -1896,6 +1925,7 @@
         });
 
         container.appendChild(chordsRow);
+        relocateAddButton(state.mode);
     }
 
     /**
@@ -2093,6 +2123,37 @@
     }
 
     /**
+     * Move the Add button to the appropriate container for the given mode.
+     */
+    function relocateAddButton(mode) {
+        const btn = document.getElementById('add-chord-btn');
+        const progBtn = document.getElementById('add-prog-btn');
+        if (!btn) return;
+
+        let target = null;
+        if (mode === 'scale' || mode === 'modes' || mode === 'f.scale' || mode === 'prog') {
+            target = document.getElementById('scale-chord-builder');
+        } else if (mode === 'chord') {
+            target = document.getElementById('type-group');
+        }
+
+        // Update button text for prog mode
+        btn.textContent = mode === 'prog' ? 'Add Chord to Chord List' : 'Add to Chord List';
+
+        if (target) {
+            target.appendChild(btn);
+            btn.style.display = (mode === 'chord' || state.activeScaleChord) ? 'flex' : 'none';
+            if (progBtn) {
+                target.appendChild(progBtn);
+                progBtn.style.display = mode === 'prog' ? 'flex' : 'none';
+            }
+        } else {
+            btn.style.display = 'none';
+            if (progBtn) progBtn.style.display = 'none';
+        }
+    }
+
+    /**
      * Handle mode change (scale/chord/interval/caged toggle)
      * @param {string} mode - 'scale', 'chord', 'interval', or 'caged'
      */
@@ -2252,11 +2313,8 @@
             findControls.style.display = isFindMode(mode) ? 'block' : 'none';
         }
 
-        // Show/hide Add button based on mode
-        const addChordBtn = document.getElementById('add-chord-btn');
-        if (addChordBtn) {
-            addChordBtn.style.display = (mode === 'chord' || mode === 'scale' || mode === 'modes' || mode === 'f.scale' || mode === 'prog') ? 'flex' : 'none';
-        }
+        // Relocate Add button to the appropriate container for this mode
+        relocateAddButton(mode);
 
         if (mode === 'scale' || mode === 'modes') {
             renderScaleChords();
@@ -2679,6 +2737,12 @@
             });
         }
 
+        // Add progression button
+        const addProgBtn = document.getElementById('add-prog-btn');
+        if (addProgBtn) {
+            addProgBtn.addEventListener('click', addProgressionToChordList);
+        }
+
         // Clear chord list button
         const clearListBtn = document.getElementById('clear-list-btn');
         if (clearListBtn) {
@@ -2781,10 +2845,7 @@
         });
 
         // Set initial mode-dependent UI states
-        const addChordBtn = document.getElementById('add-chord-btn');
-        if (addChordBtn) {
-            addChordBtn.style.display = (state.mode === 'chord' || state.mode === 'scale' || state.mode === 'modes' || state.mode === 'f.scale' || state.mode === 'prog') ? 'flex' : 'none';
-        }
+        relocateAddButton(state.mode);
 
         // Hide type selector in interval/find mode
         const typeGroup = document.querySelector('.control-group:has(#type-select)');
