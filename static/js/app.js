@@ -1324,6 +1324,24 @@
         const rootEntry = Object.entries(noteToInterval).find(([, v]) => v === '1');
         const rootIndex = rootEntry ? parseInt(rootEntry[0]) : (rainbowNoteIndex !== undefined ? rainbowNoteIndex : MusicTheory.getNoteIndex(state.root));
 
+        // Draw perpendicular cross lines: root↔tritone and b3↔M6
+        const lineRadius = 35;
+        [
+            [rootIndex, rootIndex + 6],      // root to tritone
+            [rootIndex + 3, rootIndex + 9]   // b3 to M6 (perpendicular)
+        ].forEach(([from, to]) => {
+            const a1 = (from * 30 - 90) * Math.PI / 180;
+            const a2 = (to * 30 - 90) * Math.PI / 180;
+            const line = document.createElementNS(ns, 'line');
+            line.setAttribute('x1', cx + lineRadius * Math.cos(a1));
+            line.setAttribute('y1', cy + lineRadius * Math.sin(a1));
+            line.setAttribute('x2', cx + lineRadius * Math.cos(a2));
+            line.setAttribute('y2', cy + lineRadius * Math.sin(a2));
+            line.setAttribute('stroke', '#999');
+            line.setAttribute('stroke-width', '1.5');
+            svg.appendChild(line);
+        });
+
         for (let i = 0; i < 12; i++) {
             const angle = (i * 30 - 90) * Math.PI / 180;
             const x = cx + radius * Math.cos(angle);
