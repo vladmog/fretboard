@@ -1342,6 +1342,17 @@
             svg.appendChild(line);
         });
 
+        // Root indicator circle at root end of root↔tritone line
+        const rootAngle = (rootIndex * 30 - 90) * Math.PI / 180;
+        const dotRadius = (1.5 * 5) / 2; // diameter = 5x line thickness
+        const dotDist = lineRadius - dotRadius;
+        const dot = document.createElementNS(ns, 'circle');
+        dot.setAttribute('cx', cx + dotDist * Math.cos(rootAngle));
+        dot.setAttribute('cy', cy + dotDist * Math.sin(rootAngle));
+        dot.setAttribute('r', dotRadius);
+        dot.setAttribute('fill', '#999');
+        svg.appendChild(dot);
+
         for (let i = 0; i < 12; i++) {
             const angle = (i * 30 - 90) * Math.PI / 180;
             const x = cx + radius * Math.cos(angle);
