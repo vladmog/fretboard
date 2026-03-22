@@ -439,6 +439,15 @@ select:hover {
     pointer-events: none;
 }
 
+#scale-chord-builder > .btn-add,
+#type-group > .btn-add {
+    margin-top: 0.5rem;
+}
+
+#scale-chord-builder > .btn-add + .btn-add {
+    margin-top: 0.25rem;
+}
+
 .scale-chords-list {
     display: flex;
     flex-direction: column;
