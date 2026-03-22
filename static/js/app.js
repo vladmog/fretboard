@@ -1168,9 +1168,11 @@
         state.fretboard.clearMarkers();
 
         const notes = [];
+        const noteIndices = new Set();
         for (const marker of Object.values(state.findMarkers)) {
             const noteName = MusicTheory.getNoteName(marker.noteIndex, false);
             notes.push(noteName);
+            noteIndices.add(marker.noteIndex);
             state.fretboard.setMarker(marker.string, marker.fret, {
                 color: '#555',
                 borderColor: '#000',
@@ -1188,7 +1190,8 @@
         updateInfoPanel({
             title: notes.length > 0 ? modeLabel + ': ' + notes.join(' ') : modeLabel,
             notes: notes.length > 0 ? notes : ['Tap fretboard to place notes'],
-            intervals: []
+            intervals: [],
+            plainMarkerNotes: noteIndices
         });
     }
 
@@ -1311,7 +1314,7 @@
      * Render the chromatic circle SVG showing active notes with interval colors
      * @param {Object} noteToInterval - Map of semitone index (0-11) to interval name
      */
-    function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNotes, useScaleDegrees) {
+    function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNotes, useScaleDegrees, plainMarkerNotes) {
         const svg = document.getElementById('chromatic-circle-svg');
         if (!svg) return;
 
@@ -1321,37 +1324,40 @@
         const useFlats = MusicTheory.shouldUseFlats(state.root);
         const noteNames = useFlats ? MusicTheory.FLAT_NOTES : MusicTheory.CHROMATIC_NOTES;
         const SEMITONE_LABELS = ['1','b2','2','b3','3','4','b5','5','#5','6','b7','7'];
+        const isPlainMode = plainMarkerNotes !== undefined;
         const rootEntry = Object.entries(noteToInterval).find(([, v]) => v === '1');
         const rootIndex = rootEntry ? parseInt(rootEntry[0]) : (rainbowNoteIndex !== undefined ? rainbowNoteIndex : MusicTheory.getNoteIndex(state.root));
 
-        // Draw perpendicular cross lines: root↔tritone and b3↔M6
-        const lineRadius = 35;
-        [
-            [rootIndex, rootIndex + 6],      // root to tritone
-            [rootIndex + 3, rootIndex + 9]   // b3 to M6 (perpendicular)
-        ].forEach(([from, to]) => {
-            const a1 = (from * 30 - 90) * Math.PI / 180;
-            const a2 = (to * 30 - 90) * Math.PI / 180;
-            const line = document.createElementNS(ns, 'line');
-            line.setAttribute('x1', cx + lineRadius * Math.cos(a1));
-            line.setAttribute('y1', cy + lineRadius * Math.sin(a1));
-            line.setAttribute('x2', cx + lineRadius * Math.cos(a2));
-            line.setAttribute('y2', cy + lineRadius * Math.sin(a2));
-            line.setAttribute('stroke', '#999');
-            line.setAttribute('stroke-width', '1.5');
-            svg.appendChild(line);
-        });
+        // Draw perpendicular cross lines: root↔tritone and b3↔M6 (skip in plain marker mode)
+        if (!isPlainMode) {
+            const lineRadius = 35;
+            [
+                [rootIndex, rootIndex + 6],      // root to tritone
+                [rootIndex + 3, rootIndex + 9]   // b3 to M6 (perpendicular)
+            ].forEach(([from, to]) => {
+                const a1 = (from * 30 - 90) * Math.PI / 180;
+                const a2 = (to * 30 - 90) * Math.PI / 180;
+                const line = document.createElementNS(ns, 'line');
+                line.setAttribute('x1', cx + lineRadius * Math.cos(a1));
+                line.setAttribute('y1', cy + lineRadius * Math.sin(a1));
+                line.setAttribute('x2', cx + lineRadius * Math.cos(a2));
+                line.setAttribute('y2', cy + lineRadius * Math.sin(a2));
+                line.setAttribute('stroke', '#999');
+                line.setAttribute('stroke-width', '1.5');
+                svg.appendChild(line);
+            });
 
-        // Root indicator circle at root end of root↔tritone line
-        const rootAngle = (rootIndex * 30 - 90) * Math.PI / 180;
-        const dotRadius = (1.5 * 5) / 2; // diameter = 5x line thickness
-        const dotDist = lineRadius - dotRadius;
-        const dot = document.createElementNS(ns, 'circle');
-        dot.setAttribute('cx', cx + dotDist * Math.cos(rootAngle));
-        dot.setAttribute('cy', cy + dotDist * Math.sin(rootAngle));
-        dot.setAttribute('r', dotRadius);
-        dot.setAttribute('fill', '#999');
-        svg.appendChild(dot);
+            // Root indicator circle at root end of root↔tritone line
+            const rootAngle = (rootIndex * 30 - 90) * Math.PI / 180;
+            const dotRadius = (1.5 * 5) / 2; // diameter = 5x line thickness
+            const dotDist = lineRadius - dotRadius;
+            const dot = document.createElementNS(ns, 'circle');
+            dot.setAttribute('cx', cx + dotDist * Math.cos(rootAngle));
+            dot.setAttribute('cy', cy + dotDist * Math.sin(rootAngle));
+            dot.setAttribute('r', dotRadius);
+            dot.setAttribute('fill', '#999');
+            svg.appendChild(dot);
+        }
 
         for (let i = 0; i < 12; i++) {
             const angle = (i * 30 - 90) * Math.PI / 180;
@@ -1359,13 +1365,18 @@
             const y = cy + radius * Math.sin(angle);
             const interval = noteToInterval[i];
             const isActive = interval !== undefined;
+            const isPlainMarker = isPlainMode && plainMarkerNotes.has(i);
 
             const circle = document.createElementNS(ns, 'circle');
             circle.setAttribute('cx', x);
             circle.setAttribute('cy', y);
             circle.setAttribute('r', noteRadius);
 
-            if (isActive) {
+            if (isPlainMarker) {
+                circle.setAttribute('fill', '#000');
+                circle.setAttribute('stroke', '#000');
+                circle.setAttribute('stroke-width', '2');
+            } else if (isActive) {
                 const colors = MusicTheory.getIntervalColor(interval);
                 const isRoot = interval === '1';
                 circle.setAttribute('fill', (isRoot && !useScaleDegrees) ? '#000' : colors.fill);
@@ -1399,7 +1410,9 @@
             text.setAttribute('font-family', 'Monaco, Consolas, monospace');
             text.setAttribute('font-weight', '700');
 
-            if (isActive) {
+            if (isPlainMarker) {
+                text.setAttribute('fill', '#fff');
+            } else if (isActive) {
                 const colors = MusicTheory.getIntervalColor(interval);
                 const isRoot = interval === '1';
                 text.setAttribute('fill', (isRoot && !useScaleDegrees) ? '#fff' : colors.text);
@@ -1415,21 +1428,24 @@
             text.textContent = noteNames[i];
             svg.appendChild(text);
 
-            const ilRadius = radius - noteRadius - 12;
-            const lx = cx + ilRadius * Math.cos(angle);
-            const ly = cy + ilRadius * Math.sin(angle);
-            const label = document.createElementNS(ns, 'text');
-            label.setAttribute('x', lx);
-            label.setAttribute('y', ly);
-            label.setAttribute('text-anchor', 'middle');
-            label.setAttribute('dominant-baseline', 'central');
-            const isHighlighted = highlightedNotes && highlightedNotes.has(i);
-            label.setAttribute('font-size', (isActive || isHighlighted) ? '10' : '8');
-            label.setAttribute('font-weight', '600');
-            label.setAttribute('font-family', 'Monaco, Consolas, monospace');
-            label.setAttribute('fill', (isActive || isHighlighted) ? '#000' : '#ccc');
-            label.textContent = isActive ? interval : SEMITONE_LABELS[(i - rootIndex + 12) % 12];
-            svg.appendChild(label);
+            // Inner interval labels (skip in plain marker mode)
+            if (!isPlainMode) {
+                const ilRadius = radius - noteRadius - 12;
+                const lx = cx + ilRadius * Math.cos(angle);
+                const ly = cy + ilRadius * Math.sin(angle);
+                const label = document.createElementNS(ns, 'text');
+                label.setAttribute('x', lx);
+                label.setAttribute('y', ly);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('dominant-baseline', 'central');
+                const isHighlighted = highlightedNotes && highlightedNotes.has(i);
+                label.setAttribute('font-size', (isActive || isHighlighted) ? '10' : '8');
+                label.setAttribute('font-weight', '600');
+                label.setAttribute('font-family', 'Monaco, Consolas, monospace');
+                label.setAttribute('fill', (isActive || isHighlighted) ? '#000' : '#ccc');
+                label.textContent = isActive ? interval : SEMITONE_LABELS[(i - rootIndex + 12) % 12];
+                svg.appendChild(label);
+            }
         }
     }
 
@@ -1456,7 +1472,7 @@
             gridEl.style.gridTemplateColumns = '';
             gridEl.textContent = info.notes.join(' ');
             gridEl.className = 'info-grid info-grid-text';
-            renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex, info.highlightedNotes, info.useScaleDegrees);
+            renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex, info.highlightedNotes, info.useScaleDegrees, info.plainMarkerNotes);
             return;
         }
 
@@ -1488,7 +1504,7 @@
             gridEl.parentNode.appendChild(descEl);
         }
 
-        renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex, info.highlightedNotes, info.useScaleDegrees);
+        renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex, info.highlightedNotes, info.useScaleDegrees, info.plainMarkerNotes);
     }
 
     /**
