@@ -50,6 +50,8 @@ body {
         gap: 1rem;
         align-items: stretch;
         padding: 1rem;
+        min-height: 0;
+        overflow: hidden;
     }
 
     #controls-panel h2 {
