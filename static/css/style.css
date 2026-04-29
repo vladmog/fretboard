@@ -32,7 +32,7 @@ body {
 /* Desktop/Tablet: stacked layout (fretboard on top, controls below) */
 @media (min-width: 769px) {
     .app-container {
-        grid-template-rows: 3fr 2fr;
+        grid-template-rows: 1fr 1fr;
         grid-template-columns: 1fr;
         padding: max(1.5rem, env(safe-area-inset-top)) max(1.5rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1.5rem, env(safe-area-inset-left));
         gap: 1.5rem;
@@ -69,7 +69,9 @@ body {
     .controls-scroll-area > .control-group {
         flex: 1 1 33.333%;
         min-width: 0;
+        min-height: 0;
         margin-bottom: 0;
+        overflow-y: auto;
     }
 
     #info-panel {
