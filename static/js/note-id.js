@@ -551,15 +551,6 @@
         gameState.circleApi = renderChromaticCircle(circleContainer, gameState.centerSemitone, handlePick);
         circlePanel.appendChild(circleContainer);
 
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'game-next-btn';
-        nextBtn.id = 'game-next-btn';
-        nextBtn.textContent = 'Next';
-        nextBtn.style.display = 'none';
-        nextBtn.style.marginTop = '1rem';
-        nextBtn.addEventListener('click', nextQuestion);
-        circlePanel.appendChild(nextBtn);
-
         wrapper.appendChild(matrixPanel);
         wrapper.appendChild(circlePanel);
         content.appendChild(wrapper);
@@ -628,10 +619,7 @@
             });
         }
 
-        setTimeout(() => {
-            const nextBtn = document.getElementById('game-next-btn');
-            if (nextBtn) nextBtn.style.display = 'block';
-        }, 400);
+        if (window.Games && window.Games.markReady) window.Games.markReady();
     }
 
     function showResults() {
@@ -896,6 +884,7 @@
     window.NoteId = {
         renderTitlePage,
         renderSettings,
-        cleanup
+        cleanup,
+        advance: nextQuestion
     };
 })();

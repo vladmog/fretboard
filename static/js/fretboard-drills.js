@@ -644,15 +644,6 @@
 
         controlsPanel.appendChild(controlsInner);
 
-        // Next button (hidden initially, outside wrapper so it doesn't rotate)
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'game-next-btn';
-        nextBtn.id = 'game-next-btn';
-        nextBtn.textContent = 'Next';
-        nextBtn.style.display = 'none';
-        nextBtn.addEventListener('click', nextQuestion);
-        controlsPanel.appendChild(nextBtn);
-
         wrapper.appendChild(fretboardPanel);
         wrapper.appendChild(controlsPanel);
         content.appendChild(wrapper);
@@ -815,10 +806,7 @@
             questionDiv.textContent = gameState.currentRoot;
         }
 
-        setTimeout(() => {
-            const nextBtn = document.getElementById('game-next-btn');
-            if (nextBtn) nextBtn.style.display = 'block';
-        }, 500);
+        if (window.Games && window.Games.markReady) window.Games.markReady();
     }
 
     function handleCorrectAnswer(string, fret, stringIndex) {
@@ -889,10 +877,7 @@
             }
         }
 
-        setTimeout(() => {
-            const nextBtn = document.getElementById('game-next-btn');
-            if (nextBtn) nextBtn.style.display = 'block';
-        }, 500);
+        if (window.Games && window.Games.markReady) window.Games.markReady();
     }
 
     function updateQuestionAfterCorrect() {
@@ -1001,11 +986,7 @@
             });
         }
 
-        const delay = 500 + (noteCount * 200);
-        setTimeout(() => {
-            const nextBtn = document.getElementById('game-next-btn');
-            if (nextBtn) nextBtn.style.display = 'block';
-        }, delay);
+        if (window.Games && window.Games.markReady) window.Games.markReady();
     }
 
     // ---- Chord builder handlers ----
@@ -1097,10 +1078,7 @@
             Sound.playChord(chordNoteNames);
         }
 
-        setTimeout(() => {
-            const nextBtn = document.getElementById('game-next-btn');
-            if (nextBtn) nextBtn.style.display = 'block';
-        }, 500);
+        if (window.Games && window.Games.markReady) window.Games.markReady();
     }
 
     // ---- Results ----
@@ -2290,6 +2268,7 @@
     window.FretboardDrills = {
         renderTitlePage,
         renderSettings,
-        cleanup
+        cleanup,
+        advance: nextQuestion
     };
 })();

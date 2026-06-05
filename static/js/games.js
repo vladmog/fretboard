@@ -36,8 +36,14 @@
         previousMode: 'scale'
     };
 
+    // When true, a tap anywhere in the game content (outside designated controls)
+    // advances to the next round. Set by the active game via markReady() once a
+    // question has been answered; cleared on advance and on state transitions.
+    let awaitingAdvance = false;
+
     function activate() {
         gameState.active = true;
+        awaitingAdvance = false;
         const panel = document.getElementById('games-panel');
         if (panel) panel.style.display = 'block';
 
@@ -51,6 +57,7 @@
 
     function deactivate() {
         gameState.active = false;
+        awaitingAdvance = false;
         const panel = document.getElementById('games-panel');
         if (panel) panel.style.display = 'none';
 
@@ -64,6 +71,18 @@
 
     function getCurrentGame() {
         return GAMES[gameState.currentGame] || null;
+    }
+
+    // Called by the active game once a question has been answered. Defers arming
+    // the flag to the next macrotask so that the click which produced the answer
+    // finishes bubbling without immediately advancing — the NEXT tap advances.
+    // The identity guard prevents a deferred arm from leaking into a different
+    // game if the user switches games during the reveal.
+    function markReady() {
+        const g = gameState.currentGame;
+        setTimeout(() => {
+            if (gameState.currentGame === g) awaitingAdvance = true;
+        }, 0);
     }
 
     function updateSoundButton() {
@@ -107,6 +126,7 @@
         const backBtn = document.getElementById('games-back-btn');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
+                awaitingAdvance = false;
                 const modeRadio = document.querySelector(
                     `input[name="mode"][value="${gameState.previousMode}"]`
                 );
@@ -150,6 +170,7 @@
         const gameSelect = document.getElementById('games-select');
         if (gameSelect) {
             gameSelect.addEventListener('change', (e) => {
+                awaitingAdvance = false;
                 const game = getCurrentGame();
                 if (game && game.cleanup) game.cleanup();
 
@@ -159,6 +180,25 @@
                 if (newGame && newGame.renderTitlePage) {
                     newGame.renderTitlePage();
                 }
+            });
+        }
+
+        // Tap anywhere in the game content (outside designated controls) to
+        // advance once the current question has been answered. Replaces the old
+        // per-game "Next" button.
+        const content = document.getElementById('game-content');
+        if (content) {
+            content.addEventListener('click', (e) => {
+                if (!awaitingAdvance) return;
+                const modal = document.getElementById('game-settings-modal');
+                if (modal && getComputedStyle(modal).display !== 'none') return;
+                // Real interactive controls (answer buttons, toggles, links) keep
+                // their own behavior; SVG answer inputs are not excluded, so a tap
+                // on the circle/fretboard after answering advances.
+                if (e.target.closest('button, select, input, label, a')) return;
+                awaitingAdvance = false;
+                const game = getCurrentGame();
+                if (game && game.advance) game.advance();
             });
         }
     }
@@ -171,6 +211,7 @@
         activate,
         deactivate,
         getState: () => ({ ...gameState }),
-        setPreviousMode: (mode) => { gameState.previousMode = mode; }
+        setPreviousMode: (mode) => { gameState.previousMode = mode; },
+        markReady
     };
 })();

@@ -562,15 +562,6 @@ function createEarTrainingGame(config) {
         feedback.id = 'ear-training-feedback';
         wrapper.appendChild(feedback);
 
-        // Next button (hidden initially)
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'game-next-btn';
-        nextBtn.id = 'game-next-btn';
-        nextBtn.textContent = 'Next';
-        nextBtn.style.display = 'none';
-        nextBtn.addEventListener('click', nextQuestion);
-        wrapper.appendChild(nextBtn);
-
         content.appendChild(wrapper);
 
         gameState.questionStartTime = performance.now();
@@ -629,10 +620,7 @@ function createEarTrainingGame(config) {
                 feedback.style.color = '#32CD32';
             }
 
-            setTimeout(() => {
-                const nextBtn = document.getElementById('game-next-btn');
-                if (nextBtn) nextBtn.style.display = 'block';
-            }, 500);
+            if (window.Games && window.Games.markReady) window.Games.markReady();
         } else {
             // --- Wrong answer: retry ---
             if (!gameState.hadMistake) {
@@ -986,7 +974,8 @@ function createEarTrainingGame(config) {
     return {
         renderTitlePage,
         renderSettings,
-        cleanup
+        cleanup,
+        advance: nextQuestion
     };
 }
 
