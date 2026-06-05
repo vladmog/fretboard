@@ -1994,7 +1994,8 @@ select.rainbow-select {
 /* ---- Interval ID (Matrix Drills): split-screen layout ---- */
 
 /* Constrain content height when active (mirrors fretboard-drills) */
-.interval-id-active .game-content {
+.interval-id-active .game-content,
+.note-id-active .game-content {
     padding-top: calc(1rem + env(safe-area-inset-top, 0px));
     padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
     overflow: hidden;
@@ -2004,7 +2005,8 @@ select.rainbow-select {
 }
 
 /* Desktop / tablet: matrix left, circle right */
-.interval-id-active .game-split-layout {
+.interval-id-active .game-split-layout,
+.note-id-active .game-split-layout {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr;
 }
@@ -2025,13 +2027,16 @@ select.rainbow-select {
     background-color: #f5f5f5;
 }
 
-.interval-id-counter {
+.interval-id-counter,
+.note-id-counter {
     flex: 0 0 auto;
     margin-bottom: 0.75rem;
 }
 
 .interval-id-matrix-container,
-.interval-id-circle-container {
+.interval-id-circle-container,
+.note-id-matrix-container,
+.note-id-circle-container {
     flex: 1 1 0;
     min-height: 0;
     width: 100%;
@@ -2042,18 +2047,22 @@ select.rainbow-select {
 }
 
 .interval-id-matrix-container svg,
-.interval-id-circle-container svg {
+.interval-id-circle-container svg,
+.note-id-matrix-container svg,
+.note-id-circle-container svg {
     max-width: 100%;
     max-height: 100%;
 }
 
 /* Mobile: matrix top, circle bottom */
 @media (max-width: 768px) {
-    .interval-id-active .game-content {
+    .interval-id-active .game-content,
+    .note-id-active .game-content {
         padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 calc(4rem + env(safe-area-inset-bottom, 0px)) 0;
     }
 
-    .interval-id-active .game-split-layout {
+    .interval-id-active .game-split-layout,
+    .note-id-active .game-split-layout {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr 1fr;
     }
