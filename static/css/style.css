@@ -1991,6 +1991,84 @@ select.rainbow-select {
     }
 }
 
+/* ---- Interval ID (Matrix Drills): split-screen layout ---- */
+
+/* Constrain content height when active (mirrors fretboard-drills) */
+.interval-id-active .game-content {
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+}
+
+/* Desktop / tablet: matrix left, circle right */
+.interval-id-active .game-split-layout {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+}
+
+.game-split-matrix,
+.game-split-circle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    overflow: hidden;
+    padding: 1rem;
+}
+
+.game-split-matrix {
+    border-right: 1px solid #000;
+    background-color: #f5f5f5;
+}
+
+.interval-id-counter {
+    flex: 0 0 auto;
+    margin-bottom: 0.75rem;
+}
+
+.interval-id-matrix-container,
+.interval-id-circle-container {
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.interval-id-matrix-container svg,
+.interval-id-circle-container svg {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Mobile: matrix top, circle bottom */
+@media (max-width: 768px) {
+    .interval-id-active .game-content {
+        padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 calc(4rem + env(safe-area-inset-bottom, 0px)) 0;
+    }
+
+    .interval-id-active .game-split-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+
+    .game-split-matrix {
+        border-right: none;
+        border-bottom: 1px solid #000;
+    }
+
+    .game-split-matrix,
+    .game-split-circle {
+        padding: 0.5rem;
+    }
+}
+
 /* ========================================
    DEV PANEL
    ======================================== */

@@ -13,7 +13,8 @@
         'blind-interval-training': window.BlindIntervalTraining,
         'ear-training': window.EarTraining,
         'chromatic-circle-drills': window.ChromaticCircleDrills,
-        'fretboard-drills': window.FretboardDrills
+        'fretboard-drills': window.FretboardDrills,
+        'interval-id': window.IntervalId
     };
 
     const GAME_NAMES = {
@@ -21,7 +22,8 @@
         'blind-interval-training': 'Blind Interval Training',
         'ear-training': 'Ear Training',
         'chromatic-circle-drills': 'Chromatic Circle Drills',
-        'fretboard-drills': 'Fretboard Drills'
+        'fretboard-drills': 'Fretboard Drills',
+        'interval-id': 'Interval ID'
     };
 
     // Framework state
