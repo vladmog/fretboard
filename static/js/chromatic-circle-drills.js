@@ -614,15 +614,6 @@
 
         wrapper.appendChild(circleContainer);
 
-        // Next button (hidden initially)
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'game-next-btn';
-        nextBtn.id = 'game-next-btn';
-        nextBtn.textContent = 'Next';
-        nextBtn.style.display = 'none';
-        nextBtn.addEventListener('click', nextQuestion);
-        wrapper.appendChild(nextBtn);
-
         content.appendChild(wrapper);
 
         gameState.questionStartTime = performance.now();
@@ -736,13 +727,7 @@
                 Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
             }
 
-            // Show next button after 500ms
-            setTimeout(() => {
-                const nextBtn = document.getElementById('game-next-btn');
-                if (nextBtn) {
-                    nextBtn.style.display = 'block';
-                }
-            }, 500);
+            if (window.Games && window.Games.markReady) window.Games.markReady();
         }
     }
 
@@ -1015,6 +1000,7 @@
     window.ChromaticCircleDrills = {
         renderTitlePage,
         renderSettings,
-        cleanup
+        cleanup,
+        advance: nextQuestion
     };
 })();

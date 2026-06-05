@@ -1363,15 +1363,6 @@ function createIntervalTrainingGame(config) {
 
         wrapper.appendChild(circleContainer);
 
-        // Next button (hidden initially)
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'game-next-btn';
-        nextBtn.id = 'game-next-btn';
-        nextBtn.textContent = 'Next';
-        nextBtn.style.display = 'none';
-        nextBtn.addEventListener('click', nextQuestion);
-        wrapper.appendChild(nextBtn);
-
         content.appendChild(wrapper);
 
         gameState.questionStartTime = performance.now();
@@ -1598,13 +1589,7 @@ function createIntervalTrainingGame(config) {
                 }
             }
 
-            // Show next button at 500ms
-            setTimeout(() => {
-                const nextBtn = document.getElementById('game-next-btn');
-                if (nextBtn) {
-                    nextBtn.style.display = 'block';
-                }
-            }, 500);
+            if (window.Games && window.Games.markReady) window.Games.markReady();
         }
     }
 
@@ -1793,14 +1778,7 @@ function createIntervalTrainingGame(config) {
             });
         }
 
-        // Show Next button after arpeggio finishes
-        const delay = 500 + (noteCount * 200);
-        setTimeout(() => {
-            const nextBtn = document.getElementById('game-next-btn');
-            if (nextBtn) {
-                nextBtn.style.display = 'block';
-            }
-        }, delay);
+        if (window.Games && window.Games.markReady) window.Games.markReady();
     }
 
     function handleChordCorrectStep(noteIndex) {
@@ -1986,13 +1964,7 @@ function createIntervalTrainingGame(config) {
             Sound.playChord(chordNoteNames);
         }
 
-        // Show Next button
-        setTimeout(() => {
-            const nextBtn = document.getElementById('game-next-btn');
-            if (nextBtn) {
-                nextBtn.style.display = 'block';
-            }
-        }, 500);
+        if (window.Games && window.Games.markReady) window.Games.markReady();
     }
 
     function showResults() {
@@ -2593,7 +2565,8 @@ function createIntervalTrainingGame(config) {
     return {
         renderTitlePage,
         renderSettings,
-        cleanup
+        cleanup,
+        advance: nextQuestion
     };
 }
 
