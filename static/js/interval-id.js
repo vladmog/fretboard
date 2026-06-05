@@ -63,7 +63,9 @@
         circleApi: null,
         questionStartTime: 0,
         questionTimes: [],
-        lastCenter: null
+        lastCenter: null,
+        lastTargetRow: null,
+        lastTargetCol: null
     };
 
     let stats = {};
@@ -492,6 +494,8 @@
         gameState.correctCount = 0;
         gameState.questionTimes = [];
         gameState.lastCenter = null;
+        gameState.lastTargetRow = null;
+        gameState.lastTargetCol = null;
         nextQuestion();
     }
 
@@ -519,12 +523,17 @@
         gameState.lastCenter = centerSemitone;
         gameState.centerSemitone = centerSemitone;
 
-        // Random non-center cell as target
+        // Random non-center cell as target, avoid repeating the previous round's cell
         let row, col;
         do {
             row = Math.floor(Math.random() * N);
             col = Math.floor(Math.random() * N);
-        } while (row === center && col === center);
+        } while (
+            (row === center && col === center) ||
+            (row === gameState.lastTargetRow && col === gameState.lastTargetCol)
+        );
+        gameState.lastTargetRow = row;
+        gameState.lastTargetCol = col;
         gameState.targetRow = row;
         gameState.targetCol = col;
         gameState.targetSemitone = cellSemitone(row, col, center, centerSemitone);
