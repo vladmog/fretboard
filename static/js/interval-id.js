@@ -44,7 +44,8 @@
     let settings = {
         matrixSize: 3,
         roundCount: 10,
-        showColors: true
+        showColors: true,
+        allowedCenters: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     };
 
     // Game runtime state
@@ -81,6 +82,17 @@
                     settings.roundCount = roundOptions.reduce((prev, curr) =>
                         Math.abs(curr - settings.roundCount) < Math.abs(prev - settings.roundCount) ? curr : prev
                     );
+                }
+                // Sanitize allowed center intervals: integers 0-11, de-duped, non-empty
+                if (Array.isArray(settings.allowedCenters)) {
+                    settings.allowedCenters = [...new Set(settings.allowedCenters)]
+                        .filter(s => Number.isInteger(s) && s >= 0 && s <= 11)
+                        .sort((a, b) => a - b);
+                } else {
+                    settings.allowedCenters = [];
+                }
+                if (settings.allowedCenters.length === 0) {
+                    settings.allowedCenters = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
                 }
             }
         } catch (e) {
@@ -389,6 +401,68 @@
         colorsGroup.appendChild(colorsSelect);
         modalBody.appendChild(colorsGroup);
 
+        // Center intervals — which intervals may appear in the middle cell
+        const centerGroup = document.createElement('div');
+        centerGroup.className = 'game-setting-group';
+        const centerHeader = document.createElement('div');
+        centerHeader.className = 'game-setting-header';
+        const centerLabel = document.createElement('label');
+        centerLabel.textContent = 'Center Intervals';
+        centerLabel.className = 'game-setting-label';
+        centerHeader.appendChild(centerLabel);
+
+        const centerBtns = document.createElement('div');
+        centerBtns.className = 'game-setting-btns';
+        const selectAllCenter = document.createElement('button');
+        selectAllCenter.textContent = 'All';
+        selectAllCenter.className = 'game-setting-btn';
+        centerBtns.appendChild(selectAllCenter);
+        centerHeader.appendChild(centerBtns);
+        centerGroup.appendChild(centerHeader);
+
+        const centerChecks = document.createElement('div');
+        centerChecks.className = 'game-setting-checks';
+
+        const centerCheckboxes = [];
+        for (let s = 0; s <= 11; s++) {
+            const label = document.createElement('label');
+            label.className = 'game-setting-check-label';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = settings.allowedCenters.includes(s);
+            cb.addEventListener('change', () => {
+                if (cb.checked) {
+                    if (!settings.allowedCenters.includes(s)) {
+                        settings.allowedCenters.push(s);
+                        settings.allowedCenters.sort((a, b) => a - b);
+                    }
+                } else {
+                    // Never allow deselecting the last remaining interval
+                    if (settings.allowedCenters.length <= 1) {
+                        cb.checked = true;
+                        return;
+                    }
+                    settings.allowedCenters = settings.allowedCenters.filter(v => v !== s);
+                }
+                saveSettings();
+            });
+            centerCheckboxes.push(cb);
+            const span = document.createElement('span');
+            span.textContent = SIMPLE_LABELS[s];
+            label.appendChild(cb);
+            label.appendChild(span);
+            centerChecks.appendChild(label);
+        }
+
+        selectAllCenter.addEventListener('click', () => {
+            settings.allowedCenters = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+            centerCheckboxes.forEach(cb => cb.checked = true);
+            saveSettings();
+        });
+
+        centerGroup.appendChild(centerChecks);
+        modalBody.appendChild(centerGroup);
+
         // Clear stats button
         const clearGroup = document.createElement('div');
         clearGroup.className = 'game-setting-group';
@@ -434,10 +508,13 @@
         const N = settings.matrixSize;
         const center = (N - 1) / 2;
 
-        // Random center interval, avoid repeating the previous round's center
-        let centerSemitone = Math.floor(Math.random() * 12);
-        if (gameState.lastCenter !== null && centerSemitone === gameState.lastCenter) {
-            centerSemitone = (centerSemitone + 1 + Math.floor(Math.random() * 11)) % 12;
+        // Random center interval from the allowed set, avoid repeating the previous
+        // round's center (only possible when more than one interval is allowed)
+        const pool = settings.allowedCenters;
+        let centerSemitone = pool[Math.floor(Math.random() * pool.length)];
+        if (pool.length > 1 && gameState.lastCenter !== null && centerSemitone === gameState.lastCenter) {
+            const others = pool.filter(v => v !== gameState.lastCenter);
+            centerSemitone = others[Math.floor(Math.random() * others.length)];
         }
         gameState.lastCenter = centerSemitone;
         gameState.centerSemitone = centerSemitone;
