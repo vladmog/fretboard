@@ -2050,8 +2050,8 @@ select.rainbow-select {
 .interval-id-circle-container svg,
 .note-id-matrix-container svg,
 .note-id-circle-container svg {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 75%;
+    max-height: 75%;
 }
 
 /* Mobile: matrix top, circle bottom */

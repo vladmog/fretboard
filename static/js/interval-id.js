@@ -156,8 +156,8 @@
 
         const svg = document.createElementNS(svgNS, 'svg');
         svg.setAttribute('viewBox', `0 0 ${total} ${total}`);
-        svg.style.maxWidth = '100%';
-        svg.style.maxHeight = '100%';
+        svg.style.maxWidth = '75%';
+        svg.style.maxHeight = '75%';
         svg.style.display = 'block';
 
         const center = (N - 1) / 2;
@@ -230,8 +230,8 @@
         const size = 400;
         const svg = document.createElementNS(svgNS, 'svg');
         svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
-        svg.style.maxWidth = '100%';
-        svg.style.maxHeight = '100%';
+        svg.style.maxWidth = '75%';
+        svg.style.maxHeight = '75%';
         svg.style.display = 'block';
         svg.style.margin = '0 auto';
 
