@@ -15,7 +15,9 @@
         'chromatic-circle-drills': window.ChromaticCircleDrills,
         'fretboard-drills': window.FretboardDrills,
         'interval-id': window.IntervalId,
-        'note-id': window.NoteId
+        'note-id': window.NoteId,
+        'interval-locator': window.IntervalLocator,
+        'note-locator': window.NoteLocator
     };
 
     const GAME_NAMES = {
@@ -25,7 +27,9 @@
         'chromatic-circle-drills': 'Chromatic Circle Drills',
         'fretboard-drills': 'Fretboard Drills',
         'interval-id': 'Interval ID',
-        'note-id': 'Note ID'
+        'note-id': 'Note ID',
+        'interval-locator': 'Interval Locator',
+        'note-locator': 'Note Locator'
     };
 
     // Framework state

@@ -1995,7 +1995,9 @@ select.rainbow-select {
 
 /* Constrain content height when active (mirrors fretboard-drills) */
 .interval-id-active .game-content,
-.note-id-active .game-content {
+.note-id-active .game-content,
+.interval-locator-active .game-content,
+.note-locator-active .game-content {
     padding-top: calc(1rem + env(safe-area-inset-top, 0px));
     padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
     overflow: hidden;
@@ -2006,7 +2008,9 @@ select.rainbow-select {
 
 /* Desktop / tablet: matrix left, circle right */
 .interval-id-active .game-split-layout,
-.note-id-active .game-split-layout {
+.note-id-active .game-split-layout,
+.interval-locator-active .game-split-layout,
+.note-locator-active .game-split-layout {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr;
 }
@@ -2028,15 +2032,43 @@ select.rainbow-select {
 }
 
 .interval-id-counter,
-.note-id-counter {
+.note-id-counter,
+.interval-locator-counter,
+.note-locator-counter {
     flex: 0 0 auto;
     margin-bottom: 0.75rem;
+}
+
+/* End-of-round "Round complete — tap to continue" hint (locator games) */
+.locator-complete-hint {
+    flex: 0 0 auto;
+    margin-top: 0.75rem;
+    text-align: center;
+}
+
+.locator-complete-main {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.85rem;
+    color: #1a7a1a;
+}
+
+.locator-complete-sub {
+    margin-top: 0.15rem;
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: #666;
 }
 
 .interval-id-matrix-container,
 .interval-id-circle-container,
 .note-id-matrix-container,
-.note-id-circle-container {
+.note-id-circle-container,
+.interval-locator-matrix-container,
+.interval-locator-circle-container,
+.note-locator-matrix-container,
+.note-locator-circle-container {
     flex: 1 1 0;
     min-height: 0;
     width: 100%;
@@ -2049,7 +2081,11 @@ select.rainbow-select {
 .interval-id-matrix-container svg,
 .interval-id-circle-container svg,
 .note-id-matrix-container svg,
-.note-id-circle-container svg {
+.note-id-circle-container svg,
+.interval-locator-matrix-container svg,
+.interval-locator-circle-container svg,
+.note-locator-matrix-container svg,
+.note-locator-circle-container svg {
     max-width: 75%;
     max-height: 75%;
 }
@@ -2057,12 +2093,16 @@ select.rainbow-select {
 /* Mobile: matrix top, circle bottom */
 @media (max-width: 768px) {
     .interval-id-active .game-content,
-    .note-id-active .game-content {
+    .note-id-active .game-content,
+    .interval-locator-active .game-content,
+    .note-locator-active .game-content {
         padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 calc(4rem + env(safe-area-inset-bottom, 0px)) 0;
     }
 
     .interval-id-active .game-split-layout,
-    .note-id-active .game-split-layout {
+    .note-id-active .game-split-layout,
+    .interval-locator-active .game-split-layout,
+    .note-locator-active .game-split-layout {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr 1fr;
     }
