@@ -3,7 +3,7 @@
  * Toggles marker text rotation by 90° clockwise on fretboard tap
  */
 
-import { FretboardApp } from './app.js';
+import { state } from './state.js';
 
 let currentRotation = 0; // 0 or 90
 
@@ -25,7 +25,7 @@ function rotateMarkerText(angle) {
  * Toggle rotation between 0 and 90 degrees
  */
 function toggleRotation() {
-    if (['f.chord', 'f.scale'].includes(FretboardApp.getState().mode)) return;
+    if (['f.chord', 'f.scale'].includes(state.mode)) return;
     currentRotation = currentRotation === 0 ? 90 : 0;
     rotateMarkerText(currentRotation);
 }
