@@ -3,10 +3,10 @@
  * Connects music theory module with fretboard visualization
  */
 
-import * as MusicTheory from './music-theory.js';
-import * as ChordProgressions from './chord-progressions.js';
-import * as Sound from './sound.js';
-import { createFretboard } from './fretboard.js';
+import * as MusicTheory from './core/music-theory.js';
+import * as ChordProgressions from './core/progressions.js';
+import * as Sound from './core/sound.js';
+import { createFretboard } from './core/fretboard.js';
 import { Games } from './games.js';
 import * as RotationToggle from './rotation-toggle.js';
 

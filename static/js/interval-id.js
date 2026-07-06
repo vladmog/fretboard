@@ -11,7 +11,7 @@
  * Loaded before games.js so it can register itself.
  */
 
-import * as MusicTheory from './music-theory.js';
+import * as MusicTheory from './core/music-theory.js';
 import { Games } from './games.js';
 
 export default (function() {

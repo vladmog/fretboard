@@ -5,10 +5,10 @@
  * Any fret producing the correct note (mod 12) counts as correct.
  */
 
-import * as MusicTheory from './music-theory.js';
-import * as Sound from './sound.js';
-import * as WeightedSelection from './weighted-selection.js';
-import { createFretboard } from './fretboard.js';
+import * as MusicTheory from './core/music-theory.js';
+import * as Sound from './core/sound.js';
+import * as WeightedSelection from './core/weighted-selection.js';
+import { createFretboard } from './core/fretboard.js';
 import { Games } from './games.js';
 
 export default (function() {

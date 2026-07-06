@@ -4,9 +4,9 @@
  * Loaded before games.js so it can register itself
  */
 
-import * as MusicTheory from './music-theory.js';
-import * as Sound from './sound.js';
-import * as WeightedSelection from './weighted-selection.js';
+import * as MusicTheory from './core/music-theory.js';
+import * as Sound from './core/sound.js';
+import * as WeightedSelection from './core/weighted-selection.js';
 import { Games } from './games.js';
 
 function createIntervalTrainingGame(config) {

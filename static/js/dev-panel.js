@@ -3,7 +3,7 @@
  * Set DEV_MODE to false to disable completely (zero overhead).
  */
 
-import * as Sound from './sound.js';
+import * as Sound from './core/sound.js';
 
 (function() {
     'use strict';
