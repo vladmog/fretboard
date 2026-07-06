@@ -39,6 +39,11 @@ pip install flask
 python app.py
 ```
 
+To preview the static GitHub Pages build locally, serve the repo root over
+HTTP (`python3 -m http.server`) and open `/index.html`. Opening it directly
+via `file://` won't work — the app uses native ES modules, which require an
+HTTP origin.
+
 ## Usage
 
 1. Select **Scale** or **Chord** mode
@@ -51,16 +56,19 @@ python app.py
 
 ```
 fretboard/
-├── app.py                 # Flask server
+├── app.py                # Flask server
+├── index.html            # Static entry point (GitHub Pages)
 ├── templates/
-│   └── index.html        # Main app template
+│   └── index.html        # Flask template (kept in sync with index.html)
 └── static/
-    ├── css/
-    │   └── style.css     # Brutalist styling
+    ├── css/              # base / controls / find / games / dev-panel
+    ├── data/
+    │   └── progressions.json  # Chord progression library
     └── js/
-        ├── fretboard.js  # SVG rendering
-        ├── music-theory.js # Core theory logic
-        └── app.js        # UI state management
+        ├── main.js       # ES module entry point
+        ├── core/         # Pure modules: music theory, SVG fretboard, sound
+        ├── app/          # Visualizer UI: state, renderers, events
+        └── games/        # Training games: framework + game modules
 ```
 
 ## License
