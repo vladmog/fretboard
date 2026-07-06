@@ -7,7 +7,7 @@ import * as MusicTheory from './core/music-theory.js';
 import * as ChordProgressions from './core/progressions.js';
 import * as Sound from './core/sound.js';
 import { createFretboard } from './core/fretboard.js';
-import { Games } from './games.js';
+import { Games } from './games/framework.js';
 import * as RotationToggle from './rotation-toggle.js';
 
 export const FretboardApp = (function() {

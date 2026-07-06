@@ -1,29 +1,34 @@
 /**
- * Interval Locator — Matrix Drills (inverse of Interval ID)
- * An all-fourths interval matrix is drawn with one interval revealed in the
+ * Note Locator — Matrix Drills (inverse of Note ID)
+ * An all-fourths semitone matrix is drawn with one note revealed in the
  * center. The chromatic circle is a PROMPT (not an input): it shows the center
- * interval and a target interval to hunt for. The player must click every
- * matrix cell that equals the target interval relative to the center.
+ * note and a target note to hunt for. The player must click every matrix cell
+ * that equals the target note.
  *
  * Matrix convention (matches github.com/vladmog/music-theory):
  *   moving right one column = +1 semitone
  *   moving up one row       = +5 semitones (a perfect 4th)
  *
- * Loaded before games.js so it can register itself.
+ * Notes are colored by their interval relative to the center note (reusing the
+ * interval color scheme). Registered in games/framework.js.
  */
 
-import * as MusicTheory from './core/music-theory.js';
-import { Games } from './games.js';
+import * as MusicTheory from '../core/music-theory.js';
+import * as GameSession from './session.js';
 
 export default (function() {
     'use strict';
 
-    const STORAGE_KEY_SETTINGS = 'fretboard-interval-locator-settings';
+    const STORAGE_KEY_SETTINGS = 'fretboard-note-locator-settings';
     const STORAGE_KEY_STATS = 'fretboard-games-stats';
-    const STATS_KEY = 'interval-locator';
+    const STATS_KEY = 'note-locator';
 
-    // Interval labels indexed by semitone (0-11)
+    // Interval labels indexed by semitone (0-11) — used only for color lookup
     const SIMPLE_LABELS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+
+    // Note names indexed by semitone (0-11)
+    const SHARP_NOTES = MusicTheory.CHROMATIC_NOTES;
+    const FLAT_NOTES = MusicTheory.FLAT_NOTES;
 
     const MATRIX_SIZES = [3, 5, 7];
     const HORIZONTAL_STEP = 1;   // semitones per column moving right
@@ -38,12 +43,26 @@ export default (function() {
         return ((centerSemitone + fromCols + fromRows) % 12 + 144) % 12;
     }
 
+    // Display labels for the current accidental setting
+    function noteLabels() {
+        return settings.accidental === 'flats' ? FLAT_NOTES : SHARP_NOTES;
+    }
+
+    // Color a note by its interval relative to the center note
+    function colorForSemitone(semitone, centerSemitone) {
+        if (!settings.showColors) {
+            return { fill: '#000', border: '#000', text: '#fff' };
+        }
+        const interval = ((semitone - centerSemitone) % 12 + 12) % 12;
+        return MusicTheory.getIntervalColor(SIMPLE_LABELS[interval]);
+    }
+
     // Game settings (persisted)
     let settings = {
         matrixSize: 3,
         roundCount: 10,
         showColors: true,
-        allowedCenters: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        accidental: 'sharps'
     };
 
     // Game runtime state
@@ -82,20 +101,12 @@ export default (function() {
                         Math.abs(curr - settings.roundCount) < Math.abs(prev - settings.roundCount) ? curr : prev
                     );
                 }
-                // Sanitize allowed center intervals: integers 0-11, de-duped, non-empty
-                if (Array.isArray(settings.allowedCenters)) {
-                    settings.allowedCenters = [...new Set(settings.allowedCenters)]
-                        .filter(s => Number.isInteger(s) && s >= 0 && s <= 11)
-                        .sort((a, b) => a - b);
-                } else {
-                    settings.allowedCenters = [];
-                }
-                if (settings.allowedCenters.length === 0) {
-                    settings.allowedCenters = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+                if (settings.accidental !== 'sharps' && settings.accidental !== 'flats') {
+                    settings.accidental = 'sharps';
                 }
             }
         } catch (e) {
-            console.error('Failed to load interval-locator settings:', e);
+            console.error('Failed to load note-locator settings:', e);
         }
     }
 
@@ -103,7 +114,7 @@ export default (function() {
         try {
             localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
         } catch (e) {
-            console.error('Failed to save interval-locator settings:', e);
+            console.error('Failed to save note-locator settings:', e);
         }
     }
 
@@ -160,6 +171,7 @@ export default (function() {
         svg.style.display = 'block';
 
         const center = (N - 1) / 2;
+        const labels = noteLabels();
         const cellEls = [];
 
         for (let row = 0; row < N; row++) {
@@ -188,15 +200,12 @@ export default (function() {
                 text.setAttribute('font-size', cell * 0.4);
 
                 if (isCenter) {
-                    const label = SIMPLE_LABELS[centerSemitone];
-                    const colors = settings.showColors
-                        ? MusicTheory.getIntervalColor(label)
-                        : { fill: '#000', border: '#000', text: '#fff' };
+                    const colors = colorForSemitone(centerSemitone, centerSemitone);
                     rect.setAttribute('fill', colors.fill);
                     rect.setAttribute('stroke', colors.border);
                     rect.setAttribute('stroke-width', 4);
                     text.setAttribute('fill', colors.text);
-                    text.textContent = label;
+                    text.textContent = labels[centerSemitone];
                     cellEls[row][col] = null; // center is not clickable
                 } else {
                     rect.setAttribute('fill', '#fafafa');
@@ -238,15 +247,15 @@ export default (function() {
         const center = size / 2;
         const radius = size * 0.38;
         const markerRadius = size * 0.08;
+        const labels = noteLabels();
 
         for (let i = 0; i < 12; i++) {
             const angle = (i * 30 - 90) * (Math.PI / 180);
             const x = center + radius * Math.cos(angle);
             const y = center + radius * Math.sin(angle);
 
-            const label = SIMPLE_LABELS[i];
             const colors = settings.showColors
-                ? MusicTheory.getIntervalColor(label)
+                ? colorForSemitone(i, centerSemitone)
                 : { fill: i % 2 === 0 ? '#000' : '#777', border: i % 2 === 0 ? '#000' : '#777', text: '#fff' };
 
             const isCenter = (i === centerSemitone);
@@ -292,10 +301,10 @@ export default (function() {
             text.setAttribute('text-anchor', 'middle');
             text.setAttribute('dominant-baseline', 'central');
             text.setAttribute('fill', colors.text);
-            text.setAttribute('font-size', markerRadius * 0.8);
+            text.setAttribute('font-size', markerRadius * 0.7);
             text.setAttribute('font-family', "'Helvetica Neue', Helvetica, Arial, sans-serif");
             text.setAttribute('font-weight', '700');
-            text.textContent = label;
+            text.textContent = labels[i];
 
             g.appendChild(circle);
             g.appendChild(text);
@@ -311,7 +320,7 @@ export default (function() {
     function renderTitlePage() {
         loadStats();
         const gamesPanel = document.getElementById('games-panel');
-        if (gamesPanel) gamesPanel.classList.remove('interval-locator-active');
+        if (gamesPanel) gamesPanel.classList.remove('note-locator-active');
 
         const content = document.getElementById('game-content');
         if (!content) return;
@@ -322,12 +331,12 @@ export default (function() {
 
         const title = document.createElement('h1');
         title.className = 'game-title';
-        title.textContent = 'Interval Locator';
+        title.textContent = 'Note Locator';
         wrapper.appendChild(title);
 
         const explanation = document.createElement('p');
         explanation.className = 'game-explanation';
-        explanation.textContent = 'A matrix shows one interval in the center. Moving right adds a semitone; moving up a row adds a perfect 4th. The chromatic circle highlights a target interval — click every matrix cell that equals it.';
+        explanation.textContent = 'A matrix shows one note in the center. Moving right adds a semitone; moving up a row adds a perfect 4th. The chromatic circle highlights a target note — click every matrix cell that equals it.';
         wrapper.appendChild(explanation);
 
         const statsContainer = document.createElement('div');
@@ -395,6 +404,32 @@ export default (function() {
         roundGroup.appendChild(roundInput);
         modalBody.appendChild(roundGroup);
 
+        // Accidentals toggle
+        const accGroup = document.createElement('div');
+        accGroup.className = 'game-setting-group';
+        const accLabel = document.createElement('label');
+        accLabel.textContent = 'Accidentals';
+        accLabel.className = 'game-setting-label';
+        const accSelect = document.createElement('select');
+        accSelect.className = 'game-setting-select';
+        [
+            { value: 'sharps', text: 'Sharps' },
+            { value: 'flats', text: 'Flats' }
+        ].forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.text;
+            if (opt.value === settings.accidental) option.selected = true;
+            accSelect.appendChild(option);
+        });
+        accSelect.addEventListener('change', () => {
+            settings.accidental = accSelect.value;
+            saveSettings();
+        });
+        accGroup.appendChild(accLabel);
+        accGroup.appendChild(accSelect);
+        modalBody.appendChild(accGroup);
+
         // Colors toggle
         const colorsGroup = document.createElement('div');
         colorsGroup.className = 'game-setting-group';
@@ -421,68 +456,6 @@ export default (function() {
         colorsGroup.appendChild(colorsSelect);
         modalBody.appendChild(colorsGroup);
 
-        // Center intervals — which intervals may appear in the middle cell
-        const centerGroup = document.createElement('div');
-        centerGroup.className = 'game-setting-group';
-        const centerHeader = document.createElement('div');
-        centerHeader.className = 'game-setting-header';
-        const centerLabel = document.createElement('label');
-        centerLabel.textContent = 'Center Intervals';
-        centerLabel.className = 'game-setting-label';
-        centerHeader.appendChild(centerLabel);
-
-        const centerBtns = document.createElement('div');
-        centerBtns.className = 'game-setting-btns';
-        const selectAllCenter = document.createElement('button');
-        selectAllCenter.textContent = 'All';
-        selectAllCenter.className = 'game-setting-btn';
-        centerBtns.appendChild(selectAllCenter);
-        centerHeader.appendChild(centerBtns);
-        centerGroup.appendChild(centerHeader);
-
-        const centerChecks = document.createElement('div');
-        centerChecks.className = 'game-setting-checks';
-
-        const centerCheckboxes = [];
-        for (let s = 0; s <= 11; s++) {
-            const label = document.createElement('label');
-            label.className = 'game-setting-check-label';
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.checked = settings.allowedCenters.includes(s);
-            cb.addEventListener('change', () => {
-                if (cb.checked) {
-                    if (!settings.allowedCenters.includes(s)) {
-                        settings.allowedCenters.push(s);
-                        settings.allowedCenters.sort((a, b) => a - b);
-                    }
-                } else {
-                    // Never allow deselecting the last remaining interval
-                    if (settings.allowedCenters.length <= 1) {
-                        cb.checked = true;
-                        return;
-                    }
-                    settings.allowedCenters = settings.allowedCenters.filter(v => v !== s);
-                }
-                saveSettings();
-            });
-            centerCheckboxes.push(cb);
-            const span = document.createElement('span');
-            span.textContent = SIMPLE_LABELS[s];
-            label.appendChild(cb);
-            label.appendChild(span);
-            centerChecks.appendChild(label);
-        }
-
-        selectAllCenter.addEventListener('click', () => {
-            settings.allowedCenters = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-            centerCheckboxes.forEach(cb => cb.checked = true);
-            saveSettings();
-        });
-
-        centerGroup.appendChild(centerChecks);
-        modalBody.appendChild(centerGroup);
-
         // Clear stats button
         const clearGroup = document.createElement('div');
         clearGroup.className = 'game-setting-group';
@@ -494,7 +467,7 @@ export default (function() {
         clearBtn.style.color = '#000';
         clearBtn.textContent = 'Clear Stats';
         clearBtn.addEventListener('click', () => {
-            if (confirm('Clear all Interval Locator stats?')) {
+            if (confirm('Clear all Note Locator stats?')) {
                 loadStats();
                 delete stats[STATS_KEY];
                 saveStats();
@@ -530,13 +503,10 @@ export default (function() {
         const N = settings.matrixSize;
         const center = (N - 1) / 2;
 
-        // Random center interval from the allowed set, avoid repeating the previous
-        // round's center (only possible when more than one interval is allowed)
-        const pool = settings.allowedCenters;
-        let centerSemitone = pool[Math.floor(Math.random() * pool.length)];
-        if (pool.length > 1 && gameState.lastCenter !== null && centerSemitone === gameState.lastCenter) {
-            const others = pool.filter(v => v !== gameState.lastCenter);
-            centerSemitone = others[Math.floor(Math.random() * others.length)];
+        // Random center note, avoid repeating the previous round's center
+        let centerSemitone = Math.floor(Math.random() * 12);
+        if (gameState.lastCenter !== null && centerSemitone === gameState.lastCenter) {
+            centerSemitone = (centerSemitone + 1 + Math.floor(Math.random() * 11)) % 12;
         }
         gameState.lastCenter = centerSemitone;
         gameState.centerSemitone = centerSemitone;
@@ -552,8 +522,8 @@ export default (function() {
             }
         }
 
-        // Target = an interval present in the matrix, never the center interval,
-        // avoiding an immediate repeat of the previous target when possible.
+        // Target = a note present in the matrix, never the center note, avoiding
+        // an immediate repeat of the previous target when possible.
         let candidates = Object.keys(cellsBySemitone)
             .map(Number)
             .filter(s => s !== centerSemitone);
@@ -571,7 +541,7 @@ export default (function() {
 
     function renderGameView() {
         const gamesPanel = document.getElementById('games-panel');
-        if (gamesPanel) gamesPanel.classList.add('interval-locator-active');
+        if (gamesPanel) gamesPanel.classList.add('note-locator-active');
 
         const content = document.getElementById('game-content');
         if (!content) return;
@@ -585,12 +555,12 @@ export default (function() {
         matrixPanel.className = 'game-split-matrix';
 
         const counter = document.createElement('div');
-        counter.className = 'game-round-counter interval-locator-counter';
+        counter.className = 'game-round-counter note-locator-counter';
         counter.textContent = `${gameState.currentRound} / ${gameState.totalRounds}`;
         matrixPanel.appendChild(counter);
 
         const matrixContainer = document.createElement('div');
-        matrixContainer.className = 'interval-locator-matrix-container';
+        matrixContainer.className = 'note-locator-matrix-container';
         gameState.matrixApi = renderMatrix(
             matrixContainer,
             settings.matrixSize,
@@ -604,7 +574,7 @@ export default (function() {
         circlePanel.className = 'game-split-circle';
 
         const circleContainer = document.createElement('div');
-        circleContainer.className = 'interval-locator-circle-container';
+        circleContainer.className = 'note-locator-circle-container';
         gameState.circleApi = renderChromaticCircle(
             circleContainer,
             gameState.centerSemitone,
@@ -638,15 +608,12 @@ export default (function() {
     }
 
     function revealCell(cellData) {
-        const label = SIMPLE_LABELS[cellData.semitone];
-        const colors = settings.showColors
-            ? MusicTheory.getIntervalColor(label)
-            : { fill: '#000', border: '#000', text: '#fff' };
+        const colors = colorForSemitone(cellData.semitone, gameState.centerSemitone);
         cellData.rect.setAttribute('fill', colors.fill);
         cellData.rect.setAttribute('stroke', colors.border);
         cellData.rect.setAttribute('stroke-width', 4);
         cellData.text.setAttribute('fill', colors.text);
-        cellData.text.textContent = label;
+        cellData.text.textContent = noteLabels()[cellData.semitone];
     }
 
     function flashCellRed(cellData) {
@@ -670,7 +637,7 @@ export default (function() {
 
         const elapsed = performance.now() - gameState.questionStartTime;
         gameState.questionTimes.push({
-            label: SIMPLE_LABELS[gameState.targetSemitone],
+            label: SHARP_NOTES[gameState.targetSemitone],
             timeMs: Math.round(elapsed),
             correct: !gameState.hadMistake
         });
@@ -678,11 +645,11 @@ export default (function() {
         flashCellsComplete();
         showCompleteHint();
 
-        Games.markReady();
+        GameSession.markReady();
     }
 
     // Pulse a green ring around every found cell so the player sees the round is
-    // over. Border-only so the revealed interval fill + label stay visible.
+    // over. Border-only so the revealed note fill + label stay visible.
     function flashCellsComplete() {
         const m = gameState.matrixApi;
         if (!m) return;
@@ -720,7 +687,7 @@ export default (function() {
 
     function showResults() {
         const gamesPanel = document.getElementById('games-panel');
-        if (gamesPanel) gamesPanel.classList.remove('interval-locator-active');
+        if (gamesPanel) gamesPanel.classList.remove('note-locator-active');
 
         const content = document.getElementById('game-content');
         if (!content) return;
@@ -753,7 +720,7 @@ export default (function() {
             timesByLabel[q.label].total += q.timeMs;
             timesByLabel[q.label].count++;
         });
-        const rtItems = SIMPLE_LABELS
+        const rtItems = SHARP_NOTES
             .filter(l => timesByLabel[l])
             .map(l => ({ label: l, timeMs: Math.round(timesByLabel[l].total / timesByLabel[l].count) }));
         renderReactionTimeChart(rtContainer, rtItems, 'Reaction Times');
@@ -845,6 +812,7 @@ export default (function() {
         h.textContent = heading;
         container.appendChild(h);
 
+        const labels = noteLabels();
         const timeMap = {};
         items.forEach(q => { timeMap[q.label] = q.timeMs; });
 
@@ -856,25 +824,25 @@ export default (function() {
 
         const headerRow = document.createElement('div');
         headerRow.className = 'stats-row';
-        SIMPLE_LABELS.forEach(label => {
+        SHARP_NOTES.forEach((key, i) => {
             const cell = document.createElement('div');
             cell.className = 'stats-cell stats-cell-header';
-            cell.textContent = label;
+            cell.textContent = labels[i];
             headerRow.appendChild(cell);
         });
         table.appendChild(headerRow);
 
         const dataRow = document.createElement('div');
         dataRow.className = 'stats-row';
-        SIMPLE_LABELS.forEach(label => {
+        SHARP_NOTES.forEach((key, i) => {
             const cell = document.createElement('div');
             cell.className = 'stats-cell';
-            if (timeMap[label] !== undefined) {
-                const t = timeMap[label];
+            if (timeMap[key] !== undefined) {
+                const t = timeMap[key];
                 const bg = reactionTimeToColor(t, minTime, maxTime);
                 cell.style.backgroundColor = bg;
                 cell.textContent = formatTime(t);
-                cell.title = `${label}: ${formatTime(t)}`;
+                cell.title = `${labels[i]}: ${formatTime(t)}`;
                 const rgb = bg.match(/\d+/g).map(Number);
                 const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
                 cell.style.color = brightness > 140 ? '#000' : '#fff';
@@ -900,31 +868,33 @@ export default (function() {
             return;
         }
 
+        const labels = noteLabels();
+
         const table = document.createElement('div');
         table.className = 'stats-table';
 
         const headerRow = document.createElement('div');
         headerRow.className = 'stats-row';
-        SIMPLE_LABELS.forEach(label => {
+        SHARP_NOTES.forEach((key, i) => {
             const cell = document.createElement('div');
             cell.className = 'stats-cell stats-cell-header';
-            cell.textContent = label;
+            cell.textContent = labels[i];
             headerRow.appendChild(cell);
         });
         table.appendChild(headerRow);
 
         const dataRow = document.createElement('div');
         dataRow.className = 'stats-row';
-        SIMPLE_LABELS.forEach(label => {
+        SHARP_NOTES.forEach((key, i) => {
             const cell = document.createElement('div');
             cell.className = 'stats-cell';
-            const data = gameStats[label];
+            const data = gameStats[key];
             if (data && data.tested > 0) {
                 const ratio = data.correct / data.tested;
                 const pctVal = Math.round(ratio * 100);
                 cell.style.backgroundColor = accuracyToColor(ratio);
                 cell.textContent = `${pctVal}%`;
-                cell.title = `${label}: ${data.correct}/${data.tested} (${pctVal}%)`;
+                cell.title = `${labels[i]}: ${data.correct}/${data.tested} (${pctVal}%)`;
                 cell.style.color = '#000';
             } else {
                 cell.style.backgroundColor = '#f0f0f0';
@@ -943,11 +913,11 @@ export default (function() {
         container.appendChild(accContainer);
 
         const labelAvgs = [];
-        SIMPLE_LABELS.forEach(label => {
-            const data = gameStats[label];
+        SHARP_NOTES.forEach((key) => {
+            const data = gameStats[key];
             if (data && (data.timedCount || 0) > 0) {
                 labelAvgs.push({
-                    label,
+                    label: key,
                     timeMs: Math.round((data.totalTimeMs || 0) / data.timedCount)
                 });
             }
@@ -966,7 +936,7 @@ export default (function() {
         gameState.matrixApi = null;
         gameState.circleApi = null;
         const gamesPanel = document.getElementById('games-panel');
-        if (gamesPanel) gamesPanel.classList.remove('interval-locator-active');
+        if (gamesPanel) gamesPanel.classList.remove('note-locator-active');
     }
 
     // ---- Init ----

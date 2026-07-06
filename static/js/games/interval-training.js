@@ -1,13 +1,13 @@
 /**
  * Interval Training Game
  * Chromatic circle quiz for identifying intervals from root notes
- * Loaded before games.js so it can register itself
+ * Registered in games/framework.js
  */
 
-import * as MusicTheory from './core/music-theory.js';
-import * as Sound from './core/sound.js';
-import * as WeightedSelection from './core/weighted-selection.js';
-import { Games } from './games.js';
+import * as MusicTheory from '../core/music-theory.js';
+import * as Sound from '../core/sound.js';
+import * as WeightedSelection from '../core/weighted-selection.js';
+import * as GameSession from './session.js';
 
 function createIntervalTrainingGame(config) {
     'use strict';
@@ -1373,7 +1373,7 @@ function createIntervalTrainingGame(config) {
         gameState.questionStartTime = performance.now();
 
         // Auto-play sounds on round start
-        const gamesState = Games.getState();
+        const gamesState = GameSession.getState();
         if (gamesState && gamesState.soundEnabled) {
             if (mode === 'root-to-interval') {
                 // Play root, then target interval note
@@ -1450,7 +1450,7 @@ function createIntervalTrainingGame(config) {
         gameState.hadMistake = true;
 
         // Play clicked note sound
-        const gamesState = Games.getState();
+        const gamesState = GameSession.getState();
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(clickedNoteIndex, false);
             Sound.playNote(noteName, getNoteOctave(clickedNoteIndex, gameState.currentRootIndex));
@@ -1569,7 +1569,7 @@ function createIntervalTrainingGame(config) {
             }
 
             // Sound
-            const gamesState2 = Games.getState();
+            const gamesState2 = GameSession.getState();
             if (gamesState2 && gamesState2.soundEnabled) {
                 if (mode === 'root-to-interval') {
                     const targetIndex = (rootIndex + gameState.currentSemitone) % 12;
@@ -1594,7 +1594,7 @@ function createIntervalTrainingGame(config) {
                 }
             }
 
-            Games.markReady();
+            GameSession.markReady();
         }
     }
 
@@ -1603,7 +1603,7 @@ function createIntervalTrainingGame(config) {
         if (!api) return;
 
         // Play clicked note sound
-        const gamesState = Games.getState();
+        const gamesState = GameSession.getState();
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
             Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
@@ -1651,7 +1651,7 @@ function createIntervalTrainingGame(config) {
         if (!api) return;
 
         // Play clicked note sound
-        const gamesState = Games.getState();
+        const gamesState = GameSession.getState();
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(noteIndex, false);
             Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
@@ -1772,7 +1772,7 @@ function createIntervalTrainingGame(config) {
         }
 
         // Arpeggiated playthrough
-        const gamesState = Games.getState();
+        const gamesState = GameSession.getState();
         const noteCount = gameState.scaleNotes.length;
         if (gamesState && gamesState.soundEnabled) {
             gameState.scaleNotes.forEach((noteIdx, i) => {
@@ -1783,7 +1783,7 @@ function createIntervalTrainingGame(config) {
             });
         }
 
-        Games.markReady();
+        GameSession.markReady();
     }
 
     function handleChordCorrectStep(noteIndex) {
@@ -1794,7 +1794,7 @@ function createIntervalTrainingGame(config) {
 
         // Play clicked note sound (skip on last step — chord plays on complete)
         if (!isLastStep) {
-            const gamesState = Games.getState();
+            const gamesState = GameSession.getState();
             if (gamesState && gamesState.soundEnabled) {
                 const noteName = MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
                 Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
@@ -1843,7 +1843,7 @@ function createIntervalTrainingGame(config) {
         if (!api) return;
 
         // Play clicked note sound
-        const gamesState = Games.getState();
+        const gamesState = GameSession.getState();
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(noteIndex, false);
             Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
@@ -1959,7 +1959,7 @@ function createIntervalTrainingGame(config) {
         }
 
         // Play chord
-        const gamesState = Games.getState();
+        const gamesState = GameSession.getState();
         if (gamesState && gamesState.soundEnabled) {
             const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
             const chordNoteNames = gameState.chordNotes.map(noteIdx => {
@@ -1969,7 +1969,7 @@ function createIntervalTrainingGame(config) {
             Sound.playChord(chordNoteNames);
         }
 
-        Games.markReady();
+        GameSession.markReady();
     }
 
     function showResults() {

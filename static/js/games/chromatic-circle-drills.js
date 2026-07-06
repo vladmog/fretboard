@@ -1,12 +1,12 @@
 /**
  * Chromatic Circle Drills Game
  * Quiz for identifying note positions on the chromatic circle
- * Loaded before games.js so it can register itself
+ * Registered in games/framework.js
  */
 
-import * as MusicTheory from './core/music-theory.js';
-import * as Sound from './core/sound.js';
-import { Games } from './games.js';
+import * as MusicTheory from '../core/music-theory.js';
+import * as Sound from '../core/sound.js';
+import * as GameSession from './session.js';
 
 export default (function() {
     'use strict';
@@ -349,7 +349,7 @@ export default (function() {
             return false;
         }
         if (settings.gameMode === 'note-sounds') {
-            const gamesState = Games.getState();
+            const gamesState = GameSession.getState();
             if (gamesState && !gamesState.soundEnabled) {
                 const soundBtn = document.getElementById('sound-toggle');
                 if (soundBtn) soundBtn.click();
@@ -627,7 +627,7 @@ export default (function() {
             // Always play in note-sounds mode (sound IS the question)
             Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
         } else {
-            const gamesState = Games.getState();
+            const gamesState = GameSession.getState();
             if (gamesState && gamesState.soundEnabled) {
                 Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
             }
@@ -648,7 +648,7 @@ export default (function() {
         gameState.hadMistake = true;
 
         // Play clicked note sound
-        const gamesState = Games.getState();
+        const gamesState = GameSession.getState();
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(clickedNoteIndex, false);
             Sound.playNote(noteName, GAME_OCTAVE);
@@ -726,12 +726,12 @@ export default (function() {
             }
 
             // Play the note sound
-            const gamesState = Games.getState();
+            const gamesState = GameSession.getState();
             if (gamesState && gamesState.soundEnabled) {
                 Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
             }
 
-            Games.markReady();
+            GameSession.markReady();
         }
     }
 

@@ -5,6 +5,6 @@
  */
 
 import './app.js';
-import './games.js';
+import './games/framework.js';
 import './rotation-toggle.js';
 import './dev-panel.js';

@@ -5,11 +5,11 @@
  * Any fret producing the correct note (mod 12) counts as correct.
  */
 
-import * as MusicTheory from './core/music-theory.js';
-import * as Sound from './core/sound.js';
-import * as WeightedSelection from './core/weighted-selection.js';
-import { createFretboard } from './core/fretboard.js';
-import { Games } from './games.js';
+import * as MusicTheory from '../core/music-theory.js';
+import * as Sound from '../core/sound.js';
+import * as WeightedSelection from '../core/weighted-selection.js';
+import { createFretboard } from '../core/fretboard.js';
+import * as GameSession from './session.js';
 
 export default (function() {
     'use strict';
@@ -397,7 +397,7 @@ export default (function() {
     // ---- Sound helpers ----
 
     function isSoundEnabled() {
-        const gamesState = Games.getState();
+        const gamesState = GameSession.getState();
         return gamesState && gamesState.soundEnabled;
     }
 
@@ -812,7 +812,7 @@ export default (function() {
             questionDiv.textContent = gameState.currentRoot;
         }
 
-        Games.markReady();
+        GameSession.markReady();
     }
 
     function handleCorrectAnswer(string, fret, stringIndex) {
@@ -883,7 +883,7 @@ export default (function() {
             }
         }
 
-        Games.markReady();
+        GameSession.markReady();
     }
 
     function updateQuestionAfterCorrect() {
@@ -992,7 +992,7 @@ export default (function() {
             });
         }
 
-        Games.markReady();
+        GameSession.markReady();
     }
 
     // ---- Chord builder handlers ----
@@ -1084,7 +1084,7 @@ export default (function() {
             Sound.playChord(chordNoteNames);
         }
 
-        Games.markReady();
+        GameSession.markReady();
     }
 
     // ---- Results ----

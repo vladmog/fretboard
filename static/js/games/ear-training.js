@@ -1,13 +1,13 @@
 /**
  * Ear Training Game
  * Listen to a chord and identify the root note and chord type
- * Loaded before games.js so it can register itself
+ * Registered in games/framework.js
  */
 
-import * as MusicTheory from './core/music-theory.js';
-import * as Sound from './core/sound.js';
-import * as WeightedSelection from './core/weighted-selection.js';
-import { Games } from './games.js';
+import * as MusicTheory from '../core/music-theory.js';
+import * as Sound from '../core/sound.js';
+import * as WeightedSelection from '../core/weighted-selection.js';
+import * as GameSession from './session.js';
 
 function createEarTrainingGame(config) {
     'use strict';
@@ -463,7 +463,7 @@ function createEarTrainingGame(config) {
     }
 
     function playCurrentChord() {
-        const gamesState = Games.getState();
+        const gamesState = GameSession.getState();
         if (!gamesState || !gamesState.soundEnabled) return;
 
         const chord = MusicTheory.buildChord(gameState.currentRoot, gameState.currentChordType);
@@ -625,7 +625,7 @@ function createEarTrainingGame(config) {
                 feedback.style.color = '#32CD32';
             }
 
-            Games.markReady();
+            GameSession.markReady();
         } else {
             // --- Wrong answer: retry ---
             if (!gameState.hadMistake) {
@@ -633,7 +633,7 @@ function createEarTrainingGame(config) {
             }
 
             // Play the wrong chord so user hears the difference
-            const gs = Games.getState();
+            const gs = GameSession.getState();
             if (gs && gs.soundEnabled) {
                 const wrongChord = MusicTheory.buildChord(gameState.selectedRoot, gameState.selectedChordType);
                 if (wrongChord && wrongChord.notes) {
