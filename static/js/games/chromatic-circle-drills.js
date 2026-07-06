@@ -7,6 +7,7 @@
 import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
 import * as GameSession from './session.js';
+import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime, renderReactionTimeChart } from './game-utils.js';
 
 export default (function() {
     'use strict';
@@ -18,14 +19,6 @@ export default (function() {
     const SIMPLE_LABELS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
 
     const GAME_OCTAVE = 4;
-
-    function shuffleArray(arr) {
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-    }
 
     // Game settings (persisted)
     let settings = {
@@ -777,7 +770,7 @@ export default (function() {
                 label: n,
                 timeMs: Math.round(timesByNote[n].total / timesByNote[n].count)
             }));
-        renderReactionTimeChart(rtContainer, rtItems, 'Reaction Times');
+        renderReactionTimeChart(rtContainer, rtItems, 'Reaction Times', ALL_NOTES);
         wrapper.appendChild(rtContainer);
 
         const btnRow = document.createElement('div');
@@ -820,98 +813,6 @@ export default (function() {
     }
 
     // ---- Stats Visualization ----
-
-    function accuracyToColor(ratio) {
-        let r, g, b;
-        if (ratio <= 0.5) {
-            const t = ratio / 0.5;
-            r = Math.round(255 + (255 - 255) * t);
-            g = Math.round(68 + (215 - 68) * t);
-            b = Math.round(68 + (0 - 68) * t);
-        } else {
-            const t = (ratio - 0.5) / 0.5;
-            r = Math.round(255 + (50 - 255) * t);
-            g = Math.round(215 + (205 - 215) * t);
-            b = Math.round(0 + (50 - 0) * t);
-        }
-        return `rgb(${r},${g},${b})`;
-    }
-
-    function reactionTimeToColor(timeMs, minTime, maxTime) {
-        if (maxTime === minTime) return '#32CD32';
-        const ratio = (timeMs - minTime) / (maxTime - minTime);
-        let r, g, b;
-        if (ratio <= 0.5) {
-            const t = ratio / 0.5;
-            r = Math.round(50 + (255 - 50) * t);
-            g = Math.round(205 + (215 - 205) * t);
-            b = Math.round(50 - 50 * t);
-        } else {
-            const t = (ratio - 0.5) / 0.5;
-            r = 255;
-            g = Math.round(215 * (1 - t));
-            b = 0;
-        }
-        return `rgb(${r},${g},${b})`;
-    }
-
-    function formatTime(ms) {
-        if (ms < 1000) return ms + 'ms';
-        return (ms / 1000).toFixed(1) + 's';
-    }
-
-    function renderReactionTimeChart(container, items, heading) {
-        if (items.length === 0) return;
-
-        const h = document.createElement('div');
-        h.className = 'rt-chart-heading';
-        h.textContent = heading;
-        container.appendChild(h);
-
-        const timeMap = {};
-        items.forEach(q => { timeMap[q.label] = q.timeMs; });
-
-        const maxTime = Math.max(...items.map(q => q.timeMs));
-        const minTime = Math.min(...items.map(q => q.timeMs));
-
-        const table = document.createElement('div');
-        table.className = 'stats-table';
-
-        const headerRow = document.createElement('div');
-        headerRow.className = 'stats-row';
-        ALL_NOTES.forEach(note => {
-            const cell = document.createElement('div');
-            cell.className = 'stats-cell stats-cell-header';
-            cell.textContent = note;
-            headerRow.appendChild(cell);
-        });
-        table.appendChild(headerRow);
-
-        const dataRow = document.createElement('div');
-        dataRow.className = 'stats-row';
-        ALL_NOTES.forEach(note => {
-            const cell = document.createElement('div');
-            cell.className = 'stats-cell';
-
-            if (timeMap[note] !== undefined) {
-                const t = timeMap[note];
-                const bg = reactionTimeToColor(t, minTime, maxTime);
-                cell.style.backgroundColor = bg;
-                cell.textContent = formatTime(t);
-                cell.title = `${note}: ${formatTime(t)}`;
-                // Parse rgb to determine text brightness
-                const rgb = bg.match(/\d+/g).map(Number);
-                const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
-                cell.style.color = brightness > 140 ? '#000' : '#fff';
-            } else {
-                cell.style.backgroundColor = '#f0f0f0';
-            }
-            dataRow.appendChild(cell);
-        });
-        table.appendChild(dataRow);
-
-        container.appendChild(table);
-    }
 
     function renderStats(container) {
         container.innerHTML = '';
@@ -985,7 +886,7 @@ export default (function() {
         if (noteAvgs.length > 0) {
             const rtContainer = document.createElement('div');
             rtContainer.className = 'rt-chart-container';
-            renderReactionTimeChart(rtContainer, noteAvgs, 'Avg Reaction Time');
+            renderReactionTimeChart(rtContainer, noteAvgs, 'Avg Reaction Time', ALL_NOTES);
             container.appendChild(rtContainer);
         }
     }

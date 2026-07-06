@@ -8,6 +8,7 @@ import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
 import * as WeightedSelection from '../core/weighted-selection.js';
 import * as GameSession from './session.js';
+import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime } from './game-utils.js';
 
 function createIntervalTrainingGame(config) {
     'use strict';
@@ -44,14 +45,6 @@ function createIntervalTrainingGame(config) {
     }
 
     const VALID_GAME_MODES = ['root-to-interval', 'interval-to-root', 'interval-to-interval', 'scale-builder', 'chord-builder'];
-
-    function shuffleArray(arr) {
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-    }
 
     const ALL_SCALE_TYPES = Object.keys(MusicTheory.SCALES);
     const ALL_CHORD_TYPES = Object.keys(MusicTheory.CHORD_TYPES);
@@ -2072,46 +2065,6 @@ function createIntervalTrainingGame(config) {
     }
 
     // ---- Stats Visualization ----
-
-    function accuracyToColor(ratio) {
-        // 0% = red #FF4444, 50% = yellow #FFD700, 100% = green #32CD32
-        let r, g, b;
-        if (ratio <= 0.5) {
-            const t = ratio / 0.5;
-            r = Math.round(255 + (255 - 255) * t);
-            g = Math.round(68 + (215 - 68) * t);
-            b = Math.round(68 + (0 - 68) * t);
-        } else {
-            const t = (ratio - 0.5) / 0.5;
-            r = Math.round(255 + (50 - 255) * t);
-            g = Math.round(215 + (205 - 215) * t);
-            b = Math.round(0 + (50 - 0) * t);
-        }
-        return `rgb(${r},${g},${b})`;
-    }
-
-    function reactionTimeToColor(timeMs, minTime, maxTime) {
-        if (maxTime === minTime) return '#32CD32';
-        const ratio = (timeMs - minTime) / (maxTime - minTime);
-        let r, g, b;
-        if (ratio <= 0.5) {
-            const t = ratio / 0.5;
-            r = Math.round(50 + (255 - 50) * t);
-            g = Math.round(205 + (215 - 205) * t);
-            b = Math.round(50 - 50 * t);
-        } else {
-            const t = (ratio - 0.5) / 0.5;
-            r = 255;
-            g = Math.round(215 * (1 - t));
-            b = 0;
-        }
-        return `rgb(${r},${g},${b})`;
-    }
-
-    function formatTime(ms) {
-        if (ms < 1000) return ms + 'ms';
-        return (ms / 1000).toFixed(1) + 's';
-    }
 
     function renderReactionTimeMatrix(container, timeData, heading) {
         // timeData: { root: { semitone: avgTimeMs } }

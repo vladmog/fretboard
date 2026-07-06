@@ -10,6 +10,7 @@ import * as Sound from '../core/sound.js';
 import * as WeightedSelection from '../core/weighted-selection.js';
 import { createFretboard } from '../core/fretboard.js';
 import * as GameSession from './session.js';
+import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime } from './game-utils.js';
 
 export default (function() {
     'use strict';
@@ -97,14 +98,6 @@ export default (function() {
     let stats = {};
 
     // ---- Utilities ----
-
-    function shuffleArray(arr) {
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-    }
 
     function formatIntervalName(semitone, style) {
         const s = semitone % 12;
@@ -1198,45 +1191,6 @@ export default (function() {
     }
 
     // ---- Stats visualization ----
-
-    function accuracyToColor(ratio) {
-        let r, g, b;
-        if (ratio <= 0.5) {
-            const t = ratio / 0.5;
-            r = Math.round(255 + (255 - 255) * t);
-            g = Math.round(68 + (215 - 68) * t);
-            b = Math.round(68 + (0 - 68) * t);
-        } else {
-            const t = (ratio - 0.5) / 0.5;
-            r = Math.round(255 + (50 - 255) * t);
-            g = Math.round(215 + (205 - 215) * t);
-            b = Math.round(0 + (50 - 0) * t);
-        }
-        return 'rgb(' + r + ',' + g + ',' + b + ')';
-    }
-
-    function reactionTimeToColor(timeMs, minTime, maxTime) {
-        if (maxTime === minTime) return '#32CD32';
-        const ratio = (timeMs - minTime) / (maxTime - minTime);
-        let r, g, b;
-        if (ratio <= 0.5) {
-            const t = ratio / 0.5;
-            r = Math.round(50 + (255 - 50) * t);
-            g = Math.round(205 + (215 - 205) * t);
-            b = Math.round(50 - 50 * t);
-        } else {
-            const t = (ratio - 0.5) / 0.5;
-            r = 255;
-            g = Math.round(215 * (1 - t));
-            b = 0;
-        }
-        return 'rgb(' + r + ',' + g + ',' + b + ')';
-    }
-
-    function formatTime(ms) {
-        if (ms < 1000) return ms + 'ms';
-        return (ms / 1000).toFixed(1) + 's';
-    }
 
     function renderReactionTimeMatrix(container, timeData, heading) {
         const testedRoots = [];
