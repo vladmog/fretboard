@@ -216,8 +216,14 @@ export const Games = (function() {
         }
     }
 
-    // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', initEventListeners);
+    // Initialize when DOM is ready. The readyState check matters: top-level
+    // await in the module graph (progressions.json fetch) can suspend module
+    // evaluation past DOMContentLoaded.
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initEventListeners);
+    } else {
+        initEventListeners();
+    }
 
     return {
         activate,

@@ -2913,8 +2913,14 @@ export const FretboardApp = (function() {
         });
     }
 
-    // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', init);
+    // Initialize when DOM is ready. The readyState check matters: top-level
+    // await in the module graph (progressions.json fetch) can suspend module
+    // evaluation past DOMContentLoaded.
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
     // Export for external access
     return {
