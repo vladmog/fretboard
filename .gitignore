@@ -44,3 +44,6 @@ Thumbs.db
 # Environment variables
 .env
 .flaskenv
+
+# Playwright MCP
+.playwright-mcp/
