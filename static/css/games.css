@@ -1,0 +1,888 @@
+/* ========================================
+   GAMES MODE
+   ======================================== */
+
+#games-panel {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    z-index: 100;
+    display: none;
+    overflow-y: auto;
+}
+
+/* Game content area */
+.game-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: calc(4rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-right, 0px)) calc(1rem + env(safe-area-inset-bottom, 0px)) calc(1rem + env(safe-area-inset-left, 0px));
+}
+
+/* Back button */
+.games-back-btn {
+    position: fixed;
+    z-index: 120;
+    background: #fff;
+    border: 2px solid #000;
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    color: #000;
+}
+
+.games-back-btn:hover {
+    background: #000;
+    color: #fff;
+}
+
+/* Controls box */
+.games-controls {
+    position: fixed;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    right: calc(1rem + env(safe-area-inset-right, 0px));
+    z-index: 120;
+    display: flex;
+    gap: 0.5rem;
+    border: 2px solid #000;
+    padding: 0.5rem;
+    background: #fff;
+    align-items: center;
+}
+
+.games-controls select {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.625rem;
+    border: 1px solid #000;
+    min-width: 0;
+    width: auto;
+    background-image: none;
+}
+
+.games-controls button {
+    padding: 0.35rem 0.75rem;
+    font-family: inherit;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+    white-space: nowrap;
+    color: #000;
+}
+
+@media (hover: hover) {
+    .games-controls button:hover {
+        background: #000;
+        color: #fff;
+    }
+}
+
+.games-controls button.games-sound-on {
+    background: #000;
+    color: #fff;
+}
+
+/* Modal */
+.game-settings-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.game-settings-box {
+    background: #fff;
+    border: 2px solid #000;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #000;
+}
+
+.game-settings-header h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+}
+
+.game-settings-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0 0.25rem;
+    line-height: 1;
+}
+
+.game-settings-close:hover {
+    opacity: 0.6;
+}
+
+.game-settings-body {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Settings form elements */
+.game-setting-group {
+    margin-bottom: 1rem;
+}
+
+.game-setting-label {
+    display: block;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.game-setting-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.game-setting-header .game-setting-label {
+    margin-bottom: 0;
+}
+
+.game-setting-btns {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.game-setting-btn {
+    padding: 0.2rem 0.5rem;
+    font-family: inherit;
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+}
+
+.game-setting-btn:hover {
+    background: #000;
+    color: #fff;
+}
+
+.game-setting-input {
+    width: 100%;
+    padding: 0.5rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    border: 1px solid #000;
+    border-radius: 0;
+}
+
+.game-setting-select {
+    width: 100%;
+    padding: 0.5rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    border: 1px solid #000;
+    border-radius: 0;
+    background-color: #fff;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.game-setting-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.game-setting-check-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.625rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+}
+
+.game-setting-check-label:hover {
+    border-color: #000;
+}
+
+.game-setting-check-label input[type="checkbox"] {
+    margin: 0;
+    width: 12px;
+    height: 12px;
+}
+
+/* Title page */
+.game-title-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 1.5rem;
+}
+
+.game-title {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    text-align: center;
+}
+
+.game-explanation {
+    font-size: 0.75rem;
+    color: #444;
+    max-width: 500px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.game-start-btn {
+    padding: 1rem 3rem;
+    font-family: inherit;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    border: 2px solid #000;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+}
+
+.game-start-btn:hover {
+    background: #fff;
+    color: #000;
+}
+
+.game-btn-secondary {
+    background: #fff;
+    color: #000;
+}
+
+.game-btn-secondary:hover {
+    background: #000;
+    color: #fff;
+}
+
+.game-btn-row {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Game play area */
+.game-play-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 1rem;
+}
+
+.game-top-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.game-top-row .game-round-counter {
+    flex: 1;
+    text-align: center;
+}
+
+.game-hint-spacer {
+    min-width: 3rem;
+}
+
+.game-hint-toggle .toggle-text {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.5rem;
+}
+
+.game-round-counter {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #666;
+}
+
+.game-circle-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+.game-next-btn {
+    padding: 0.75rem 2rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    border: 2px solid #000;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+}
+
+.game-next-btn:hover {
+    background: #fff;
+    color: #000;
+}
+
+/* Score display */
+.game-score {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.game-score-pct {
+    font-size: 1rem;
+    color: #666;
+    letter-spacing: 0.1em;
+}
+
+/* Stats grid */
+.stats-table {
+    width: 100%;
+    max-width: 600px;
+    overflow-x: auto;
+}
+
+.stats-row {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 2px;
+}
+
+.stats-root-label {
+    flex: 0 0 2rem;
+    text-align: right;
+    font-size: 0.5rem;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0.25rem;
+    font-weight: 700;
+}
+
+.stats-cell {
+    flex: 1;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.5rem;
+    border: 1px solid #e0e0e0;
+    min-width: 2rem;
+}
+
+.stats-cell-header {
+    background: none !important;
+    border: none;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+}
+
+#game-stats-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Reaction Time Chart */
+.rt-chart-container {
+    width: 100%;
+    max-width: 500px;
+}
+.rt-chart-heading {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    color: #666;
+    text-align: center;
+    margin-bottom: 0.25rem;
+}
+
+/* Ear Training Game */
+.ear-training-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    justify-content: center;
+    max-width: 500px;
+    width: 100%;
+}
+.ear-training-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    border: 2px solid #000;
+    background: #fff;
+    color: #000;
+    cursor: pointer;
+    min-width: 3rem;
+    text-align: center;
+    transition: background 0.15s, color 0.15s;
+}
+.ear-training-btn.selected {
+    background: #000;
+    color: #fff;
+}
+.ear-training-btn.correct {
+    background: #32CD32;
+    border-color: #28a428;
+    color: #000;
+}
+.ear-training-btn.wrong {
+    background: #FF4444;
+    border-color: #cc0000;
+    color: #fff;
+}
+.ear-training-section-label {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    color: #666;
+    margin-top: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+.ear-training-feedback {
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-height: 1.25rem;
+    text-align: center;
+    margin-top: 0.75rem;
+}
+.ear-training-replay-btn {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    border: 2px solid #000;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+}
+
+/* Games responsive: back button position */
+@media (max-width: 768px) {
+    .games-back-btn {
+        top: calc(0.75rem + env(safe-area-inset-top, 0px));
+        right: calc(0.75rem + env(safe-area-inset-right, 0px));
+    }
+
+    .game-content {
+        padding: calc(3rem + env(safe-area-inset-top, 0px)) calc(0.75rem + env(safe-area-inset-right, 0px)) calc(5rem + env(safe-area-inset-bottom, 0px)) calc(0.75rem + env(safe-area-inset-left, 0px));
+    }
+
+    .game-title-page {
+        gap: 1rem;
+        width: 100%;
+    }
+
+    #game-stats-container {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .game-title {
+        font-size: 1.125rem;
+        margin-top: 1.5rem;
+    }
+
+    .game-start-btn {
+        padding: 0.75rem 2rem;
+        font-size: 0.75rem;
+    }
+
+    .game-score {
+        font-size: 1.5rem;
+    }
+
+    .game-score-pct {
+        font-size: 0.75rem;
+    }
+
+    .game-btn-row {
+        gap: 0.75rem;
+    }
+
+    .game-explanation {
+        max-width: 90vw;
+    }
+
+    .stats-table {
+        max-width: 100%;
+    }
+
+    .stats-cell {
+        min-width: 0;
+        height: 1.25rem;
+        font-size: 0.4375rem;
+    }
+
+    .rt-chart-container {
+        max-width: 100%;
+    }
+
+    .games-controls {
+        bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+        right: calc(0.5rem + env(safe-area-inset-right, 0px));
+    }
+
+    .rt-chart-row { height: 1rem; }
+    .rt-chart-label { flex: 0 0 2rem; font-size: 0.4375rem; }
+    .rt-chart-time { font-size: 0.4375rem; }
+    .game-btn-row { flex-wrap: wrap; justify-content: center; }
+}
+
+@media (min-width: 769px) {
+    .games-back-btn {
+        bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+        left: calc(1rem + env(safe-area-inset-left, 0px));
+    }
+}
+
+@keyframes rainbow-stroke {
+    0%   { stroke: black; }
+    50%  { stroke: transparent; }
+    100% { stroke: black; }
+}
+
+.rainbow-border {
+    animation: rainbow-stroke 1s linear infinite;
+}
+
+@keyframes rainbow-border-color {
+    0%   { border-color: black; }
+    50%  { border-color: transparent; }
+    100% { border-color: black; }
+}
+
+select.rainbow-select {
+    border-width: 2px;
+    animation: rainbow-border-color 1s linear infinite;
+}
+
+/* Fretboard Drills game styles */
+.game-fretboard-question {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.game-fretboard-hint {
+    text-align: center;
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: #666;
+    padding: 0 1rem 0.25rem;
+    min-height: 1.2em;
+}
+
+.game-fretboard-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+}
+
+.game-fretboard-container svg {
+    max-width: 100%;
+    max-height: 60vh;
+}
+
+/* ---- Fretboard Drills: split-screen layout ---- */
+
+/* Override game-content when split layout is active */
+.fretboard-drills-active .game-content {
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+}
+
+.game-split-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 3fr 2fr;
+    gap: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    align-items: stretch;
+}
+
+.game-split-fretboard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    overflow: hidden;
+    background-color: #f5f5f5;
+    border: 1px solid #000;
+}
+
+.game-split-fretboard .game-fretboard-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-split-fretboard .game-fretboard-container svg {
+    max-height: 100%;
+}
+
+.game-split-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    padding-bottom: 1rem;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.game-rotate-toggle {
+    display: none;
+}
+
+/* Mobile: tighter padding */
+@media (max-width: 768px) {
+    .fretboard-drills-active .game-content {
+        padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 calc(4rem + env(safe-area-inset-bottom, 0px)) 0;
+    }
+
+    .fretboard-drills-active .games-back-btn {
+        top: calc(0.25rem + env(safe-area-inset-top, 0px));
+        right: calc(0.25rem + env(safe-area-inset-right, 0px));
+        padding: 0.3rem 0.6rem;
+        font-size: 0.5rem;
+    }
+
+    .game-split-layout {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr;
+    }
+
+    .game-split-controls {
+        padding: 0.5rem;
+        padding-bottom: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .game-split-controls .game-fretboard-question {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .game-split-controls .game-fretboard-hint {
+        font-size: 0.625rem;
+        padding: 0 0.5rem 0.25rem;
+    }
+
+    .game-rotate-toggle {
+        display: flex;
+    }
+
+    .game-controls-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        justify-content: center;
+        gap: 0.25rem;
+    }
+
+    .game-controls-inner.rotated {
+        transform: rotate(90deg);
+        white-space: nowrap;
+    }
+
+    .game-split-fretboard {
+        order: 2;
+        border-bottom: none;
+        border-left: 1px solid #000;
+    }
+
+    .game-split-controls {
+        order: 1;
+    }
+}
+
+/* ---- Interval ID (Matrix Drills): split-screen layout ---- */
+
+/* Constrain content height when active (mirrors fretboard-drills) */
+.interval-id-active .game-content,
+.note-id-active .game-content,
+.interval-locator-active .game-content,
+.note-locator-active .game-content {
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+}
+
+/* Desktop / tablet: matrix left, circle right */
+.interval-id-active .game-split-layout,
+.note-id-active .game-split-layout,
+.interval-locator-active .game-split-layout,
+.note-locator-active .game-split-layout {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+}
+
+.game-split-matrix,
+.game-split-circle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    overflow: hidden;
+    padding: 1rem;
+}
+
+.game-split-matrix {
+    border-right: 1px solid #000;
+    background-color: #f5f5f5;
+}
+
+.interval-id-counter,
+.note-id-counter,
+.interval-locator-counter,
+.note-locator-counter {
+    flex: 0 0 auto;
+    margin-bottom: 0.75rem;
+}
+
+/* End-of-round "Round complete — tap to continue" hint (locator games) */
+.locator-complete-hint {
+    flex: 0 0 auto;
+    margin-top: 0.75rem;
+    text-align: center;
+}
+
+.locator-complete-main {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.85rem;
+    color: #1a7a1a;
+}
+
+.locator-complete-sub {
+    margin-top: 0.15rem;
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: #666;
+}
+
+.interval-id-matrix-container,
+.interval-id-circle-container,
+.note-id-matrix-container,
+.note-id-circle-container,
+.interval-locator-matrix-container,
+.interval-locator-circle-container,
+.note-locator-matrix-container,
+.note-locator-circle-container {
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.interval-id-matrix-container svg,
+.interval-id-circle-container svg,
+.note-id-matrix-container svg,
+.note-id-circle-container svg,
+.interval-locator-matrix-container svg,
+.interval-locator-circle-container svg,
+.note-locator-matrix-container svg,
+.note-locator-circle-container svg {
+    max-width: 75%;
+    max-height: 75%;
+}
+
+/* Mobile: matrix top, circle bottom */
+@media (max-width: 768px) {
+    .interval-id-active .game-content,
+    .note-id-active .game-content,
+    .interval-locator-active .game-content,
+    .note-locator-active .game-content {
+        padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 calc(4rem + env(safe-area-inset-bottom, 0px)) 0;
+    }
+
+    .interval-id-active .game-split-layout,
+    .note-id-active .game-split-layout,
+    .interval-locator-active .game-split-layout,
+    .note-locator-active .game-split-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+
+    .game-split-matrix {
+        border-right: none;
+        border-bottom: 1px solid #000;
+    }
+
+    .game-split-matrix,
+    .game-split-circle {
+        padding: 0.5rem;
+    }
+}
+

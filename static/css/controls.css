@@ -1,0 +1,802 @@
+/* Universal scrolling behavior for mode toggle buttons */
+.mode-toggle,
+.radio-group {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.radio-group {
+    display: flex;
+    gap: 0;
+    flex-wrap: nowrap;
+}
+
+/* Primary controls - medium border */
+.radio-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    border: 2px solid #000;
+    margin-right: -2px;
+    position: relative;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Only apply hover on devices with precise pointing (not touch) */
+@media (hover: hover) {
+    .radio-label:hover {
+        background-color: #000;
+        color: #fff;
+    }
+}
+
+.radio-label input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Radio buttons - checked state via class */
+.radio-label.checked {
+    background-color: #000;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .radio-label {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.5625rem;
+    }
+}
+
+/* Toggle row for 7ths checkbox */
+.toggle-row {
+    margin-bottom: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+}
+
+.toggle-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.toggle-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-text {
+    padding: 0.5rem 1rem;
+    border: 1px solid #000;
+}
+
+@media (hover: hover) {
+    .toggle-label:hover .toggle-text {
+        background-color: #000;
+        color: #fff;
+    }
+}
+
+/* Toggle buttons - checked state via class */
+.toggle-label.checked .toggle-text {
+    background-color: #000;
+    color: #fff;
+}
+
+/* Scale chord builder */
+#scale-chord-builder {
+    transition: opacity 0.2s;
+}
+
+#scale-chord-builder > label {
+    margin-bottom: 0.25rem;
+}
+
+#scale-chord-builder.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+#scale-chord-builder > .btn-add,
+#type-group > .btn-add {
+    margin-top: 0.5rem;
+}
+
+#scale-chord-builder > .btn-add + .btn-add {
+    margin-top: 0.25rem;
+}
+
+.scale-chords-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    border: 1px solid #000;
+    padding: 0.25rem;
+}
+
+.scale-chord-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color 0.1s, color 0.1s;
+    text-align: left;
+    color: #000;
+}
+
+@media (hover: hover) {
+    .scale-chord-item:hover {
+        background-color: #000;
+        color: #fff;
+    }
+}
+
+.scale-chord-item.selected {
+    background-color: #000;
+    color: #fff;
+}
+
+.scale-chord-item .numeral {
+    font-size: 0.625rem;
+    text-transform: none;
+    letter-spacing: 0.1em;
+    width: 4.5rem;
+    flex-shrink: 0;
+}
+
+.scale-chord-item .chord-name {
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.scale-chords-note {
+    font-size: 0.625rem;
+    color: #666;
+    font-style: italic;
+}
+
+/* Prog mode navigation */
+.prog-nav {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.prog-nav-btn {
+    flex: 1;
+    padding: 0.45rem 0;
+    font-size: 0.65rem;
+    color: #000;
+    background: #fff;
+    border: 1px solid #000;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.prog-nav-btn:hover {
+    background: #000;
+    color: #fff;
+}
+
+.prog-nav-btn:active {
+    background: #333;
+    color: #fff;
+}
+
+.prog-fav-btn {
+    flex: none;
+    width: 2.25rem;
+}
+
+.prog-fav-btn.active {
+    background: #000;
+    color: #fff;
+}
+
+/* Prog builder */
+.prog-builder-row {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.prog-numeral-select,
+.prog-quality-select {
+    min-width: 0;
+    padding: 0.3rem;
+    border: 1px solid #000;
+    background-color: #fff;
+    font-size: 0.75rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none;
+}
+
+.prog-numeral-select {
+    flex: 1.2;
+}
+
+.prog-quality-select {
+    flex: 1;
+}
+
+.prog-chord-readout {
+    flex: 0 0 3.5rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.prog-row-move {
+    flex: 0 0 1.5rem;
+    height: 1.5rem;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.6rem;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.prog-row-move:hover:not(:disabled) {
+    background: #000;
+    color: #fff;
+}
+
+.prog-row-move:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.prog-row-delete {
+    flex: 0 0 1.5rem;
+    height: 1.5rem;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.prog-row-delete:hover {
+    background: #000;
+    color: #fff;
+}
+
+.prog-builder-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+#prog-builder-from-list {
+    white-space: nowrap;
+}
+
+#prog-builder-desc-group input {
+    width: 100%;
+    padding: 0.3rem;
+    border: 1px solid #000;
+    background: #fff;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.prog-builder-save-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* Chord list header */
+.chord-list-header {
+    display: flex;
+    align-items: center;
+}
+
+.chord-list-header .toggle-label {
+    margin-left: auto;
+}
+
+.chord-list-header .toggle-text {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.5rem;
+    line-height: 1;
+}
+
+/* Chord list */
+.chord-list {
+    list-style: none;
+    border: 1px solid #000;
+    min-height: 100px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 0.75rem;
+}
+
+.chord-list:empty::after {
+    content: 'Select Scale or Chord mode to add chords';
+    display: block;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.625rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.chord-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    transition: background-color 0.1s;
+}
+
+.chord-list-item:last-child {
+    border-bottom: none;
+}
+
+.chord-list-item:hover {
+    background-color: #f5f5f5;
+}
+
+.chord-list-item.selected {
+    background-color: #000;
+    color: #fff;
+}
+
+.chord-list-item.selected:hover {
+    background-color: #333;
+}
+
+.remove-chord-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 0.25rem;
+    opacity: 0.5;
+    transition: opacity 0.1s;
+}
+
+.remove-chord-btn:hover {
+    opacity: 1;
+}
+
+.chord-list-item.selected .remove-chord-btn {
+    color: #fff;
+}
+
+/* Chord list actions */
+.chord-list-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid #000;
+    cursor: pointer;
+    transition: background-color 0.1s, color 0.1s;
+}
+
+.btn-add {
+    background-color: #000;
+    color: #fff;
+}
+
+.btn-add:hover {
+    background-color: #333;
+}
+
+.btn-clear {
+    background-color: #fff;
+    color: #000;
+}
+
+.btn-clear:hover {
+    background-color: #000;
+    color: #fff;
+}
+
+/* Info panel - lighter border for output/reference */
+#info-panel {
+    background-color: #f5f5f5;
+    border: 1px solid #999;
+    padding: 1rem;
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-content {
+    padding: 0;
+}
+
+.info-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #ccc;
+}
+
+.info-grid {
+    display: grid;
+    gap: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+.info-grid-text {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.75rem;
+    color: #333;
+}
+
+.info-grid-cell {
+    text-align: center;
+    font-family: 'Monaco', 'Consolas', monospace;
+    min-width: 0;
+    border: 1px solid #ccc;
+    margin-top: -1px;
+    margin-left: -1px;
+    padding: 0.125rem 0;
+}
+
+.info-grid-interval {
+    font-size: 0.875rem;
+    color: #666;
+    padding-bottom: 0.125rem;
+}
+
+.info-grid-note {
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.info-grid-description {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.75rem;
+    color: #333;
+    margin-top: 0.5rem;
+}
+
+@container (max-width: 180px) {
+    .info-grid-interval,
+    .info-grid-note { font-size: 0.6875rem; }
+    .info-grid-description { font-size: 0.625rem; }
+}
+
+.chromatic-circle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 0.75rem;
+    flex: 1;
+    min-height: 0;
+}
+
+.chromatic-circle svg {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+@media (max-width: 768px) {
+    .chromatic-circle svg {
+        width: 90%;
+        height: auto;
+        aspect-ratio: 1;
+    }
+}
+
+@media (min-width: 769px) {
+    .chromatic-circle svg {
+        height: 100%;
+        width: auto;
+    }
+}
+
+/* Mode section container - groups mode toggle with dependent controls */
+.mode-section {
+    border: 2px solid #000;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.mode-section > label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #000;
+}
+
+.mode-header {
+    display: flex;
+    align-items: center;
+}
+
+.mode-header .toggle-label {
+    margin-left: auto;
+}
+
+.mode-header .toggle-text {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.5rem;
+    line-height: 1;
+}
+
+.mode-controls {
+    margin-left: 1.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid #333;
+    margin-top: 1rem;
+}
+
+.mode-controls .control-group {
+    margin-bottom: 1rem;
+}
+
+.mode-controls .control-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Secondary controls - lighter border */
+.mode-controls select {
+    border: 1px solid #666;
+}
+
+.mode-controls select:focus,
+.mode-controls select:hover {
+    border-color: #000;
+}
+
+/* Typography hierarchy - control labels */
+.mode-controls .control-group > label {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #444;
+}
+
+
+/* Spacing scale consistency */
+.control-group {
+    margin-bottom: 1rem;
+}
+
+/* CAGED shape selector - colored borders for "All" mode visual reference */
+input[name="caged-shape"][value="C"] ~ * {
+    border-left: 3px solid #FF4444;
+}
+
+input[name="caged-shape"][value="A"] ~ * {
+    border-left: 3px solid #FF8C00;
+}
+
+input[name="caged-shape"][value="G"] ~ * {
+    border-left: 3px solid #32CD32;
+}
+
+input[name="caged-shape"][value="E"] ~ * {
+    border-left: 3px solid #4169E1;
+}
+
+input[name="caged-shape"][value="D"] ~ * {
+    border-left: 3px solid #9370DB;
+}
+
+/* Desktop mode section - compact layout */
+@media (min-width: 1025px) {
+    .mode-section {
+        margin-bottom: 0;
+        padding: 0.75rem;
+    }
+
+    .mode-section .mode-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 0.75rem;
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 2px solid #333;
+    }
+
+    /* Root note — always left column */
+    #root-group { grid-column: 1; grid-row: 1; margin-bottom: 0; }
+
+    /* Prog sub-mode radios — left column, under key */
+    #prog-submode { grid-column: 1; }
+
+    /* Type select — left column */
+    #type-group { grid-column: 1; margin-bottom: 0; }
+
+    /* Prog nav — left column */
+    .prog-nav { grid-column: 1; }
+
+    /* Scale chords — right column, spanning rows */
+    .mode-section .mode-controls #scale-chord-builder {
+        grid-column: 2;
+        grid-row: 1 / 4;
+        margin-bottom: 0;
+    }
+
+    /* Prog builder — right column, spanning rows */
+    #prog-builder { grid-column: 2; grid-row: 1 / 4; }
+
+    /* Prog edit selector — left column */
+    #prog-edit-selector { grid-column: 1; }
+
+    /* Prog description — left column */
+    #prog-builder-desc-group { grid-column: 1; }
+
+    /* Chord list takes full height on desktop */
+    #controls-panel > .control-group,
+    .controls-scroll-area > .control-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chord-list {
+        flex: 1 1 auto;
+        min-height: 100px;
+        max-height: none;
+    }
+
+    /* Compact info panel */
+    #info-panel {
+        padding: 0.75rem;
+    }
+
+    .info-title {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.25rem;
+    }
+}
+
+/* ========================================
+   INTERVAL FILTER
+   ======================================== */
+
+.interval-filter-actions {
+    display: flex;
+    gap: 0.375rem;
+    margin-bottom: 0.5rem;
+}
+
+.btn-sm {
+    flex: 0;
+    padding: 0.25rem 0.625rem;
+    font-family: inherit;
+    font-size: 0.5625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+    cursor: pointer;
+    transition: background-color 0.1s, color 0.1s;
+}
+
+@media (hover: hover) {
+    .btn-sm:hover {
+        background: #000;
+        color: #fff;
+    }
+}
+
+.interval-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.interval-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.interval-check input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.interval-check span {
+    display: inline-block;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.625rem;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+    border: 2px solid var(--interval-color, #000);
+    background: #fff;
+    color: #000;
+    transition: background-color 0.1s, color 0.1s;
+    min-width: 2rem;
+    text-align: center;
+}
+
+.interval-check.checked span {
+    background-color: var(--interval-color, #000);
+    color: #fff;
+}
+
+
+@media (max-width: 768px) {
+    .interval-checkboxes {
+        gap: 0.2rem;
+    }
+
+    .interval-check span {
+        padding: 0.25rem 0.375rem;
+        font-size: 0.5625rem;
+        min-width: 1.75rem;
+    }
+
+    .btn-sm {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.5rem;
+    }
+}
+
