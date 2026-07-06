@@ -4,20 +4,29 @@
  * Loaded after interval-training.js so game modules are available
  */
 
-(function() {
+import { IntervalTraining, BlindIntervalTraining } from './interval-training.js';
+import EarTraining from './ear-training.js';
+import ChromaticCircleDrills from './chromatic-circle-drills.js';
+import FretboardDrills from './fretboard-drills.js';
+import IntervalId from './interval-id.js';
+import NoteId from './note-id.js';
+import IntervalLocator from './interval-locator.js';
+import NoteLocator from './note-locator.js';
+
+export const Games = (function() {
     'use strict';
 
     // Game registry - maps game IDs to game modules
     const GAMES = {
-        'interval-training': window.IntervalTraining,
-        'blind-interval-training': window.BlindIntervalTraining,
-        'ear-training': window.EarTraining,
-        'chromatic-circle-drills': window.ChromaticCircleDrills,
-        'fretboard-drills': window.FretboardDrills,
-        'interval-id': window.IntervalId,
-        'note-id': window.NoteId,
-        'interval-locator': window.IntervalLocator,
-        'note-locator': window.NoteLocator
+        'interval-training': IntervalTraining,
+        'blind-interval-training': BlindIntervalTraining,
+        'ear-training': EarTraining,
+        'chromatic-circle-drills': ChromaticCircleDrills,
+        'fretboard-drills': FretboardDrills,
+        'interval-id': IntervalId,
+        'note-id': NoteId,
+        'interval-locator': IntervalLocator,
+        'note-locator': NoteLocator
     };
 
     const GAME_NAMES = {
@@ -210,8 +219,7 @@
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', initEventListeners);
 
-    // Export
-    window.Games = {
+    return {
         activate,
         deactivate,
         getState: () => ({ ...gameState }),

@@ -4,7 +4,11 @@
  * Loaded before games.js so it can register itself
  */
 
-(function() {
+import * as MusicTheory from './music-theory.js';
+import * as Sound from './sound.js';
+import { Games } from './games.js';
+
+export default (function() {
     'use strict';
 
     const STORAGE_KEY_SETTINGS = 'fretboard-chromatic-drills-settings';
@@ -345,7 +349,7 @@
             return false;
         }
         if (settings.gameMode === 'note-sounds') {
-            const gamesState = window.Games ? window.Games.getState() : null;
+            const gamesState = Games.getState();
             if (gamesState && !gamesState.soundEnabled) {
                 const soundBtn = document.getElementById('sound-toggle');
                 if (soundBtn) soundBtn.click();
@@ -623,7 +627,7 @@
             // Always play in note-sounds mode (sound IS the question)
             Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
         } else {
-            const gamesState = window.Games ? window.Games.getState() : null;
+            const gamesState = Games.getState();
             if (gamesState && gamesState.soundEnabled) {
                 Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
             }
@@ -644,7 +648,7 @@
         gameState.hadMistake = true;
 
         // Play clicked note sound
-        const gamesState = window.Games ? window.Games.getState() : null;
+        const gamesState = Games.getState();
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(clickedNoteIndex, false);
             Sound.playNote(noteName, GAME_OCTAVE);
@@ -722,12 +726,12 @@
             }
 
             // Play the note sound
-            const gamesState = window.Games ? window.Games.getState() : null;
+            const gamesState = Games.getState();
             if (gamesState && gamesState.soundEnabled) {
                 Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
             }
 
-            if (window.Games && window.Games.markReady) window.Games.markReady();
+            Games.markReady();
         }
     }
 
@@ -997,7 +1001,7 @@
     loadSettings();
     loadStats();
 
-    window.ChromaticCircleDrills = {
+    return {
         renderTitlePage,
         renderSettings,
         cleanup,

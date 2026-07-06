@@ -1,0 +1,56 @@
+{
+  "scale": {
+    "svgTextCount": 83,
+    "svgCircleCount": 86,
+    "infoText": "C Major 1234567CDEFGAB C1C#b2D2D#b3E3F4F#b5G5G##5A6A#b7B7",
+    "visibleIds": "chord-intervals-toggle,chord-list-items,chromatic-circle,chromatic-circle-svg,clear-list-btn,controls-panel,find-add-btn,find-clear-btn,find-results-list,fretboard-panel,game-content,game-settings-body,game-settings-close,game-settings-title,games-back-btn,games-controls,games-menu-btn,games-select,games-sound-btn,info-grid,info-panel,info-title,interval-deselect-all,interval-select-all,notenames-toggle,notenames-toggle-label,prog-builder-add-row,prog-builder-description,prog-builder-from-list,prog-builder-rows,prog-builder-save,prog-edit-select,prog-fav,prog-next,prog-prev,relative-toggle,root-group,root-label,root-note,scale-chord-builder,scale-chords,sevenths-toggle,sound-toggle,sound-toggle-label,type-group,type-label,type-select"
+  },
+  "chord": {
+    "svgTextCount": 50,
+    "svgCircleCount": 53,
+    "infoText": "C 135CEG C1C#b2D2D#b3E3F4F#b5G5G##5A6A#b7B7",
+    "visibleIds": "add-chord-btn,chord-intervals-toggle,chord-list-items,chromatic-circle,chromatic-circle-svg,clear-list-btn,controls-panel,find-add-btn,find-clear-btn,find-results-list,fretboard-panel,game-content,game-settings-body,game-settings-close,game-settings-title,games-back-btn,games-controls,games-menu-btn,games-select,games-sound-btn,info-grid,info-panel,info-title,interval-deselect-all,interval-select-all,notenames-toggle,notenames-toggle-label,prog-builder-add-row,prog-builder-description,prog-builder-from-list,prog-builder-rows,prog-builder-save,prog-edit-select,prog-fav,prog-next,prog-prev,relative-toggle,root-group,root-label,root-note,scale-chords,sevenths-toggle,sound-toggle,sound-toggle-label,type-group,type-label,type-select"
+  },
+  "interval": {
+    "svgTextCount": 120,
+    "svgCircleCount": 123,
+    "infoText": "C Chromatic Intervals 1b22b334b55b66b77CDbDEbEFGbGAbABbB C1C#b2D2D#b3E3F4F#b5G5G#b6A6A#b7B7",
+    "visibleIds": "chord-intervals-toggle,chord-list-items,chromatic-circle,chromatic-circle-svg,clear-list-btn,controls-panel,find-add-btn,find-clear-btn,find-results-list,fretboard-panel,game-content,game-settings-body,game-settings-close,game-settings-title,games-back-btn,games-controls,games-menu-btn,games-select,games-sound-btn,info-grid,info-panel,info-title,interval-deselect-all,interval-filter,interval-select-all,notenames-toggle,notenames-toggle-label,prog-builder-add-row,prog-builder-description,prog-builder-from-list,prog-builder-rows,prog-builder-save,prog-edit-select,prog-fav,prog-next,prog-prev,relative-toggle,root-group,root-label,root-note,scale-chords,sevenths-toggle,sound-toggle,sound-toggle-label,type-label,type-select"
+  },
+  "caged": {
+    "svgTextCount": 90,
+    "svgCircleCount": 93,
+    "infoText": "C CAGED 135CEG C1C#b2D2D#b3E3F4F#b5G5G##5A6A#b7B7",
+    "visibleIds": "caged-shape-selector,chord-intervals-toggle,chord-list-items,chromatic-circle,chromatic-circle-svg,clear-list-btn,controls-panel,find-add-btn,find-clear-btn,find-results-list,fretboard-panel,game-content,game-settings-body,game-settings-close,game-settings-title,games-back-btn,games-controls,games-menu-btn,games-select,games-sound-btn,info-grid,info-panel,info-title,interval-deselect-all,interval-select-all,notenames-toggle,notenames-toggle-label,prog-builder-add-row,prog-builder-description,prog-builder-from-list,prog-builder-rows,prog-builder-save,prog-edit-select,prog-fav,prog-next,prog-prev,relative-toggle,root-group,root-label,root-note,scale-chords,sevenths-toggle,sound-toggle,sound-toggle-label,type-group,type-label,type-select"
+  },
+  "modes": {
+    "svgTextCount": 83,
+    "svgCircleCount": 86,
+    "infoText": "C Ionian (C Major) 1234567CDEFGAB C1C#b2D2D#b3E3F4F#b5G5G##5A6A#b7B7",
+    "visibleIds": "chord-intervals-toggle,chord-list-items,chromatic-circle,chromatic-circle-svg,clear-list-btn,controls-panel,find-add-btn,find-clear-btn,find-results-list,fretboard-panel,game-content,game-settings-body,game-settings-close,game-settings-title,games-back-btn,games-controls,games-menu-btn,games-select,games-sound-btn,info-grid,info-panel,info-title,interval-deselect-all,interval-select-all,notenames-toggle,notenames-toggle-label,prog-builder-add-row,prog-builder-description,prog-builder-from-list,prog-builder-rows,prog-builder-save,prog-edit-select,prog-fav,prog-next,prog-prev,relative-toggle,root-group,root-label,root-note,scale-chord-builder,scale-chords,sevenths-toggle,sound-toggle,sound-toggle-label,type-group,type-label,type-select"
+  },
+  "prog": {
+    "svgTextCount": 83,
+    "svgCircleCount": 86,
+    "infoText": "C Ionian (C Major) 1234567CDEFGAB C1C#b2D2D#b3E3F4F#b5G5G##5A6A#b7B7",
+    "visibleIds": "chord-intervals-toggle,chord-list-items,chromatic-circle,chromatic-circle-svg,clear-list-btn,controls-panel,find-add-btn,find-clear-btn,find-results-list,fretboard-panel,game-content,game-settings-body,game-settings-close,game-settings-title,games-back-btn,games-controls,games-menu-btn,games-select,games-sound-btn,info-grid,info-panel,info-title,interval-deselect-all,interval-select-all,notenames-toggle,notenames-toggle-label,prog-builder-add-row,prog-builder-description,prog-builder-from-list,prog-builder-rows,prog-builder-save,prog-edit-select,prog-fav,prog-next,prog-prev,relative-toggle,root-group,root-label,root-note,scale-chord-builder,scale-chords,sevenths-toggle,sound-toggle,sound-toggle-label,type-group,type-label,type-select"
+  },
+  "f.chord": {
+    "svgTextCount": 12,
+    "svgCircleCount": 26,
+    "infoText": "f.chord Tap fretboard to place notes CC#DD#EFF#GG#AA#B",
+    "visibleIds": "chord-intervals-toggle,chord-list-items,chromatic-circle,chromatic-circle-svg,clear-list-btn,controls-panel,find-add-btn,find-clear-btn,find-controls,find-results-list,fretboard-panel,game-content,game-settings-body,game-settings-close,game-settings-title,games-back-btn,games-controls,games-menu-btn,games-select,games-sound-btn,info-grid,info-panel,info-title,interval-deselect-all,interval-select-all,notenames-toggle,notenames-toggle-label,prog-builder-add-row,prog-builder-description,prog-builder-from-list,prog-builder-rows,prog-builder-save,prog-edit-select,prog-fav,prog-next,prog-prev,relative-toggle,root-label,root-note,scale-chords,sevenths-toggle,sound-toggle,sound-toggle-label,type-label,type-select"
+  },
+  "f.scale": {
+    "svgTextCount": 12,
+    "svgCircleCount": 26,
+    "infoText": "f.scale Tap fretboard to place notes CC#DD#EFF#GG#AA#B",
+    "visibleIds": "chord-intervals-toggle,chord-list-items,chromatic-circle,chromatic-circle-svg,clear-list-btn,controls-panel,find-clear-btn,find-controls,find-results-list,fretboard-panel,game-content,game-settings-body,game-settings-close,game-settings-title,games-back-btn,games-controls,games-menu-btn,games-select,games-sound-btn,info-grid,info-panel,info-title,interval-deselect-all,interval-select-all,notenames-toggle,notenames-toggle-label,prog-builder-add-row,prog-builder-description,prog-builder-from-list,prog-builder-rows,prog-builder-save,prog-edit-select,prog-fav,prog-next,prog-prev,relative-toggle,root-label,root-note,scale-chord-builder,scale-chords,sevenths-toggle,sound-toggle,sound-toggle-label,type-label,type-select"
+  },
+  "games": {
+    "svgTextCount": 12,
+    "svgCircleCount": 26,
+    "infoText": "f.scale Tap fretboard to place notes CC#DD#EFF#GG#AA#B",
+    "visibleIds": "chord-intervals-toggle,chord-list-items,chromatic-circle,chromatic-circle-svg,clear-list-btn,find-clear-btn,find-controls,find-results-list,game-content,game-settings-body,game-settings-close,game-settings-title,game-stats-container,games-back-btn,games-controls,games-menu-btn,games-panel,games-select,games-sound-btn,info-grid,info-panel,info-title,interval-deselect-all,interval-select-all,notenames-toggle,notenames-toggle-label,prog-builder-add-row,prog-builder-description,prog-builder-from-list,prog-builder-rows,prog-builder-save,prog-edit-select,prog-fav,prog-next,prog-prev,relative-toggle,root-label,root-note,scale-chord-builder,scale-chords,sevenths-toggle,sound-toggle,sound-toggle-label,type-label,type-select"
+  }
+}

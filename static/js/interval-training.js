@@ -4,6 +4,11 @@
  * Loaded before games.js so it can register itself
  */
 
+import * as MusicTheory from './music-theory.js';
+import * as Sound from './sound.js';
+import * as WeightedSelection from './weighted-selection.js';
+import { Games } from './games.js';
+
 function createIntervalTrainingGame(config) {
     'use strict';
 
@@ -1368,7 +1373,7 @@ function createIntervalTrainingGame(config) {
         gameState.questionStartTime = performance.now();
 
         // Auto-play sounds on round start
-        const gamesState = window.Games ? window.Games.getState() : null;
+        const gamesState = Games.getState();
         if (gamesState && gamesState.soundEnabled) {
             if (mode === 'root-to-interval') {
                 // Play root, then target interval note
@@ -1445,7 +1450,7 @@ function createIntervalTrainingGame(config) {
         gameState.hadMistake = true;
 
         // Play clicked note sound
-        const gamesState = window.Games ? window.Games.getState() : null;
+        const gamesState = Games.getState();
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(clickedNoteIndex, false);
             Sound.playNote(noteName, getNoteOctave(clickedNoteIndex, gameState.currentRootIndex));
@@ -1564,7 +1569,7 @@ function createIntervalTrainingGame(config) {
             }
 
             // Sound
-            const gamesState2 = window.Games ? window.Games.getState() : null;
+            const gamesState2 = Games.getState();
             if (gamesState2 && gamesState2.soundEnabled) {
                 if (mode === 'root-to-interval') {
                     const targetIndex = (rootIndex + gameState.currentSemitone) % 12;
@@ -1589,7 +1594,7 @@ function createIntervalTrainingGame(config) {
                 }
             }
 
-            if (window.Games && window.Games.markReady) window.Games.markReady();
+            Games.markReady();
         }
     }
 
@@ -1598,7 +1603,7 @@ function createIntervalTrainingGame(config) {
         if (!api) return;
 
         // Play clicked note sound
-        const gamesState = window.Games ? window.Games.getState() : null;
+        const gamesState = Games.getState();
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
             Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
@@ -1646,7 +1651,7 @@ function createIntervalTrainingGame(config) {
         if (!api) return;
 
         // Play clicked note sound
-        const gamesState = window.Games ? window.Games.getState() : null;
+        const gamesState = Games.getState();
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(noteIndex, false);
             Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
@@ -1767,7 +1772,7 @@ function createIntervalTrainingGame(config) {
         }
 
         // Arpeggiated playthrough
-        const gamesState = window.Games ? window.Games.getState() : null;
+        const gamesState = Games.getState();
         const noteCount = gameState.scaleNotes.length;
         if (gamesState && gamesState.soundEnabled) {
             gameState.scaleNotes.forEach((noteIdx, i) => {
@@ -1778,7 +1783,7 @@ function createIntervalTrainingGame(config) {
             });
         }
 
-        if (window.Games && window.Games.markReady) window.Games.markReady();
+        Games.markReady();
     }
 
     function handleChordCorrectStep(noteIndex) {
@@ -1789,7 +1794,7 @@ function createIntervalTrainingGame(config) {
 
         // Play clicked note sound (skip on last step — chord plays on complete)
         if (!isLastStep) {
-            const gamesState = window.Games ? window.Games.getState() : null;
+            const gamesState = Games.getState();
             if (gamesState && gamesState.soundEnabled) {
                 const noteName = MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
                 Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
@@ -1838,7 +1843,7 @@ function createIntervalTrainingGame(config) {
         if (!api) return;
 
         // Play clicked note sound
-        const gamesState = window.Games ? window.Games.getState() : null;
+        const gamesState = Games.getState();
         if (gamesState && gamesState.soundEnabled) {
             const noteName = MusicTheory.getNoteName(noteIndex, false);
             Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
@@ -1954,7 +1959,7 @@ function createIntervalTrainingGame(config) {
         }
 
         // Play chord
-        const gamesState = window.Games ? window.Games.getState() : null;
+        const gamesState = Games.getState();
         if (gamesState && gamesState.soundEnabled) {
             const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
             const chordNoteNames = gameState.chordNotes.map(noteIdx => {
@@ -1964,7 +1969,7 @@ function createIntervalTrainingGame(config) {
             Sound.playChord(chordNoteNames);
         }
 
-        if (window.Games && window.Games.markReady) window.Games.markReady();
+        Games.markReady();
     }
 
     function showResults() {
@@ -2570,13 +2575,13 @@ function createIntervalTrainingGame(config) {
     };
 }
 
-window.IntervalTraining = createIntervalTrainingGame({
+export const IntervalTraining = createIntervalTrainingGame({
     settingsKey: 'fretboard-interval-training-settings',
     statsKey: 'fretboard-games-stats',
     statsPrefix: '',
     title: 'Interval Training'
 });
-window.BlindIntervalTraining = createIntervalTrainingGame({
+export const BlindIntervalTraining = createIntervalTrainingGame({
     settingsKey: 'fretboard-blind-interval-training-settings',
     statsKey: 'fretboard-games-stats',
     statsPrefix: 'blind-',

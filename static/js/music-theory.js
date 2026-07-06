@@ -1037,8 +1037,8 @@ function getChromaticNoteColor(noteIndex) {
     };
 }
 
-// Export for use in other modules
-window.MusicTheory = {
+// Public API
+export {
     CHROMATIC_NOTES,
     FLAT_NOTES,
     INTERVALS,

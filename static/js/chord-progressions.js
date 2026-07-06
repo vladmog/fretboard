@@ -5,6 +5,8 @@
  * Data source: chord_progressions.md → static/data/progressions.json
  */
 
+import * as MusicTheory from './music-theory.js';
+
 // Progression data: 16 categories, ~162 progressions
 // Each category: { name, progressions: [{ numerals, description, chords }] }
 const PROGRESSION_CATEGORIES = [
@@ -1986,8 +1988,8 @@ function buildProgressionChordsFromTokens(chords, key) {
     return results;
 }
 
-// Export
-window.ChordProgressions = {
+// Public API
+export {
     PROGRESSION_CATEGORIES,
     parseRomanNumeral,
     buildProgressionChords,

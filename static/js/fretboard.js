@@ -129,7 +129,7 @@ function getStringFretFromPoint(config, svgX, svgY) {
  * @param {Object} config - Configuration object
  * @returns {Object} - Fretboard API
  */
-function createFretboard(container, config = {}) {
+export function createFretboard(container, config = {}) {
     const {
         tuning = ['E', 'A', 'D', 'G', 'B', 'E'],
         frets = 15

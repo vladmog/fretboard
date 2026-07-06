@@ -4,6 +4,11 @@
  * Loaded before games.js so it can register itself
  */
 
+import * as MusicTheory from './music-theory.js';
+import * as Sound from './sound.js';
+import * as WeightedSelection from './weighted-selection.js';
+import { Games } from './games.js';
+
 function createEarTrainingGame(config) {
     'use strict';
 
@@ -458,7 +463,7 @@ function createEarTrainingGame(config) {
     }
 
     function playCurrentChord() {
-        const gamesState = window.Games ? window.Games.getState() : null;
+        const gamesState = Games.getState();
         if (!gamesState || !gamesState.soundEnabled) return;
 
         const chord = MusicTheory.buildChord(gameState.currentRoot, gameState.currentChordType);
@@ -620,7 +625,7 @@ function createEarTrainingGame(config) {
                 feedback.style.color = '#32CD32';
             }
 
-            if (window.Games && window.Games.markReady) window.Games.markReady();
+            Games.markReady();
         } else {
             // --- Wrong answer: retry ---
             if (!gameState.hadMistake) {
@@ -628,7 +633,7 @@ function createEarTrainingGame(config) {
             }
 
             // Play the wrong chord so user hears the difference
-            const gs = window.Games ? window.Games.getState() : null;
+            const gs = Games.getState();
             if (gs && gs.soundEnabled) {
                 const wrongChord = MusicTheory.buildChord(gameState.selectedRoot, gameState.selectedChordType);
                 if (wrongChord && wrongChord.notes) {
@@ -979,7 +984,7 @@ function createEarTrainingGame(config) {
     };
 }
 
-window.EarTraining = createEarTrainingGame({
+export default createEarTrainingGame({
     settingsKey: 'fretboard-ear-training-settings',
     statsKey: 'fretboard-games-stats',
     statsPrefix: '',

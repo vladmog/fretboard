@@ -12,7 +12,10 @@
  * Loaded before games.js so it can register itself.
  */
 
-(function() {
+import * as MusicTheory from './music-theory.js';
+import { Games } from './games.js';
+
+export default (function() {
     'use strict';
 
     const STORAGE_KEY_SETTINGS = 'fretboard-interval-locator-settings';
@@ -675,7 +678,7 @@
         flashCellsComplete();
         showCompleteHint();
 
-        if (window.Games && window.Games.markReady) window.Games.markReady();
+        Games.markReady();
     }
 
     // Pulse a green ring around every found cell so the player sees the round is
@@ -971,7 +974,7 @@
     loadSettings();
     loadStats();
 
-    window.IntervalLocator = {
+    return {
         renderTitlePage,
         renderSettings,
         cleanup,

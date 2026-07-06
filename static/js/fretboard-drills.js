@@ -5,7 +5,13 @@
  * Any fret producing the correct note (mod 12) counts as correct.
  */
 
-(function() {
+import * as MusicTheory from './music-theory.js';
+import * as Sound from './sound.js';
+import * as WeightedSelection from './weighted-selection.js';
+import { createFretboard } from './fretboard.js';
+import { Games } from './games.js';
+
+export default (function() {
     'use strict';
 
     const STORAGE_KEY_SETTINGS = 'fretboard-drills-settings';
@@ -391,7 +397,7 @@
     // ---- Sound helpers ----
 
     function isSoundEnabled() {
-        const gamesState = window.Games ? window.Games.getState() : null;
+        const gamesState = Games.getState();
         return gamesState && gamesState.soundEnabled;
     }
 
@@ -806,7 +812,7 @@
             questionDiv.textContent = gameState.currentRoot;
         }
 
-        if (window.Games && window.Games.markReady) window.Games.markReady();
+        Games.markReady();
     }
 
     function handleCorrectAnswer(string, fret, stringIndex) {
@@ -877,7 +883,7 @@
             }
         }
 
-        if (window.Games && window.Games.markReady) window.Games.markReady();
+        Games.markReady();
     }
 
     function updateQuestionAfterCorrect() {
@@ -986,7 +992,7 @@
             });
         }
 
-        if (window.Games && window.Games.markReady) window.Games.markReady();
+        Games.markReady();
     }
 
     // ---- Chord builder handlers ----
@@ -1078,7 +1084,7 @@
             Sound.playChord(chordNoteNames);
         }
 
-        if (window.Games && window.Games.markReady) window.Games.markReady();
+        Games.markReady();
     }
 
     // ---- Results ----
@@ -2265,7 +2271,7 @@
     loadSettings();
     loadStats();
 
-    window.FretboardDrills = {
+    return {
         renderTitlePage,
         renderSettings,
         cleanup,

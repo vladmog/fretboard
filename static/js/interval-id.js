@@ -11,7 +11,10 @@
  * Loaded before games.js so it can register itself.
  */
 
-(function() {
+import * as MusicTheory from './music-theory.js';
+import { Games } from './games.js';
+
+export default (function() {
     'use strict';
 
     const STORAGE_KEY_SETTINGS = 'fretboard-interval-id-settings';
@@ -652,7 +655,7 @@
             });
         }
 
-        if (window.Games && window.Games.markReady) window.Games.markReady();
+        Games.markReady();
     }
 
     function showResults() {
@@ -911,7 +914,7 @@
     loadSettings();
     loadStats();
 
-    window.IntervalId = {
+    return {
         renderTitlePage,
         renderSettings,
         cleanup,

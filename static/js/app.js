@@ -3,7 +3,14 @@
  * Connects music theory module with fretboard visualization
  */
 
-(function() {
+import * as MusicTheory from './music-theory.js';
+import * as ChordProgressions from './chord-progressions.js';
+import * as Sound from './sound.js';
+import { createFretboard } from './fretboard.js';
+import { Games } from './games.js';
+import * as RotationToggle from './rotation-toggle.js';
+
+export const FretboardApp = (function() {
     'use strict';
 
     // Application state
@@ -674,9 +681,7 @@
         }
 
         // Apply current rotation to newly created markers
-        if (window.RotationToggle) {
-            window.RotationToggle.applyCurrentRotation();
-        }
+        RotationToggle.applyCurrentRotation();
 
         updateInfoPanel({
             title: `${displayScale.root} ${displayScale.name}`,
@@ -714,9 +719,7 @@
         }
 
         // Apply current rotation to newly created markers
-        if (window.RotationToggle) {
-            window.RotationToggle.applyCurrentRotation();
-        }
+        RotationToggle.applyCurrentRotation();
 
         updateInfoPanel({
             title: chord.symbol,
@@ -831,9 +834,7 @@
         }
 
         // Apply current rotation to newly created markers
-        if (window.RotationToggle) {
-            window.RotationToggle.applyCurrentRotation();
-        }
+        RotationToggle.applyCurrentRotation();
 
         // Build info panel: show chord symbol, chord notes, and their intervals
         const displayIntervals = useScaleDegrees
@@ -922,9 +923,7 @@
         }
 
         // Apply current rotation to newly created markers
-        if (window.RotationToggle) {
-            window.RotationToggle.applyCurrentRotation();
-        }
+        RotationToggle.applyCurrentRotation();
 
         // Filter info panel to only show checked intervals
         const filteredNotes = [];
@@ -1031,9 +1030,7 @@
         }
 
         // Apply current rotation to newly created markers
-        if (window.RotationToggle) {
-            window.RotationToggle.applyCurrentRotation();
-        }
+        RotationToggle.applyCurrentRotation();
 
         const chordSymbol = chord.symbol;
         const title = shapeName === 'all'
@@ -1082,9 +1079,7 @@
             });
         }
 
-        if (window.RotationToggle) {
-            window.RotationToggle.applyCurrentRotation();
-        }
+        RotationToggle.applyCurrentRotation();
 
         updateInfoPanel({
             title: `${modeRoot} ${mode.name} (${parentRoot} Major)`,
@@ -1182,9 +1177,7 @@
         }
 
         // Apply current rotation to newly created markers
-        if (window.RotationToggle) {
-            window.RotationToggle.applyCurrentRotation();
-        }
+        RotationToggle.applyCurrentRotation();
 
         const modeLabel = state.mode === 'f.scale' ? 'f.scale' : 'f.chord';
         updateInfoPanel({
@@ -2205,12 +2198,10 @@
     function setMode(mode) {
         // Handle games mode transition
         if (mode === 'games') {
-            if (window.Games) {
-                window.Games.setPreviousMode(state.mode);
-            }
+            Games.setPreviousMode(state.mode);
             document.getElementById('controls-panel').style.display = 'none';
             document.getElementById('fretboard-panel').style.display = 'none';
-            if (window.Games) window.Games.activate();
+            Games.activate();
             return;
         }
 
@@ -2218,7 +2209,7 @@
         if (state.mode === 'games' || document.getElementById('games-panel').style.display === 'block') {
             document.getElementById('controls-panel').style.display = '';
             document.getElementById('fretboard-panel').style.display = '';
-            if (window.Games) window.Games.deactivate();
+            Games.deactivate();
         }
 
         // Leaving Find mode — clean up
@@ -2922,14 +2913,14 @@
         });
     }
 
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', init);
+
     // Export for external access
-    window.FretboardApp = {
+    return {
         init,
         getState: () => ({ ...state }),
         addChordToList,
         clearChordList
     };
-
-    // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', init);
 })();
