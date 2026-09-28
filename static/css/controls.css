@@ -50,6 +50,30 @@
     color: #fff;
 }
 
+.radio-label.disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+}
+
+.instrument-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.instrument-selector > span {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+.instrument-toggle .radio-label {
+    padding: 0.35rem 0.75rem;
+}
+
 @media (max-width: 768px) {
     .radio-label {
         padding: 0.4rem 0.6rem;
@@ -799,4 +823,3 @@ input[name="caged-shape"][value="D"] ~ * {
         font-size: 0.5rem;
     }
 }
-

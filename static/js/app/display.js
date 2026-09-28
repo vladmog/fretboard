@@ -7,7 +7,7 @@
 import * as MusicTheory from '../core/music-theory.js';
 import * as ChordProgressions from '../core/progressions.js';
 import * as RotationToggle from './rotation-toggle.js';
-import { isFindMode, state } from './state.js';
+import { getInstrumentTuning, isFindMode, state } from './state.js';
 import { renderScaleChords } from './chord-list.js';
 import { displayFindMarkers } from './find-mode.js';
 import { updateTypeDropdown } from './controls.js';
@@ -23,6 +23,15 @@ function getMarkerLabel(pos, noteSpelling) {
         return noteSpelling[pos.noteIndex] || MusicTheory.getNoteName(pos.noteIndex, false);
     }
     return pos.label;
+}
+
+function getNotesOnActiveFretboard(noteToLabel, frets = 15, root = null) {
+    return MusicTheory.getNotesOnFretboard(
+        noteToLabel,
+        frets,
+        root,
+        getInstrumentTuning()
+    );
 }
 /**
  * Update visibility of the relative toggle based on current mode and selection
@@ -65,7 +74,7 @@ export function displayScale(scale) {
         }
     }
 
-    const positions = MusicTheory.getNotesOnFretboard(
+    const positions = getNotesOnActiveFretboard(
         displayScale.noteToDegree,
         15,
         displayScale.root
@@ -104,7 +113,7 @@ export function displayChord(chord) {
 
     state.fretboard.clearMarkers();
 
-    const positions = MusicTheory.getNotesOnFretboard(
+    const positions = getNotesOnActiveFretboard(
         chord.noteToInterval,
         15,
         chord.root
@@ -143,7 +152,7 @@ function displayScaleChord(chord, scale, parentRoot) {
 
     // Draw all scale tones as greyed-out background context (not in prog mode)
     if (state.mode !== 'prog') {
-        const allScalePositions = MusicTheory.getNotesOnFretboard(
+        const allScalePositions = getNotesOnActiveFretboard(
             scale.noteToDegree, 15, scale.root
         );
         for (const pos of allScalePositions) {
@@ -182,7 +191,7 @@ function displayScaleChord(chord, scale, parentRoot) {
 
     const labelSpelling = useScaleDegrees ? scale.noteSpelling : chord.noteSpelling;
 
-    const positions = MusicTheory.getNotesOnFretboard(
+    const positions = getNotesOnActiveFretboard(
         chordNoteToDegree,
         15,
         useScaleDegrees ? scale.root : chord.root
@@ -221,7 +230,7 @@ function displayScaleChord(chord, scale, parentRoot) {
     // Add ghost markers at scale root positions when the chord doesn't contain the root
     const rootIndex = MusicTheory.getNoteIndex(scale.root);
     if (!chordNoteToDegree.hasOwnProperty(rootIndex)) {
-        const ghostPositions = MusicTheory.getNotesOnFretboard(
+        const ghostPositions = getNotesOnActiveFretboard(
             { [rootIndex]: '1' }, 15, scale.root
         );
         for (const pos of ghostPositions) {
@@ -293,7 +302,7 @@ function displayIntervals(root) {
         noteSpelling[noteIndex] = noteName;
     }
 
-    const positions = MusicTheory.getNotesOnFretboard(
+    const positions = getNotesOnActiveFretboard(
         noteToInterval,
         15,
         root
@@ -374,7 +383,7 @@ function displayCaged(root, shapeName) {
     }
 
     // Draw background scale markers first (non-chord scale tones as visual context)
-    const scalePositions = MusicTheory.getNotesOnFretboard(scale.noteToDegree, 15, root);
+    const scalePositions = getNotesOnActiveFretboard(scale.noteToDegree, 15, root);
     for (const pos of scalePositions) {
         const key = pos.string + '-' + pos.fret;
         if (cagedPosKeys.has(key)) {
@@ -458,7 +467,7 @@ function displayMode(parentRoot, modeName) {
 
     state.fretboard.clearMarkers();
 
-    const positions = MusicTheory.getNotesOnFretboard(
+    const positions = getNotesOnActiveFretboard(
         scale.noteToDegree,
         15,
         scale.root

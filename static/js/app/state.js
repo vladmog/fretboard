@@ -11,6 +11,7 @@ import * as ChordProgressions from '../core/progressions.js';
 
 // Application state
 export const state = {
+    instrument: 'guitar',  // 'guitar' or 'bass'
     mode: 'scale',          // 'scale', 'chord', 'interval', 'caged', 'modes', 'prog', 'f.chord', 'f.scale', or 'games'
     root: 'C',
     scaleType: 'major',
@@ -40,6 +41,18 @@ export const state = {
     _selectedUserProgId: null,  // ID of currently selected user progression in play mode
     intervalFilter: new Set(['1','b2','2','b3','3','4','b5','5','b6','6','b7','7'])
 };
+
+export function getInstrumentTuning() {
+    return state.instrument === 'bass'
+        ? MusicTheory.BASS_TUNING
+        : MusicTheory.STANDARD_TUNING;
+}
+
+export function getInstrumentMidiBases() {
+    return state.instrument === 'bass'
+        ? MusicTheory.BASS_STRING_MIDI_BASES
+        : undefined;
+}
 // Storage key for chord list persistence
 const STORAGE_KEY = 'fretboard-chord-list';
 const FAVORITES_STORAGE_KEY = 'fretboard-prog-favorites';

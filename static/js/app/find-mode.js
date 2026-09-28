@@ -6,7 +6,7 @@
 import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
 import * as RotationToggle from './rotation-toggle.js';
-import { state } from './state.js';
+import { getInstrumentMidiBases, getInstrumentTuning, state } from './state.js';
 import { displayChord, displayScale, updateDisplay, updateInfoPanel, updateRelToggleVisibility } from './display.js';
 import { addChordToList, renderChordList } from './chord-list.js';
 import { relocateAddButton } from './controls.js';
@@ -37,13 +37,14 @@ export function registerFindClickHandler() {
                 }
             }
 
-            const stringIndex = 6 - string;
-            const noteIndex = MusicTheory.getNoteAt(stringIndex, fret);
+            const tuning = getInstrumentTuning();
+            const stringIndex = tuning.length - string;
+            const noteIndex = MusicTheory.getNoteAt(stringIndex, fret, tuning);
             state.findMarkers[key] = { string, fret, noteIndex };
 
             if (state.soundEnabled) {
                 const noteName = MusicTheory.getNoteName(noteIndex, false);
-                const octave = MusicTheory.getOctaveAt(stringIndex, fret);
+                const octave = MusicTheory.getOctaveAt(stringIndex, fret, getInstrumentMidiBases());
                 Sound.playNote(noteName, octave);
             }
         }

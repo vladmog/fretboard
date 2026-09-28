@@ -255,11 +255,17 @@ const MODES = {
 // Standard guitar tuning (low E to high E, strings 6 to 1)
 const STANDARD_TUNING = ['E', 'A', 'D', 'G', 'B', 'E'];
 
+// Standard four-string bass tuning (low E to high G, strings 4 to 1)
+const BASS_TUNING = ['E', 'A', 'D', 'G'];
+
 // Open string notes as semitone indices (E=4, A=9, D=2, G=7, B=11, E=4)
 const STRING_ROOTS = [4, 9, 2, 7, 11, 4];
 
 // MIDI note numbers for open strings (E2=40, A2=45, D3=50, G3=55, B3=59, E4=64)
 const STRING_MIDI_BASES = [40, 45, 50, 55, 59, 64];
+
+// MIDI note numbers for four-string bass open strings (E1, A1, D2, G2)
+const BASS_STRING_MIDI_BASES = [28, 33, 38, 43];
 
 // CAGED chord shapes - positions relative to root note
 // Each shape has a rootString (which string the root note is on, 1-6 where 1=high E)
@@ -411,20 +417,22 @@ function getDegreeNumber(interval) {
  * Get note at a specific fret position
  * @param {number} stringIndex - String index (0-5, 0 = low E)
  * @param {number} fret - Fret number (0 = open)
+ * @param {string[]} tuning - Open-string notes ordered low to high
  * @returns {number} Semitone index of the note
  */
-function getNoteAt(stringIndex, fret) {
-    return (STRING_ROOTS[stringIndex] + fret) % 12;
+function getNoteAt(stringIndex, fret, tuning = STANDARD_TUNING) {
+    return (getNoteIndex(tuning[stringIndex]) + fret) % 12;
 }
 
 /**
  * Get the octave number at a specific fret position
  * @param {number} stringIndex - String index (0-5, 0 = low E)
  * @param {number} fret - Fret number (0 = open)
+ * @param {number[]} midiBases - MIDI notes for the instrument's open strings
  * @returns {number} Octave number (e.g., 2 for low E open, 4 for high E open)
  */
-function getOctaveAt(stringIndex, fret) {
-    return Math.floor((STRING_MIDI_BASES[stringIndex] + fret) / 12) - 1;
+function getOctaveAt(stringIndex, fret, midiBases = STRING_MIDI_BASES) {
+    return Math.floor((midiBases[stringIndex] + fret) / 12) - 1;
 }
 
 /**
@@ -525,19 +533,20 @@ function buildChord(root, type) {
  * @param {Object} noteToLabel - Map of note index to label (degree or interval)
  * @param {number} frets - Number of frets (default 15)
  * @param {string} root - Root note for highlighting
+ * @param {string[]} tuning - Open-string notes ordered low to high
  * @returns {Array} Array of fretboard positions
  */
-function getNotesOnFretboard(noteToLabel, frets = 15, root = null) {
+function getNotesOnFretboard(noteToLabel, frets = 15, root = null, tuning = STANDARD_TUNING) {
     const positions = [];
     const rootIndex = root ? getNoteIndex(root) : null;
 
-    for (let stringIndex = 0; stringIndex < 6; stringIndex++) {
+    for (let stringIndex = 0; stringIndex < tuning.length; stringIndex++) {
         for (let fret = 0; fret <= frets; fret++) {
-            const noteIndex = getNoteAt(stringIndex, fret);
+            const noteIndex = getNoteAt(stringIndex, fret, tuning);
 
             if (noteToLabel.hasOwnProperty(noteIndex)) {
                 positions.push({
-                    string: 6 - stringIndex, // Convert to 1-6 (1 = high E)
+                    string: tuning.length - stringIndex, // 1 is the highest-pitched string
                     fret,
                     noteIndex,
                     label: noteToLabel[noteIndex],
@@ -1045,6 +1054,8 @@ export {
     SCALES,
     CHORD_TYPES,
     STANDARD_TUNING,
+    BASS_TUNING,
+    BASS_STRING_MIDI_BASES,
     CAGED_SHAPES,
     MODES,
     getNoteIndex,

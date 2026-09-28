@@ -7,7 +7,7 @@
 import * as MusicTheory from '../core/music-theory.js';
 import * as ChordProgressions from '../core/progressions.js';
 import * as Sound from '../core/sound.js';
-import { getProgressionKey, getResolvedFavorites, saveFavorites, state } from './state.js';
+import { getProgressionKey, getResolvedFavorites, isFindMode, saveFavorites, state } from './state.js';
 import { updateDisplay, updateRelToggleVisibility } from './display.js';
 import { addChordToList, clearChordList, renderChordList, renderScaleChords } from './chord-list.js';
 import { addFindResultToChordList, clearFindMarkers, renderFindScaleChords } from './find-mode.js';
@@ -17,7 +17,41 @@ import { setMode, updateTypeDropdown } from './controls.js';
 /**
  * Initialize event listeners
  */
-export function initEventListeners() {
+export function initEventListeners({ onInstrumentChange } = {}) {
+    const cagedRadio = document.querySelector('input[name="mode"][value="caged"]');
+    const syncCagedAvailability = () => {
+        if (!cagedRadio) return;
+        const disabled = state.instrument === 'bass';
+        cagedRadio.disabled = disabled;
+        cagedRadio.closest('.radio-label')?.classList.toggle('disabled', disabled);
+    };
+
+    document.querySelectorAll('input[name="instrument"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            state.instrument = e.target.value;
+            if (isFindMode(state.mode)) {
+                clearFindMarkers();
+            } else {
+                state.findMarkers = {};
+                state.findResults = [];
+                state.findSelectedIndex = -1;
+            }
+            state.activeScaleChord = null;
+            syncCagedAvailability();
+
+            if (state.instrument === 'bass' && state.mode === 'caged') {
+                const scaleRadio = document.querySelector('input[name="mode"][value="scale"]');
+                if (scaleRadio) {
+                    scaleRadio.checked = true;
+                    scaleRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+
+            onInstrumentChange?.();
+        });
+    });
+    syncCagedAvailability();
+
     // Mode toggle (scale/chord)
     const modeRadios = document.querySelectorAll('input[name="mode"]');
     modeRadios.forEach(radio => {

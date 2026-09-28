@@ -6,7 +6,7 @@
 
 import * as MusicTheory from './core/music-theory.js';
 import { createFretboard } from './core/fretboard.js';
-import { isFindMode, loadChordList, loadFavorites, loadUserProgressions, state } from './app/state.js';
+import { getInstrumentTuning, isFindMode, loadChordList, loadFavorites, loadUserProgressions, state } from './app/state.js';
 import { updateDisplay } from './app/display.js';
 import { renderChordList, renderScaleChords } from './app/chord-list.js';
 import { registerFindClickHandler } from './app/find-mode.js';
@@ -27,18 +27,26 @@ function init() {
 
     // Initialize fretboard
     const container = document.getElementById('fretboard-panel');
-    if (container) {
+    const rebuildFretboard = () => {
+        if (!container) return;
+        container.innerHTML = '';
         state.fretboard = createFretboard(container, {
-            tuning: MusicTheory.STANDARD_TUNING,
+            tuning: getInstrumentTuning(),
             frets: 15
         });
-    }
+        if (isFindMode(state.mode)) {
+            registerFindClickHandler();
+        }
+        updateDisplay();
+    };
+
+    rebuildFretboard();
 
     // Initialize UI
     updateTypeDropdown();
     renderChordList();
     renderScaleChords();
-    initEventListeners();
+    initEventListeners({ onInstrumentChange: rebuildFretboard });
 
     // Color-code interval filter checkboxes
     document.querySelectorAll('.interval-check').forEach(label => {
@@ -69,15 +77,7 @@ function init() {
 
     // Handle resize
     window.addEventListener('resize', () => {
-        container.innerHTML = '';
-        state.fretboard = createFretboard(container, {
-            tuning: MusicTheory.STANDARD_TUNING,
-            frets: 15
-        });
-        if (isFindMode(state.mode)) {
-            registerFindClickHandler();
-        }
-        updateDisplay();
+        rebuildFretboard();
     });
 }
 
