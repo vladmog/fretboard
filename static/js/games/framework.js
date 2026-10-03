@@ -12,6 +12,8 @@ import NoteId from './note-id.js';
 import IntervalLocator from './interval-locator.js';
 import NoteLocator from './note-locator.js';
 import { gameState, isAwaitingAdvance, setAwaitingAdvance, markReady } from './session.js';
+import * as NoteKeyboard from './note-keyboard.js';
+import * as Voice from './voice.js';
 
 export const Games = (function() {
     'use strict';
@@ -53,6 +55,7 @@ export const Games = (function() {
         }
 
         updateSoundButton();
+        NoteKeyboard.attach(handleNoteKey, tryAdvance);
     }
 
     function deactivate() {
@@ -66,7 +69,25 @@ export const Games = (function() {
             game.cleanup();
         }
 
+        NoteKeyboard.detach();
+        Voice.cancel();
         closeModal();
+    }
+
+    // Keyboard note input: route to the current game's optional hook
+    function handleNoteKey(noteIndex) {
+        if (!gameState.active) return;
+        const game = getCurrentGame();
+        if (game && game.handleNoteKey) game.handleNoteKey(noteIndex);
+    }
+
+    // Shared by tap-anywhere and Enter/Space: advance once answered
+    function tryAdvance() {
+        if (!isAwaitingAdvance()) return false;
+        setAwaitingAdvance(false);
+        const game = getCurrentGame();
+        if (game && game.advance) game.advance();
+        return true;
     }
 
     function getCurrentGame() {
@@ -99,6 +120,19 @@ export const Games = (function() {
         const game = getCurrentGame();
         if (game && game.renderSettings && body) {
             game.renderSettings(body);
+        }
+
+        // Global voice settings live in their own container after the game's
+        // body, so games that re-render their body don't wipe them out
+        if (body) {
+            let voiceBox = document.getElementById('game-settings-voice');
+            if (!voiceBox) {
+                voiceBox = document.createElement('div');
+                voiceBox.id = 'game-settings-voice';
+                voiceBox.className = 'voice-settings';
+                body.after(voiceBox);
+            }
+            Voice.renderVoiceSettings(voiceBox);
         }
 
         modal.style.display = 'flex';
@@ -159,10 +193,13 @@ export const Games = (function() {
         if (gameSelect) {
             gameSelect.addEventListener('change', (e) => {
                 setAwaitingAdvance(false);
+                Voice.cancel();
                 const game = getCurrentGame();
                 if (game && game.cleanup) game.cleanup();
 
                 gameState.currentGame = e.target.value;
+                // Drop focus so typed note letters don't jump the dropdown
+                gameSelect.blur();
 
                 const newGame = getCurrentGame();
                 if (newGame && newGame.renderTitlePage) {
@@ -184,9 +221,7 @@ export const Games = (function() {
                 // their own behavior; SVG answer inputs are not excluded, so a tap
                 // on the circle/fretboard after answering advances.
                 if (e.target.closest('button, select, input, label, a')) return;
-                setAwaitingAdvance(false);
-                const game = getCurrentGame();
-                if (game && game.advance) game.advance();
+                tryAdvance();
             });
         }
     }

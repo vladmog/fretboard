@@ -886,3 +886,34 @@ select.rainbow-select {
     }
 }
 
+
+/* ============================================
+   Voice settings (games/voice.js) — rendered by the framework below each
+   game's own settings in the modal
+   ============================================ */
+.voice-settings {
+    padding: 1rem 1rem 0;
+    border-top: 1px solid #000;
+}
+
+.voice-settings-row {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.voice-settings-row .game-setting-select {
+    flex: 1;
+}
+
+.voice-settings-test {
+    font-size: 0.625rem;
+    padding: 0 0.75rem;
+}
+
+.voice-settings-hint {
+    margin-top: 0.25rem;
+    font-size: 0.5625rem;
+    color: #777;
+    letter-spacing: 0.03em;
+}

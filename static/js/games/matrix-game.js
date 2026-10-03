@@ -678,6 +678,14 @@ export function createMatrixGame(config) {
 
     // ---- Circle-input answer flow (Note ID / Interval ID) ----
 
+    // Keyboard note input (games/note-keyboard.js via the framework). Only
+    // meaningful for Note ID, where circle positions are pitch classes.
+    function handleNoteKey(noteIndex) {
+        const api = gameState.circleApi;
+        if (!api || !api.svg.isConnected) return;
+        handlePick(noteIndex);
+    }
+
     function handlePick(semitone) {
         if (gameState.answered) return;
         if (semitone === gameState.targetSemitone) {
@@ -1014,6 +1022,7 @@ export function createMatrixGame(config) {
         renderTitlePage,
         renderSettings,
         cleanup,
-        advance: nextQuestion
+        advance: nextQuestion,
+        handleNoteKey: (isCircleInput && isNoteDomain) ? handleNoteKey : undefined
     };
 }

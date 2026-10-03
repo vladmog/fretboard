@@ -8,6 +8,7 @@ import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
 import * as WeightedSelection from '../core/weighted-selection.js';
 import * as GameSession from './session.js';
+import * as Voice from './voice.js';
 import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime } from './game-utils.js';
 
 function createIntervalTrainingGame(config) {
@@ -1365,7 +1366,52 @@ function createIntervalTrainingGame(config) {
 
         gameState.questionStartTime = performance.now();
 
-        // Auto-play sounds on round start
+        // Tapping the question text repeats the voice announcement
+        gameState.circleApi.questionGroup.addEventListener('click', () => {
+            if (!gameState.answered) Voice.repeat();
+        });
+
+        // Announce the question (if voice is on), then play round-start sounds
+        Voice.speak(questionSpeech(), playRoundStartSounds);
+    }
+
+    // Spoken form of the current question; intervals always use long names
+    function questionSpeech() {
+        const mode = gameState.activeMode;
+        const root = Voice.spokenNote(gameState.currentRoot);
+        const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
+        const noteName = (index) => Voice.spokenNote(MusicTheory.getNoteName(index, useFlats));
+        const interval = (semitone) => Voice.spokenName(LONG_NAMES[semitone]);
+        if (mode === 'scale-builder') {
+            return root + ' ' + Voice.spokenName(MusicTheory.SCALES[gameState.currentScaleType].name);
+        }
+        if (mode === 'chord-builder') {
+            return root + ' ' + Voice.spokenName(MusicTheory.CHORD_TYPES[gameState.currentChordType].name);
+        }
+        if (mode === 'root-to-interval') {
+            return interval(gameState.currentSemitone) + ' from ' + root;
+        }
+        if (mode === 'interval-to-root') {
+            return noteName(gameState.givenNoteIndex) + ' is the ' + interval(gameState.givenSemitone);
+        }
+        if (mode === 'interval-to-interval') {
+            return noteName(gameState.givenNoteIndex) + ' is the ' + interval(gameState.givenSemitone) +
+                '. Find the ' + interval(gameState.targetSemitone);
+        }
+        return '';
+    }
+
+    // Keyboard note input (games/note-keyboard.js via the framework)
+    function handleNoteKey(noteIndex) {
+        const api = gameState.circleApi;
+        if (!api || !api.svg.isConnected || gameState.answered) return;
+        handleNoteClick(noteIndex, (noteIndex - gameState.currentRootIndex + 12) % 12);
+    }
+
+    function playRoundStartSounds() {
+        // Skip if the round moved on while the announcement was playing
+        if (!gameState.circleApi || !gameState.circleApi.svg.isConnected) return;
+        const mode = gameState.activeMode;
         const gamesState = GameSession.getState();
         if (gamesState && gamesState.soundEnabled) {
             if (mode === 'root-to-interval') {
@@ -2524,7 +2570,8 @@ function createIntervalTrainingGame(config) {
         renderTitlePage,
         renderSettings,
         cleanup,
-        advance: nextQuestion
+        advance: nextQuestion,
+        handleNoteKey
     };
 }
 

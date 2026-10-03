@@ -68,6 +68,8 @@ games/                   Training games (plugin architecture)
   session.js             Shared framework state (gameState, markReady); imports nothing
   storage.js             createSettingsStore / createStatsStore — ALL game persistence
   game-utils.js          shuffleArray, stat colors, formatTime, reaction-time chart
+  note-keyboard.js       Keyboard note input (A–G, hold ↑ sharp / ↓ flat, Enter/Space advance)
+  voice.js               Global voice announcements (speechSynthesis) + its settings section
   matrix-game.js         createMatrixGame(config) factory for the matrix-drill family
   note-id.js, interval-id.js, note-locator.js, interval-locator.js   ~15-line matrix configs
   interval-training.js   createIntervalTrainingGame(config) factory (2 instances)
@@ -123,9 +125,13 @@ let them grow back:
 4. Persistence: use `games/storage.js` only. Settings key
    `fretboard-<game-id>-settings`; stats go under your game id inside the
    shared `fretboard-games-stats` blob. Never hand-roll localStorage access.
-5. Call `GameSession.markReady()` (from `games/session.js`) after a question
+5. Optional hooks: `handleNoteKey(noteIndex)` (0–11, C = 0) receives
+   keyboard note input from `games/note-keyboard.js` via the framework;
+   announce questions with `Voice.speak(text, onDone)` from `games/voice.js`
+   (a no-op that calls `onDone` immediately when voice is off).
+6. Call `GameSession.markReady()` (from `games/session.js`) after a question
    is answered so tap-anywhere-to-advance works.
-6. Game styles go in `static/css/games.css` under a banner comment, using
+7. Game styles go in `static/css/games.css` under a banner comment, using
    `<game-id>-`prefixed class names.
 
 ## localStorage Keys Are a Public Contract
@@ -139,6 +145,7 @@ their persisted shape without a migration:
 - `fretboard-games-stats` (shared blob, sub-keyed by game id)
 - `fretboard-drills-stats` (fretboard-drills only, legacy separate key)
 - `fretboard-<game-id>-settings` (one per game)
+- `fretboard-voice-settings` (global voice announcements, `games/voice.js`)
 
 ## Git Workflow
 

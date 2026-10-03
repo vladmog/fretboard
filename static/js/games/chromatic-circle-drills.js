@@ -7,6 +7,7 @@
 import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
 import * as GameSession from './session.js';
+import * as Voice from './voice.js';
 import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime, renderReactionTimeChart } from './game-utils.js';
 
 export default (function() {
@@ -604,9 +605,12 @@ export default (function() {
                 }
             });
         } else {
-            // Note Names mode: show note name
+            // Note Names mode: show note name; tapping it repeats the announcement
             if (noteText) noteText.textContent = gameState.currentTargetNote;
             if (hintText) hintText.textContent = 'Find this note';
+            gameState.circleApi.questionGroup.addEventListener('click', () => {
+                if (!gameState.answered) Voice.repeat();
+            });
         }
 
         wrapper.appendChild(circleContainer);
@@ -617,14 +621,26 @@ export default (function() {
 
         // Auto-play the target note sound
         if (settings.gameMode === 'note-sounds') {
-            // Always play in note-sounds mode (sound IS the question)
+            // Always play in note-sounds mode (sound IS the question); never
+            // announce it, that would give the answer away
             Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
         } else {
-            const gamesState = GameSession.getState();
-            if (gamesState && gamesState.soundEnabled) {
-                Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
-            }
+            const api = gameState.circleApi;
+            Voice.speak(Voice.spokenNote(gameState.currentTargetNote), () => {
+                if (gameState.circleApi !== api) return;
+                const gamesState = GameSession.getState();
+                if (gamesState && gamesState.soundEnabled) {
+                    Sound.playNote(gameState.currentTargetNote, GAME_OCTAVE);
+                }
+            });
         }
+    }
+
+    // Keyboard note input (games/note-keyboard.js via the framework)
+    function handleNoteKey(noteIndex) {
+        const api = gameState.circleApi;
+        if (!api || !api.svg.isConnected) return;
+        handleNoteClick(noteIndex);
     }
 
     function handleNoteClick(noteIndex) {
@@ -906,6 +922,7 @@ export default (function() {
         renderTitlePage,
         renderSettings,
         cleanup,
-        advance: nextQuestion
+        advance: nextQuestion,
+        handleNoteKey
     };
 })();
