@@ -9,7 +9,7 @@ import * as Sound from '../core/sound.js';
 import * as WeightedSelection from '../core/weighted-selection.js';
 import * as GameSession from './session.js';
 import * as Voice from './voice.js';
-import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime } from './game-utils.js';
+import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime, snapRoundCount, ROUND_OPTIONS, roundOptionLabel, totalRoundsFor, roundCounterText, logQuestionTime } from './game-utils.js';
 
 function createIntervalTrainingGame(config) {
     'use strict';
@@ -106,12 +106,7 @@ function createIntervalTrainingGame(config) {
                 const parsed = JSON.parse(saved);
                 settings = { ...settings, ...parsed };
                 // Snap roundCount to nearest valid option
-                const roundOptions = [5, 10, 20, 50, 100];
-                if (!roundOptions.includes(settings.roundCount)) {
-                    settings.roundCount = roundOptions.reduce((prev, curr) =>
-                        Math.abs(curr - settings.roundCount) < Math.abs(prev - settings.roundCount) ? curr : prev
-                    );
-                }
+                settings.roundCount = snapRoundCount(settings.roundCount);
                 if (!VALID_GAME_MODES.includes(settings.gameMode)) {
                     settings.gameMode = 'root-to-interval';
                 }
@@ -731,10 +726,10 @@ function createIntervalTrainingGame(config) {
         roundLabel.className = 'game-setting-label';
         const roundInput = document.createElement('select');
         roundInput.className = 'game-setting-select';
-        [5, 10, 20, 50, 100].forEach(n => {
+        ROUND_OPTIONS.forEach(n => {
             const opt = document.createElement('option');
             opt.value = n;
-            opt.textContent = n;
+            opt.textContent = roundOptionLabel(n);
             if (n === settings.roundCount) opt.selected = true;
             roundInput.appendChild(opt);
         });
@@ -1213,7 +1208,7 @@ function createIntervalTrainingGame(config) {
 
     function startGame() {
         gameState.currentRound = 0;
-        gameState.totalRounds = settings.roundCount;
+        gameState.totalRounds = totalRoundsFor(settings.roundCount);
         gameState.correctCount = 0;
         gameState.questionTimes = [];
         gameState.activeMode = settings.gameMode;
@@ -1327,7 +1322,7 @@ function createIntervalTrainingGame(config) {
 
         const counter = document.createElement('div');
         counter.className = 'game-round-counter';
-        counter.textContent = `${gameState.currentRound} / ${gameState.totalRounds}`;
+        counter.textContent = roundCounterText(gameState.currentRound, gameState.totalRounds);
         topRow.appendChild(counter);
 
         const spacerRight = document.createElement('div');
@@ -1401,6 +1396,13 @@ function createIntervalTrainingGame(config) {
                 '. Find the ' + interval(gameState.targetSemitone);
         }
         return '';
+    }
+
+    // Enter key: re-announce the question and replay its round-start sounds
+    function repeatQuestion() {
+        const api = gameState.circleApi;
+        if (!api || !api.svg.isConnected) return;
+        Voice.speak(questionSpeech(), playRoundStartSounds);
     }
 
     // Keyboard note input (games/note-keyboard.js via the framework)
@@ -1522,12 +1524,12 @@ function createIntervalTrainingGame(config) {
 
         // Capture timing
         const elapsed = performance.now() - gameState.questionStartTime;
-        gameState.questionTimes.push({
+        logQuestionTime(gameState, {
             root: gameState.currentRoot,
             semitone: getRecordSemitone(),
             timeMs: Math.round(elapsed),
             correct: !gameState.hadMistake
-        });
+        }, commitSessionStats);
 
         const api = gameState.circleApi;
         if (api) {
@@ -1751,12 +1753,12 @@ function createIntervalTrainingGame(config) {
 
         // Capture timing
         const elapsed = performance.now() - gameState.questionStartTime;
-        gameState.questionTimes.push({
+        logQuestionTime(gameState, {
             root: gameState.currentRoot,
             type: gameState.currentScaleType,
             timeMs: Math.round(elapsed),
             correct: !gameState.hadMistake
-        });
+        }, commitSessionStats);
 
         const api = gameState.circleApi;
         if (!api) return;
@@ -1938,12 +1940,12 @@ function createIntervalTrainingGame(config) {
 
         // Capture timing
         const elapsed = performance.now() - gameState.questionStartTime;
-        gameState.questionTimes.push({
+        logQuestionTime(gameState, {
             root: gameState.currentRoot,
             type: gameState.currentChordType,
             timeMs: Math.round(elapsed),
             correct: !gameState.hadMistake
-        });
+        }, commitSessionStats);
 
         const api = gameState.circleApi;
         if (!api) return;
@@ -2570,7 +2572,8 @@ function createIntervalTrainingGame(config) {
         renderSettings,
         cleanup,
         advance: nextQuestion,
-        handleNoteKey
+        handleNoteKey,
+        repeatQuestion
     };
 }
 

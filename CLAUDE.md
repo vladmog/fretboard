@@ -67,8 +67,8 @@ games/                   Training games (plugin architecture)
   framework.js           Registry + activate/deactivate + settings modal + tap-to-advance
   session.js             Shared framework state (gameState, markReady); imports nothing
   storage.js             createSettingsStore / createStatsStore — ALL game persistence
-  game-utils.js          shuffleArray, stat colors, formatTime, reaction-time chart
-  note-keyboard.js       Keyboard note input (A–G, hold ↑ sharp / ↓ flat, Enter/Space advance)
+  game-utils.js          shuffleArray, stat colors, formatTime, reaction-time chart, round-count helpers
+  note-keyboard.js       Keyboard note input (a–g; uppercase or hold ↑ = sharp, hold ↓ = flat; Enter repeat, Space next)
   voice.js               Global voice announcements (speechSynthesis) + its settings section
   matrix-game.js         createMatrixGame(config) factory for the matrix-drill family
   note-id.js, interval-id.js, note-locator.js, interval-locator.js   ~15-line matrix configs
@@ -126,12 +126,17 @@ let them grow back:
    `fretboard-<game-id>-settings`; stats go under your game id inside the
    shared `fretboard-games-stats` blob. Never hand-roll localStorage access.
 5. Optional hooks: `handleNoteKey(noteIndex)` (0–11, C = 0) receives
-   keyboard note input from `games/note-keyboard.js` via the framework;
+   keyboard note input from `games/note-keyboard.js` via the framework, and
+   `repeatQuestion()` runs on Enter (re-announce / replay the question);
    announce questions with `Voice.speak(text, onDone)` from `games/voice.js`
    (a no-op that calls `onDone` immediately when voice is off).
-6. Call `GameSession.markReady()` (from `games/session.js`) after a question
+6. Rounds: use `ROUND_OPTIONS`/`snapRoundCount`/`totalRoundsFor`/
+   `roundCounterText` from `game-utils.js` (roundCount `0` = infinite), and
+   record each answer with `logQuestionTime(gameState, entry,
+   commitSessionStats)` — in infinite mode it commits stats per answer.
+7. Call `GameSession.markReady()` (from `games/session.js`) after a question
    is answered so tap-anywhere-to-advance works.
-7. Game styles go in `static/css/games.css` under a banner comment, using
+8. Game styles go in `static/css/games.css` under a banner comment, using
    `<game-id>-`prefixed class names.
 
 ## localStorage Keys Are a Public Contract

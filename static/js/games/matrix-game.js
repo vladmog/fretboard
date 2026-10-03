@@ -29,7 +29,7 @@
 import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
 import * as GameSession from './session.js';
-import { accuracyToColor, renderReactionTimeChart } from './game-utils.js';
+import { accuracyToColor, renderReactionTimeChart, snapRoundCount, ROUND_OPTIONS, roundOptionLabel, totalRoundsFor, roundCounterText, logQuestionTime } from './game-utils.js';
 import { createSettingsStore, createStatsStore } from './storage.js';
 
 // Interval labels indexed by semitone (0-11)
@@ -39,7 +39,6 @@ const SHARP_NOTES = MusicTheory.CHROMATIC_NOTES;
 const FLAT_NOTES = MusicTheory.FLAT_NOTES;
 
 const MATRIX_SIZES = [3, 5, 7];
-const ROUND_OPTIONS = [5, 10, 20, 50, 100];
 const HORIZONTAL_STEP = 1;   // semitones per column moving right
 const VERTICAL_STEP = 5;     // semitones per row moving up (perfect 4th)
 const WRONG_FLASH_MS = 700;  // how long a wrong locator cell flashes red
@@ -47,11 +46,7 @@ const ALL_SEMITONES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
 function sanitizeCommon(settings) {
     if (!MATRIX_SIZES.includes(settings.matrixSize)) settings.matrixSize = 3;
-    if (!ROUND_OPTIONS.includes(settings.roundCount)) {
-        settings.roundCount = ROUND_OPTIONS.reduce((prev, curr) =>
-            Math.abs(curr - settings.roundCount) < Math.abs(prev - settings.roundCount) ? curr : prev
-        );
-    }
+    settings.roundCount = snapRoundCount(settings.roundCount);
 }
 
 export function createMatrixGame(config) {
@@ -486,7 +481,7 @@ export function createMatrixGame(config) {
             v => { settings.matrixSize = parseInt(v); });
 
         addSelectSetting(modalBody, 'Rounds',
-            ROUND_OPTIONS.map(n => ({ value: n, text: `${n}` })),
+            ROUND_OPTIONS.map(n => ({ value: n, text: roundOptionLabel(n) })),
             v => parseInt(v) === settings.roundCount,
             v => { settings.roundCount = parseInt(v); });
 
@@ -529,7 +524,7 @@ export function createMatrixGame(config) {
 
     function startGame() {
         gameState.currentRound = 0;
-        gameState.totalRounds = settings.roundCount;
+        gameState.totalRounds = totalRoundsFor(settings.roundCount);
         gameState.correctCount = 0;
         gameState.questionTimes = [];
         gameState.lastCenter = null;
@@ -640,7 +635,7 @@ export function createMatrixGame(config) {
 
         const counter = document.createElement('div');
         counter.className = `game-round-counter ${id}-counter`;
-        counter.textContent = `${gameState.currentRound} / ${gameState.totalRounds}`;
+        counter.textContent = roundCounterText(gameState.currentRound, gameState.totalRounds);
         matrixPanel.appendChild(counter);
 
         const matrixContainer = document.createElement('div');
@@ -846,11 +841,11 @@ export function createMatrixGame(config) {
 
     function recordQuestionTime() {
         const elapsed = performance.now() - gameState.questionStartTime;
-        gameState.questionTimes.push({
+        logQuestionTime(gameState, {
             label: statsColumns()[gameState.targetSemitone],
             timeMs: Math.round(elapsed),
             correct: !gameState.hadMistake
-        });
+        }, commitSessionStats);
     }
 
     // ---- Results ----

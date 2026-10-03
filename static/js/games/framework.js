@@ -55,7 +55,7 @@ export const Games = (function() {
         }
 
         updateSoundButton();
-        NoteKeyboard.attach(handleNoteKey, tryAdvance);
+        NoteKeyboard.attach(handleNoteKey, repeatQuestion, tryAdvance);
     }
 
     function deactivate() {
@@ -81,7 +81,14 @@ export const Games = (function() {
         if (game && game.handleNoteKey) game.handleNoteKey(noteIndex);
     }
 
-    // Shared by tap-anywhere and Enter/Space: advance once answered
+    // Enter: re-announce / replay the current question (optional game hook)
+    function repeatQuestion() {
+        if (!gameState.active) return;
+        const game = getCurrentGame();
+        if (game && game.repeatQuestion) game.repeatQuestion();
+    }
+
+    // Shared by tap-anywhere and Space: advance once answered
     function tryAdvance() {
         if (!isAwaitingAdvance()) return false;
         setAwaitingAdvance(false);

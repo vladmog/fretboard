@@ -8,7 +8,7 @@ import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
 import * as GameSession from './session.js';
 import * as Voice from './voice.js';
-import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime, renderReactionTimeChart } from './game-utils.js';
+import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime, renderReactionTimeChart, snapRoundCount, ROUND_OPTIONS, roundOptionLabel, totalRoundsFor, roundCounterText, logQuestionTime } from './game-utils.js';
 
 export default (function() {
     'use strict';
@@ -56,12 +56,7 @@ export default (function() {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 settings = { ...settings, ...parsed };
-                const roundOptions = [5, 10, 20, 50, 100];
-                if (!roundOptions.includes(settings.roundCount)) {
-                    settings.roundCount = roundOptions.reduce((prev, curr) =>
-                        Math.abs(curr - settings.roundCount) < Math.abs(prev - settings.roundCount) ? curr : prev
-                    );
-                }
+                settings.roundCount = snapRoundCount(settings.roundCount);
                 if (!['note-names', 'note-sounds'].includes(settings.gameMode)) {
                     settings.gameMode = 'note-names';
                 }
@@ -393,10 +388,10 @@ export default (function() {
         roundLabel.className = 'game-setting-label';
         const roundInput = document.createElement('select');
         roundInput.className = 'game-setting-select';
-        [5, 10, 20, 50, 100].forEach(n => {
+        ROUND_OPTIONS.forEach(n => {
             const opt = document.createElement('option');
             opt.value = n;
-            opt.textContent = n;
+            opt.textContent = roundOptionLabel(n);
             if (n === settings.roundCount) opt.selected = true;
             roundInput.appendChild(opt);
         });
@@ -535,7 +530,7 @@ export default (function() {
 
     function startGame() {
         gameState.currentRound = 0;
-        gameState.totalRounds = settings.roundCount;
+        gameState.totalRounds = totalRoundsFor(settings.roundCount);
         gameState.correctCount = 0;
         gameState.questionTimes = [];
         gameState.questionQueue = [];
@@ -577,7 +572,7 @@ export default (function() {
         // Round counter
         const counter = document.createElement('div');
         counter.className = 'game-round-counter';
-        counter.textContent = `${gameState.currentRound} / ${gameState.totalRounds}`;
+        counter.textContent = roundCounterText(gameState.currentRound, gameState.totalRounds);
         wrapper.appendChild(counter);
 
         // Circle container
@@ -619,7 +614,11 @@ export default (function() {
 
         gameState.questionStartTime = performance.now();
 
-        // Auto-play the target note sound
+        announceQuestion();
+    }
+
+    // Announce the target (note-names) and/or play its sound; also the Enter key
+    function announceQuestion() {
         if (settings.gameMode === 'note-sounds') {
             // Always play in note-sounds mode (sound IS the question); never
             // announce it, that would give the answer away
@@ -634,6 +633,12 @@ export default (function() {
                 }
             });
         }
+    }
+
+    function repeatQuestion() {
+        const api = gameState.circleApi;
+        if (!api || !api.svg.isConnected) return;
+        announceQuestion();
     }
 
     // Keyboard note input (games/note-keyboard.js via the framework)
@@ -688,11 +693,11 @@ export default (function() {
 
         // Capture timing
         const elapsed = performance.now() - gameState.questionStartTime;
-        gameState.questionTimes.push({
+        logQuestionTime(gameState, {
             note: gameState.currentTargetNote,
             timeMs: Math.round(elapsed),
             correct: !gameState.hadMistake
-        });
+        }, commitSessionStats);
 
         const api = gameState.circleApi;
         if (api) {
@@ -920,6 +925,7 @@ export default (function() {
         renderSettings,
         cleanup,
         advance: nextQuestion,
-        handleNoteKey
+        handleNoteKey,
+        repeatQuestion
     };
 })();

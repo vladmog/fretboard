@@ -1,9 +1,10 @@
 /**
  * Keyboard note input for chromatic-circle games.
- * Letters A–G pick a natural; holding ArrowUp while pressing a letter makes
- * it sharp, holding ArrowDown makes it flat. Enter/Space advance to the next
- * question. Attached by games/framework.js while games mode is active; the
- * framework routes notes to the current game's optional handleNoteKey(index).
+ * Lowercase letters a–g pick a natural; an uppercase letter (Shift) or
+ * holding ArrowUp makes it sharp, holding ArrowDown makes it flat. Enter
+ * repeats the question; Space advances to the next one. Attached by
+ * games/framework.js while games mode is active; the framework routes notes
+ * to the current game's optional handleNoteKey(index).
  */
 
 const NATURAL_INDEX = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
@@ -26,11 +27,15 @@ function isModalOpen() {
     return !!(modal && getComputedStyle(modal).display !== 'none');
 }
 
-/** Pitch-class index (C = 0) for a letter plus held accidental arrows. */
+/**
+ * Pitch-class index (C = 0) for a letter plus held accidental arrows.
+ * Uppercase counts as a sharp, the same as holding ArrowUp.
+ */
 export function noteIndexFor(letter, up, down) {
     const natural = NATURAL_INDEX[letter.toLowerCase()];
     if (natural === undefined) return null;
-    return (natural + (up ? 1 : 0) - (down ? 1 : 0) + 12) % 12;
+    const sharp = up || letter !== letter.toLowerCase();
+    return (natural + (sharp ? 1 : 0) - (down ? 1 : 0) + 12) % 12;
 }
 
 function onKeyDown(e) {
@@ -43,7 +48,12 @@ function onKeyDown(e) {
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     if (isTypingTarget(e.target) || isModalOpen()) return;
 
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        handlers.onRepeat();
+        return;
+    }
+    if (e.key === ' ') {
         e.preventDefault();
         handlers.onAdvance();
         return;
@@ -68,11 +78,12 @@ function clearHeld() {
 
 /**
  * @param {Function} onNote - called with a pitch-class index 0–11
- * @param {Function} onAdvance - called on Enter/Space
+ * @param {Function} onRepeat - called on Enter
+ * @param {Function} onAdvance - called on Space
  */
-export function attach(onNote, onAdvance) {
+export function attach(onNote, onRepeat, onAdvance) {
     if (handlers) detach();
-    handlers = { onNote, onAdvance };
+    handlers = { onNote, onRepeat, onAdvance };
     clearHeld();
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('keyup', onKeyUp);

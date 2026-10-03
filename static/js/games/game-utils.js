@@ -118,3 +118,44 @@ export function renderReactionTimeChart(container, items, heading, columnKeys, d
 
     container.appendChild(table);
 }
+
+// ---- Round count (shared by every game with a Rounds setting) ----
+
+// 0 means infinite: the game keeps going and stats are logged per answer
+export const INFINITE_ROUNDS = 0;
+export const ROUND_OPTIONS = [5, 10, 20, 50, 100, INFINITE_ROUNDS];
+
+/** Snap a persisted roundCount to the nearest valid option. */
+export function snapRoundCount(n) {
+    if (ROUND_OPTIONS.includes(n)) return n;
+    return ROUND_OPTIONS.filter(o => o !== INFINITE_ROUNDS).reduce((prev, curr) =>
+        Math.abs(curr - n) < Math.abs(prev - n) ? curr : prev
+    );
+}
+
+export function roundOptionLabel(n) {
+    return n === INFINITE_ROUNDS ? '∞' : String(n);
+}
+
+/** roundCount setting -> gameState.totalRounds (Infinity for infinite). */
+export function totalRoundsFor(roundCount) {
+    return roundCount === INFINITE_ROUNDS ? Infinity : roundCount;
+}
+
+export function roundCounterText(current, total) {
+    return `${current} / ${total === Infinity ? '∞' : total}`;
+}
+
+/**
+ * Record one answered question. In infinite mode there is no results screen,
+ * so the entry is committed to stats immediately (via the game's own
+ * commitSessionStats, which reads gameState.questionTimes) and the buffer is
+ * cleared; otherwise it waits for the end-of-session "Log" button.
+ */
+export function logQuestionTime(gameState, entry, commitSessionStats) {
+    gameState.questionTimes.push(entry);
+    if (gameState.totalRounds === Infinity) {
+        commitSessionStats();
+        gameState.questionTimes = [];
+    }
+}

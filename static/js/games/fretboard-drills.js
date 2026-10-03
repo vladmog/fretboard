@@ -10,7 +10,7 @@ import * as Sound from '../core/sound.js';
 import * as WeightedSelection from '../core/weighted-selection.js';
 import { createFretboard } from '../core/fretboard.js';
 import * as GameSession from './session.js';
-import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime } from './game-utils.js';
+import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime, snapRoundCount, ROUND_OPTIONS, roundOptionLabel, totalRoundsFor, roundCounterText, logQuestionTime } from './game-utils.js';
 
 export default (function() {
     'use strict';
@@ -137,12 +137,7 @@ export default (function() {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 settings = { ...settings, ...parsed };
-                const roundOptions = [5, 10, 20, 50, 100];
-                if (!roundOptions.includes(settings.roundCount)) {
-                    settings.roundCount = roundOptions.reduce((prev, curr) =>
-                        Math.abs(curr - settings.roundCount) < Math.abs(prev - settings.roundCount) ? curr : prev
-                    );
-                }
+                settings.roundCount = snapRoundCount(settings.roundCount);
                 if (!VALID_GAME_MODES.includes(settings.gameMode)) {
                     settings.gameMode = 'root-to-interval';
                 }
@@ -406,7 +401,7 @@ export default (function() {
 
     function startGame() {
         gameState.currentRound = 0;
-        gameState.totalRounds = settings.roundCount;
+        gameState.totalRounds = totalRoundsFor(settings.roundCount);
         gameState.correctCount = 0;
         gameState.questionTimes = [];
         gameState.activeMode = settings.gameMode;
@@ -610,7 +605,7 @@ export default (function() {
 
         const counter = document.createElement('div');
         counter.className = 'game-round-counter';
-        counter.textContent = gameState.currentRound + ' / ' + gameState.totalRounds;
+        counter.textContent = roundCounterText(gameState.currentRound, gameState.totalRounds);
         topRow.appendChild(counter);
 
         const spacerRight = document.createElement('div');
@@ -783,12 +778,12 @@ export default (function() {
         }
 
         const elapsed = performance.now() - gameState.questionStartTime;
-        gameState.questionTimes.push({
+        logQuestionTime(gameState, {
             root: gameState.currentRoot,
             semitone: 0,
             timeMs: Math.round(elapsed),
             correct: !gameState.hadMistake
-        });
+        }, commitSessionStats);
 
         playNoteAtPosition(stringIndex, fret);
 
@@ -815,12 +810,12 @@ export default (function() {
         }
 
         const elapsed = performance.now() - gameState.questionStartTime;
-        gameState.questionTimes.push({
+        logQuestionTime(gameState, {
             root: gameState.currentRoot,
             semitone: getRecordSemitone(),
             timeMs: Math.round(elapsed),
             correct: !gameState.hadMistake
-        });
+        }, commitSessionStats);
 
         playNoteAtPosition(stringIndex, fret);
 
@@ -944,12 +939,12 @@ export default (function() {
         }
 
         const elapsed = performance.now() - gameState.questionStartTime;
-        gameState.questionTimes.push({
+        logQuestionTime(gameState, {
             root: gameState.currentRoot,
             type: gameState.currentScaleType,
             timeMs: Math.round(elapsed),
             correct: !gameState.hadMistake
-        });
+        }, commitSessionStats);
 
         const api = gameState.fretboardApi;
         if (!api) return;
@@ -1037,12 +1032,12 @@ export default (function() {
         }
 
         const elapsed = performance.now() - gameState.questionStartTime;
-        gameState.questionTimes.push({
+        logQuestionTime(gameState, {
             root: gameState.currentRoot,
             type: gameState.currentChordType,
             timeMs: Math.round(elapsed),
             correct: !gameState.hadMistake
-        });
+        }, commitSessionStats);
 
         const api = gameState.fretboardApi;
         if (!api) return;
@@ -1798,10 +1793,10 @@ export default (function() {
         roundLabel.className = 'game-setting-label';
         const roundInput = document.createElement('select');
         roundInput.className = 'game-setting-select';
-        [5, 10, 20, 50, 100].forEach(n => {
+        ROUND_OPTIONS.forEach(n => {
             const opt = document.createElement('option');
             opt.value = n;
-            opt.textContent = n;
+            opt.textContent = roundOptionLabel(n);
             if (n === settings.roundCount) opt.selected = true;
             roundInput.appendChild(opt);
         });

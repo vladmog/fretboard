@@ -8,7 +8,7 @@ import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
 import * as WeightedSelection from '../core/weighted-selection.js';
 import * as GameSession from './session.js';
-import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime } from './game-utils.js';
+import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime, snapRoundCount, ROUND_OPTIONS, roundOptionLabel, totalRoundsFor, roundCounterText, logQuestionTime } from './game-utils.js';
 
 function createEarTrainingGame(config) {
     'use strict';
@@ -58,12 +58,7 @@ function createEarTrainingGame(config) {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 settings = { ...settings, ...parsed };
-                const roundOptions = [5, 10, 20, 50, 100];
-                if (!roundOptions.includes(settings.roundCount)) {
-                    settings.roundCount = roundOptions.reduce((prev, curr) =>
-                        Math.abs(curr - settings.roundCount) < Math.abs(prev - settings.roundCount) ? curr : prev
-                    );
-                }
+                settings.roundCount = snapRoundCount(settings.roundCount);
             }
         } catch (e) {
             console.error('Failed to load ear training settings:', e);
@@ -189,10 +184,10 @@ function createEarTrainingGame(config) {
         roundLabel.className = 'game-setting-label';
         const roundInput = document.createElement('select');
         roundInput.className = 'game-setting-select';
-        [5, 10, 20, 50, 100].forEach(n => {
+        ROUND_OPTIONS.forEach(n => {
             const opt = document.createElement('option');
             opt.value = n;
-            opt.textContent = n;
+            opt.textContent = roundOptionLabel(n);
             if (n === settings.roundCount) opt.selected = true;
             roundInput.appendChild(opt);
         });
@@ -383,7 +378,7 @@ function createEarTrainingGame(config) {
 
     function startGame() {
         gameState.currentRound = 0;
-        gameState.totalRounds = settings.roundCount;
+        gameState.totalRounds = totalRoundsFor(settings.roundCount);
         gameState.correctCount = 0;
         gameState.questionTimes = [];
         gameState.questionQueue = [];
@@ -447,7 +442,7 @@ function createEarTrainingGame(config) {
 
         const counter = document.createElement('div');
         counter.className = 'game-round-counter';
-        counter.textContent = `${gameState.currentRound} / ${gameState.totalRounds}`;
+        counter.textContent = roundCounterText(gameState.currentRound, gameState.totalRounds);
         topRow.appendChild(counter);
 
         const spacerRight = document.createElement('div');
@@ -552,12 +547,12 @@ function createEarTrainingGame(config) {
             }
 
             const elapsed = performance.now() - gameState.questionStartTime;
-            gameState.questionTimes.push({
+            logQuestionTime(gameState, {
                 root: gameState.currentRoot,
                 chordType: gameState.currentChordType,
                 timeMs: Math.round(elapsed),
                 correct: !gameState.hadMistake
-            });
+            }, commitSessionStats);
 
             if (rootGrid) {
                 rootGrid.querySelectorAll('.ear-training-btn').forEach(btn => {
@@ -934,7 +929,11 @@ function createEarTrainingGame(config) {
         renderTitlePage,
         renderSettings,
         cleanup,
-        advance: nextQuestion
+        advance: nextQuestion,
+        // Enter key: replay the chord while a question is on screen
+        repeatQuestion: () => {
+            if (document.querySelector('#game-content .ear-training-btn')) playCurrentChord();
+        }
     };
 }
 
