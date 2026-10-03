@@ -27,6 +27,7 @@
  */
 
 import * as MusicTheory from '../core/music-theory.js';
+import * as Sound from '../core/sound.js';
 import * as GameSession from './session.js';
 import { accuracyToColor, renderReactionTimeChart } from './game-utils.js';
 import { createSettingsStore, createStatsStore } from './storage.js';
@@ -689,6 +690,10 @@ export function createMatrixGame(config) {
     function handlePick(semitone) {
         if (gameState.answered) return;
         if (semitone === gameState.targetSemitone) {
+            // Note ID: let the user hear the note they found
+            if (isNoteDomain && GameSession.getState().soundEnabled) {
+                Sound.playNote(SHARP_NOTES[semitone]);
+            }
             handleCorrectAnswer();
         } else {
             handleWrongAnswer(semitone);
@@ -697,6 +702,7 @@ export function createMatrixGame(config) {
 
     function handleWrongAnswer(semitone) {
         gameState.hadMistake = true;
+        if (GameSession.getState().soundEnabled) Sound.playError();
         const api = gameState.circleApi;
         if (!api) return;
         const group = api.nodeGroups.find(g =>

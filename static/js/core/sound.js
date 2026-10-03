@@ -1,6 +1,6 @@
 /**
  * Sound Module - Audio playback for chords using Tone.js
- * Exports playChord, playNote, playInterval, playArpeggio,
+ * Exports playChord, playNote, playInterval, playArpeggio, playError,
  * getParams, getDefaults, setParam
  */
 /* global Tone */
@@ -29,6 +29,7 @@ const defaults = {
 const params = { ...defaults };
 
 let synth = null;
+let errorSynth = null;
 let filter = null;
 let reverb = null;
 let limiter = null;
@@ -238,4 +239,23 @@ async function playArpeggio(noteNames) {
     });
 }
 
-export { playChord, playNote, playInterval, playArpeggio, getParams, getDefaults, setParam };
+/**
+ * Play a short "wrong answer" buzz: two quick descending square-wave tones
+ * a tritone apart, dry (no reverb) so it reads as a signal, not music.
+ */
+async function playError() {
+    await Tone.start();
+    ensureSynth();
+    if (!errorSynth) {
+        errorSynth = new Tone.Synth({
+            oscillator: { type: 'square' },
+            envelope: { attack: 0.005, decay: 0.05, sustain: 0.7, release: 0.06 }
+        }).connect(limiter);
+        errorSynth.volume.value = -20;
+    }
+    const now = Tone.now();
+    errorSynth.triggerAttackRelease('A#2', 0.11, now);
+    errorSynth.triggerAttackRelease('E2', 0.22, now + 0.13);
+}
+
+export { playChord, playNote, playInterval, playArpeggio, playError, getParams, getDefaults, setParam };

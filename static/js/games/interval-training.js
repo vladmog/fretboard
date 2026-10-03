@@ -74,6 +74,7 @@ function createIntervalTrainingGame(config) {
         currentSemitone: 0,
         correctCount: 0,
         answered: false,
+        inputLocked: false,   // true during a builder's wrong-answer flash
         circleApi: null,
         givenNoteIndex: 0,
         givenSemitone: 0,
@@ -1226,6 +1227,7 @@ function createIntervalTrainingGame(config) {
     function nextQuestion() {
         gameState.currentRound++;
         gameState.answered = false;
+        gameState.inputLocked = false;
 
         if (gameState.currentRound > gameState.totalRounds) {
             showResults();
@@ -1445,7 +1447,7 @@ function createIntervalTrainingGame(config) {
     }
 
     function handleNoteClick(noteIndex, semitone) {
-        if (gameState.answered) return;
+        if (gameState.answered || gameState.inputLocked) return;
 
         const mode = gameState.activeMode;
 
@@ -1488,12 +1490,9 @@ function createIntervalTrainingGame(config) {
     function handleWrongAnswer(clickedNoteIndex, clickedSemitone) {
         gameState.hadMistake = true;
 
-        // Play clicked note sound
+        // Wrong-answer buzz
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) {
-            const noteName = MusicTheory.getNoteName(clickedNoteIndex, false);
-            Sound.playNote(noteName, getNoteOctave(clickedNoteIndex, gameState.currentRootIndex));
-        }
+        if (gamesState && gamesState.soundEnabled) Sound.playError();
 
         // Flash red
         const api = gameState.circleApi;
@@ -1689,12 +1688,11 @@ function createIntervalTrainingGame(config) {
         const api = gameState.circleApi;
         if (!api) return;
 
-        // Play clicked note sound
+        // Wrong-answer buzz; the sequence restarts from the root. Input is
+        // locked during the red flash so fast typing can't land mid-reset.
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) {
-            const noteName = MusicTheory.getNoteName(noteIndex, false);
-            Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
-        }
+        if (gamesState && gamesState.soundEnabled) Sound.playError();
+        gameState.inputLocked = true;
 
         gameState.hadMistake = true;
 
@@ -1739,6 +1737,7 @@ function createIntervalTrainingGame(config) {
 
             // Reset sequence
             gameState.currentDegreeIndex = 0;
+            gameState.inputLocked = false;
 
             updateBuilderCenterText();
         }, 400);
@@ -1881,12 +1880,11 @@ function createIntervalTrainingGame(config) {
         const api = gameState.circleApi;
         if (!api) return;
 
-        // Play clicked note sound
+        // Wrong-answer buzz; the sequence restarts from the root. Input is
+        // locked during the red flash so fast typing can't land mid-reset.
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) {
-            const noteName = MusicTheory.getNoteName(noteIndex, false);
-            Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
-        }
+        if (gamesState && gamesState.soundEnabled) Sound.playError();
+        gameState.inputLocked = true;
 
         gameState.hadMistake = true;
 
@@ -1926,6 +1924,7 @@ function createIntervalTrainingGame(config) {
 
             // Reset sequence
             gameState.currentDegreeIndex = 0;
+            gameState.inputLocked = false;
 
             updateBuilderCenterText();
         }, 400);

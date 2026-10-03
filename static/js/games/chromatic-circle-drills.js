@@ -656,12 +656,9 @@ export default (function() {
     function handleWrongAnswer(clickedNoteIndex) {
         gameState.hadMistake = true;
 
-        // Play clicked note sound
+        // Wrong-answer buzz
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) {
-            const noteName = MusicTheory.getNoteName(clickedNoteIndex, false);
-            Sound.playNote(noteName, GAME_OCTAVE);
-        }
+        if (gamesState && gamesState.soundEnabled) Sound.playError();
 
         // Flash red
         const api = gameState.circleApi;
