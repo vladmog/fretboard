@@ -70,6 +70,7 @@ games/                   Training games (plugin architecture)
   game-utils.js          shuffleArray, stat colors, formatTime, reaction-time chart, round-count helpers
   note-keyboard.js       Keyboard note input (a–g; uppercase or hold ↑ = sharp, hold ↓ = flat; Enter next-or-repeat, Space next)
   voice.js               Global voice announcements (speechSynthesis) + its settings section
+  blackout.js            AMOLED blackout: long-press whitespace in keyboard-capable games → black screen, tap restores
   matrix-game.js         createMatrixGame(config) factory for the matrix-drill family
   note-id.js, interval-id.js, note-locator.js, interval-locator.js   ~15-line matrix configs
   interval-training.js   createIntervalTrainingGame(config) factory (2 instances)

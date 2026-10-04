@@ -14,6 +14,7 @@ import NoteLocator from './note-locator.js';
 import { gameState, isAwaitingAdvance, setAwaitingAdvance, markReady } from './session.js';
 import * as NoteKeyboard from './note-keyboard.js';
 import * as Voice from './voice.js';
+import * as Blackout from './blackout.js';
 
 export const Games = (function() {
     'use strict';
@@ -56,6 +57,7 @@ export const Games = (function() {
 
         updateSoundButton();
         NoteKeyboard.attach(handleNoteKey, repeatQuestion, tryAdvance);
+        Blackout.attach(hasKeyboardInput);
     }
 
     function deactivate() {
@@ -70,6 +72,7 @@ export const Games = (function() {
         }
 
         NoteKeyboard.detach();
+        Blackout.detach();
         Voice.cancel();
         closeModal();
     }
@@ -97,6 +100,12 @@ export const Games = (function() {
         const game = getCurrentGame();
         if (game && game.advance) game.advance();
         return true;
+    }
+
+    // Games playable hands-free via keyboard/voice can be blacked out
+    function hasKeyboardInput() {
+        const game = getCurrentGame();
+        return !!(game && (game.handleNoteKey || game.repeatQuestion));
     }
 
     function getCurrentGame() {
@@ -203,6 +212,7 @@ export const Games = (function() {
             gameSelect.addEventListener('change', (e) => {
                 setAwaitingAdvance(false);
                 Voice.cancel();
+                Blackout.hide();
                 const game = getCurrentGame();
                 if (game && game.cleanup) game.cleanup();
 
@@ -223,7 +233,7 @@ export const Games = (function() {
         const content = document.getElementById('game-content');
         if (content) {
             content.addEventListener('click', (e) => {
-                if (!isAwaitingAdvance()) return;
+                if (!isAwaitingAdvance() || Blackout.isActive()) return;
                 const modal = document.getElementById('game-settings-modal');
                 if (modal && getComputedStyle(modal).display !== 'none') return;
                 // Real interactive controls (answer buttons, toggles, links) keep

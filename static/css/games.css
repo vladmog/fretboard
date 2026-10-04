@@ -917,3 +917,36 @@ select.rainbow-select {
     color: #777;
     letter-spacing: 0.03em;
 }
+
+/* ========================================
+   AMOLED BLACKOUT (games/blackout.js)
+   ======================================== */
+
+/* Long-press on whitespace must not select text or open the iOS callout */
+.game-content {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* The iOS status bar takes its colour from the page, so the page itself
+   goes black too, not just the overlay */
+html.amoled-on,
+html.amoled-on body,
+html.amoled-on #games-panel {
+    background: #000;
+    color-scheme: dark;
+}
+
+.amoled-blackout {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 1000;
+    cursor: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
+}
