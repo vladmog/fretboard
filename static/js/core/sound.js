@@ -1,6 +1,6 @@
 /**
  * Sound Module - Audio playback for chords using Tone.js
- * Exports playChord, playNote, playInterval, playArpeggio, playConfirmation, playError,
+ * Exports unlock, playChord, playNote, playInterval, playArpeggio, playConfirmation, playError,
  * isPlaying, onPlaybackChange, setMusicalPlaybackSuppression,
  * getParams, getDefaults, setParam
  */
@@ -90,6 +90,14 @@ function setMusicalPlaybackSuppression(shouldSuppress) {
 
 function musicalPlaybackIsSuppressed() {
     return !!(musicalPlaybackSuppression && musicalPlaybackSuppression());
+}
+
+/**
+ * Start Web Audio from a physical user gesture. iOS will otherwise keep the
+ * audio context suspended when the first sound comes from speech recognition.
+ */
+async function unlock() {
+    await Tone.start();
 }
 
 /**
@@ -350,7 +358,7 @@ async function playError() {
 }
 
 export {
-    playChord, playNote, playInterval, playArpeggio, playConfirmation, playError,
+    unlock, playChord, playNote, playInterval, playArpeggio, playConfirmation, playError,
     isPlaying, onPlaybackChange, setMusicalPlaybackSuppression,
     getParams, getDefaults, setParam
 };

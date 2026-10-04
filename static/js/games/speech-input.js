@@ -272,8 +272,19 @@ export function renderSettings(container) {
     group.appendChild(makeToggle(settings.enabled ? 'on' : 'off', value => {
         settings.enabled = value === 'on';
         store.save();
-        if (settings.enabled) start();
-        else {
+        if (settings.enabled) {
+            // Tone.start() must run from this physical change gesture on iOS.
+            // Confirm the unlock audibly before recognition starts so the
+            // user knows answer feedback is available.
+            stop();
+            setStatus('Enabling audio…');
+            Sound.unlock()
+                .then(() => Sound.playConfirmation())
+                .catch(() => {
+                    setStatus('Audio unavailable');
+                    scheduleStart();
+                });
+        } else {
             stop();
             setStatus('Off');
         }
@@ -287,7 +298,7 @@ export function renderSettings(container) {
 
     const hint = document.createElement('p');
     hint.className = 'voice-settings-hint';
-    hint.textContent = 'Say “note C”, “C sharp”, “repeat”, or “next”. A high tick confirms a correct note; wrong notes buzz. Siri must be enabled on iPhone.';
+    hint.textContent = 'Turning Voice Input on plays a test tick. Say “note C”, “C sharp”, “repeat”, or “next”. A high tick confirms a correct note; wrong notes buzz. Siri must be enabled on iPhone.';
     group.appendChild(hint);
     container.appendChild(group);
 }
