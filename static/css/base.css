@@ -7,9 +7,26 @@
     touch-action: manipulation;
 }
 
+:root {
+    --app-viewport-height: 100dvh;
+    --ios-pwa-top-clearance: 0px;
+}
+
+html.standalone {
+    --app-viewport-height: 100lvh;
+    --ios-pwa-top-clearance: 16px;
+}
+
+@media (display-mode: standalone) {
+    :root {
+        --app-viewport-height: 100lvh;
+        --ios-pwa-top-clearance: 16px;
+    }
+}
+
 html {
     height: 100%;
-    height: 100lvh;
+    height: var(--app-viewport-height);
     background-color: #fff;
     color-scheme: light;
 }
@@ -21,15 +38,15 @@ body {
     font-weight: 400;
     letter-spacing: 0.02em;
     height: 100%;
-    height: 100lvh;
+    height: var(--app-viewport-height);
     overflow: hidden;
 }
 
 .app-container {
     display: grid;
     height: 100%;
-    height: 100lvh;
-    max-height: 100lvh;
+    height: var(--app-viewport-height);
+    max-height: var(--app-viewport-height);
     overflow: hidden;
 }
 
@@ -38,8 +55,8 @@ body {
     .app-container {
         grid-template-rows: 1fr 1fr;
         grid-template-columns: 1fr;
-        /* iOS 27 blurs the top of installed PWAs; add 16px beyond the safe area. */
-        padding: max(1.5rem, calc(env(safe-area-inset-top, 0px) + 16px)) max(1.5rem, env(safe-area-inset-right)) 1.5rem max(1.5rem, env(safe-area-inset-left));
+        /* iOS 27 blurs the top of installed PWAs; standalone mode adds 16px. */
+        padding: max(1.5rem, calc(env(safe-area-inset-top, 0px) + var(--ios-pwa-top-clearance))) max(1.5rem, env(safe-area-inset-right)) 1.5rem max(1.5rem, env(safe-area-inset-left));
         gap: 1.5rem;
     }
 
@@ -90,10 +107,10 @@ body {
     .app-container {
         grid-template-columns: 1fr 1fr;
         grid-template-rows: 100%;
-        /* iOS 27 blurs the top of installed PWAs; add 16px beyond the safe area. */
-        padding: calc(env(safe-area-inset-top, 0px) + 16px) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+        /* iOS 27 blurs the top of installed PWAs; standalone mode adds 16px. */
+        padding: calc(env(safe-area-inset-top, 0px) + var(--ios-pwa-top-clearance)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
         gap: 0.5rem;
-        height: 100lvh;
+        height: var(--app-viewport-height);
     }
 
     #fretboard-panel {
