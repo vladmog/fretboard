@@ -17,16 +17,16 @@
 html.standalone {
     --app-viewport-height: 100lvh;
     --ios-pwa-top-clearance: 16px;
-    --app-bottom-clearance-mobile: max(0.5rem, env(safe-area-inset-bottom));
-    --app-bottom-clearance-wide: 1.5rem;
+    --app-bottom-clearance-mobile: env(safe-area-inset-bottom, 0px);
+    --app-bottom-clearance-wide: env(safe-area-inset-bottom, 0px);
 }
 
 @media (display-mode: standalone) {
     :root {
         --app-viewport-height: 100lvh;
         --ios-pwa-top-clearance: 16px;
-        --app-bottom-clearance-mobile: max(0.5rem, env(safe-area-inset-bottom));
-        --app-bottom-clearance-wide: 1.5rem;
+        --app-bottom-clearance-mobile: env(safe-area-inset-bottom, 0px);
+        --app-bottom-clearance-wide: env(safe-area-inset-bottom, 0px);
     }
 }
 
