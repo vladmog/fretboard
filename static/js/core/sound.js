@@ -1,6 +1,6 @@
 /**
  * Sound Module - Audio playback for chords using Tone.js
- * Exports playChord, playNote, playInterval, playArpeggio, playError,
+ * Exports playChord, playNote, playInterval, playArpeggio, playConfirmation, playError,
  * isPlaying, onPlaybackChange, setMusicalPlaybackSuppression,
  * getParams, getDefaults, setParam
  */
@@ -31,6 +31,7 @@ const params = { ...defaults };
 
 let synth = null;
 let errorSynth = null;
+let confirmationSynth = null;
 let filter = null;
 let reverb = null;
 let limiter = null;
@@ -43,6 +44,7 @@ let playbackUntil = 0;
 let playbackActive = false;
 const playbackListeners = new Set();
 let musicalPlaybackSuppression = null;
+let nextConfirmationTime = 0;
 
 function nowMs() {
     return (typeof performance !== 'undefined') ? performance.now() : Date.now();
@@ -306,6 +308,28 @@ async function playArpeggio(noteNames) {
 }
 
 /**
+ * Play a short dry acknowledgement when voice input accepts a correct note.
+ * This bypasses pitched-feedback suppression and queues rapid multi-note
+ * answers as distinct ticks.
+ */
+async function playConfirmation() {
+    await Tone.start();
+    ensureSynth();
+    if (!confirmationSynth) {
+        confirmationSynth = new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.002, decay: 0.025, sustain: 0, release: 0.02 }
+        }).connect(limiter);
+        confirmationSynth.volume.value = -18;
+    }
+    const now = Tone.now();
+    const start = Math.max(now, nextConfirmationTime);
+    nextConfirmationTime = start + 0.11;
+    markPlayback((start - now) + 0.07);
+    confirmationSynth.triggerAttackRelease('C6', 0.04, start);
+}
+
+/**
  * Play a short "wrong answer" buzz: two quick descending square-wave tones
  * a tritone apart, dry (no reverb) so it reads as a signal, not music.
  */
@@ -326,7 +350,7 @@ async function playError() {
 }
 
 export {
-    playChord, playNote, playInterval, playArpeggio, playError,
+    playChord, playNote, playInterval, playArpeggio, playConfirmation, playError,
     isPlaying, onPlaybackChange, setMusicalPlaybackSuppression,
     getParams, getDefaults, setParam
 };

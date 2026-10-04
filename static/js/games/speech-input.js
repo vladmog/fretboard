@@ -81,7 +81,13 @@ function dispatchResult(instance, parsed) {
     stop();
     if (parsed.type === 'repeat') handlers.onRepeat();
     else if (parsed.type === 'advance') handlers.onAdvance();
-    else parsed.notes.forEach(handlers.onNote);
+    else {
+        parsed.notes.forEach(note => {
+            const correct = handlers.onNote(note, 'voice');
+            if (correct === true) Sound.playConfirmation();
+            else if (correct === false) Sound.playError();
+        });
+    }
     scheduleStart();
 }
 
@@ -281,7 +287,7 @@ export function renderSettings(container) {
 
     const hint = document.createElement('p');
     hint.className = 'voice-settings-hint';
-    hint.textContent = 'Say “note C”, “C sharp”, “repeat”, or “next”. Musical feedback is muted while listening; wrong answers still buzz. Siri must be enabled on iPhone.';
+    hint.textContent = 'Say “note C”, “C sharp”, “repeat”, or “next”. A high tick confirms a correct note; wrong notes buzz. Siri must be enabled on iPhone.';
     group.appendChild(hint);
     container.appendChild(group);
 }

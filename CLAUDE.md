@@ -128,8 +128,10 @@ let them grow back:
 4. Persistence: use `games/storage.js` only. Settings key
    `fretboard-<game-id>-settings`; stats go under your game id inside the
    shared `fretboard-games-stats` blob. Never hand-roll localStorage access.
-5. Optional hooks: `handleNoteKey(noteIndex)` (0–11, C = 0) receives
+5. Optional hooks: `handleNoteKey(noteIndex, source)` (0–11, C = 0) receives
    keyboard note input from `games/note-keyboard.js` via the framework, and
+   voice input passes `source === 'voice'`; return `true`/`false` when the
+   result is known so speech input can play distinct correct/wrong feedback.
    `repeatQuestion()` runs on Enter while unanswered (re-announce / replay);
    announce questions with `Voice.speak(text, onDone)` from `games/voice.js`
    (a no-op that calls `onDone` immediately when voice is off).

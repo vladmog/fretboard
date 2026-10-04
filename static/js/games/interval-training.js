@@ -1406,10 +1406,10 @@ function createIntervalTrainingGame(config) {
     }
 
     // Keyboard note input (games/note-keyboard.js via the framework)
-    function handleNoteKey(noteIndex) {
+    function handleNoteKey(noteIndex, source) {
         const api = gameState.circleApi;
         if (!api || !api.svg.isConnected || gameState.answered) return;
-        handleNoteClick(noteIndex, (noteIndex - gameState.currentRootIndex + 12) % 12);
+        return handleNoteClick(noteIndex, (noteIndex - gameState.currentRootIndex + 12) % 12, source);
     }
 
     function playRoundStartSounds() {
@@ -1451,7 +1451,7 @@ function createIntervalTrainingGame(config) {
         }
     }
 
-    function handleNoteClick(noteIndex, semitone) {
+    function handleNoteClick(noteIndex, semitone, source) {
         if (gameState.answered || gameState.inputLocked) return;
 
         const mode = gameState.activeMode;
@@ -1460,20 +1460,22 @@ function createIntervalTrainingGame(config) {
             const expectedIndex = gameState.scaleNotes[gameState.currentDegreeIndex];
             if (noteIndex === expectedIndex) {
                 handleScaleCorrectStep(noteIndex);
+                return true;
             } else {
-                handleScaleWrongStep(noteIndex);
+                handleScaleWrongStep(noteIndex, source !== 'voice');
+                return false;
             }
-            return;
         }
 
         if (mode === 'chord-builder') {
             const expectedIndex = gameState.chordNotes[gameState.currentDegreeIndex];
             if (noteIndex === expectedIndex) {
                 handleChordCorrectStep(noteIndex);
+                return true;
             } else {
-                handleChordWrongStep(noteIndex);
+                handleChordWrongStep(noteIndex, source !== 'voice');
+                return false;
             }
-            return;
         }
 
         let correctNoteIndex;
@@ -1487,17 +1489,19 @@ function createIntervalTrainingGame(config) {
 
         if (noteIndex === correctNoteIndex) {
             handleCorrectAnswer(noteIndex);
+            return true;
         } else {
-            handleWrongAnswer(noteIndex, semitone);
+            handleWrongAnswer(noteIndex, semitone, source !== 'voice');
+            return false;
         }
     }
 
-    function handleWrongAnswer(clickedNoteIndex, clickedSemitone) {
+    function handleWrongAnswer(clickedNoteIndex, clickedSemitone, playFeedback = true) {
         gameState.hadMistake = true;
 
         // Wrong-answer buzz
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) Sound.playError();
+        if (playFeedback && gamesState && gamesState.soundEnabled) Sound.playError();
 
         // Flash red
         const api = gameState.circleApi;
@@ -1689,14 +1693,14 @@ function createIntervalTrainingGame(config) {
         }
     }
 
-    function handleScaleWrongStep(noteIndex) {
+    function handleScaleWrongStep(noteIndex, playFeedback = true) {
         const api = gameState.circleApi;
         if (!api) return;
 
         // Wrong-answer buzz; the sequence restarts from the root. Input is
         // locked during the red flash so fast typing can't land mid-reset.
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) Sound.playError();
+        if (playFeedback && gamesState && gamesState.soundEnabled) Sound.playError();
         gameState.inputLocked = true;
 
         gameState.hadMistake = true;
@@ -1881,14 +1885,14 @@ function createIntervalTrainingGame(config) {
         }
     }
 
-    function handleChordWrongStep(noteIndex) {
+    function handleChordWrongStep(noteIndex, playFeedback = true) {
         const api = gameState.circleApi;
         if (!api) return;
 
         // Wrong-answer buzz; the sequence restarts from the root. Input is
         // locked during the red flash so fast typing can't land mid-reset.
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) Sound.playError();
+        if (playFeedback && gamesState && gamesState.soundEnabled) Sound.playError();
         gameState.inputLocked = true;
 
         gameState.hadMistake = true;

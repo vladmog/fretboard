@@ -81,10 +81,10 @@ export const Games = (function() {
     }
 
     // Keyboard note input: route to the current game's optional hook
-    function handleNoteKey(noteIndex) {
+    function handleNoteKey(noteIndex, source) {
         if (!gameState.active) return;
         const game = getCurrentGame();
-        if (game && game.handleNoteKey) game.handleNoteKey(noteIndex);
+        if (game && game.handleNoteKey) return game.handleNoteKey(noteIndex, source);
     }
 
     // Enter: advance once answered; otherwise re-announce / replay the
