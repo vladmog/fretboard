@@ -2,7 +2,7 @@
  * Keyboard note input for chromatic-circle games.
  * Lowercase letters a–g pick a natural; an uppercase letter (Shift) or
  * holding ArrowUp makes it sharp, holding ArrowDown makes it flat. Enter
- * repeats the question; Space advances to the next one. Attached by
+ * advances once answered and otherwise repeats the question; Space advances. Attached by
  * games/framework.js while games mode is active; the framework routes notes
  * to the current game's optional handleNoteKey(index).
  */
@@ -78,7 +78,7 @@ function clearHeld() {
 
 /**
  * @param {Function} onNote - called with a pitch-class index 0–11
- * @param {Function} onRepeat - called on Enter
+ * @param {Function} onRepeat - called on Enter (framework advances first if answered)
  * @param {Function} onAdvance - called on Space
  */
 export function attach(onNote, onRepeat, onAdvance) {

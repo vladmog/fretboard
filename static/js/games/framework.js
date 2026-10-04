@@ -81,9 +81,11 @@ export const Games = (function() {
         if (game && game.handleNoteKey) game.handleNoteKey(noteIndex);
     }
 
-    // Enter: re-announce / replay the current question (optional game hook)
+    // Enter: advance once answered; otherwise re-announce / replay the
+    // current question (optional game hook)
     function repeatQuestion() {
         if (!gameState.active) return;
+        if (tryAdvance()) return;
         const game = getCurrentGame();
         if (game && game.repeatQuestion) game.repeatQuestion();
     }

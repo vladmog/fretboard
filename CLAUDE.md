@@ -68,7 +68,7 @@ games/                   Training games (plugin architecture)
   session.js             Shared framework state (gameState, markReady); imports nothing
   storage.js             createSettingsStore / createStatsStore — ALL game persistence
   game-utils.js          shuffleArray, stat colors, formatTime, reaction-time chart, round-count helpers
-  note-keyboard.js       Keyboard note input (a–g; uppercase or hold ↑ = sharp, hold ↓ = flat; Enter repeat, Space next)
+  note-keyboard.js       Keyboard note input (a–g; uppercase or hold ↑ = sharp, hold ↓ = flat; Enter next-or-repeat, Space next)
   voice.js               Global voice announcements (speechSynthesis) + its settings section
   matrix-game.js         createMatrixGame(config) factory for the matrix-drill family
   note-id.js, interval-id.js, note-locator.js, interval-locator.js   ~15-line matrix configs
@@ -127,7 +127,7 @@ let them grow back:
    shared `fretboard-games-stats` blob. Never hand-roll localStorage access.
 5. Optional hooks: `handleNoteKey(noteIndex)` (0–11, C = 0) receives
    keyboard note input from `games/note-keyboard.js` via the framework, and
-   `repeatQuestion()` runs on Enter (re-announce / replay the question);
+   `repeatQuestion()` runs on Enter while unanswered (re-announce / replay);
    announce questions with `Voice.speak(text, onDone)` from `games/voice.js`
    (a no-op that calls `onDone` immediately when voice is off).
 6. Rounds: use `ROUND_OPTIONS`/`snapRoundCount`/`totalRoundsFor`/
