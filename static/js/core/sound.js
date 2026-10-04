@@ -1,7 +1,8 @@
 /**
  * Sound Module - Audio playback for chords using Tone.js
  * Exports playChord, playNote, playInterval, playArpeggio, playError,
- * isPlaying, onPlaybackChange, getParams, getDefaults, setParam
+ * isPlaying, onPlaybackChange, setMusicalPlaybackSuppression,
+ * getParams, getDefaults, setParam
  */
 /* global Tone */
 
@@ -41,6 +42,7 @@ let playbackTimer = null;
 let playbackUntil = 0;
 let playbackActive = false;
 const playbackListeners = new Set();
+let musicalPlaybackSuppression = null;
 
 function nowMs() {
     return (typeof performance !== 'undefined') ? performance.now() : Date.now();
@@ -77,6 +79,15 @@ function isPlaying() {
 function onPlaybackChange(listener) {
     playbackListeners.add(listener);
     return () => playbackListeners.delete(listener);
+}
+
+/** Let hands-free input suppress pitched feedback without muting error cues. */
+function setMusicalPlaybackSuppression(shouldSuppress) {
+    musicalPlaybackSuppression = typeof shouldSuppress === 'function' ? shouldSuppress : null;
+}
+
+function musicalPlaybackIsSuppressed() {
+    return !!(musicalPlaybackSuppression && musicalPlaybackSuppression());
 }
 
 /**
@@ -193,7 +204,7 @@ function assignOctaves(noteNames, startOctave) {
  * @param {string[]} noteNames - Note names from buildChord() (e.g. ['C', 'E', 'G'])
  */
 async function playChord(noteNames, startOctave) {
-    if (!noteNames || noteNames.length === 0) return;
+    if (!noteNames || noteNames.length === 0 || musicalPlaybackIsSuppressed()) return;
 
     await Tone.start();
     ensureSynth();
@@ -229,6 +240,7 @@ async function playChord(noteNames, startOctave) {
  * @param {number} duration - Duration in seconds (default params.noteDuration)
  */
 async function playNote(noteName, octave, duration) {
+    if (musicalPlaybackIsSuppressed()) return;
     if (octave === undefined) octave = 4;
     if (duration === undefined) duration = params.noteDuration;
 
@@ -249,6 +261,7 @@ async function playNote(noteName, octave, duration) {
  * @param {number} rootOctave - Root octave (default 3)
  */
 async function playInterval(rootName, targetName, semitone, rootOctave) {
+    if (musicalPlaybackIsSuppressed()) return;
     if (rootOctave === undefined) rootOctave = 3;
 
     await Tone.start();
@@ -277,7 +290,7 @@ async function playInterval(rootName, targetName, semitone, rootOctave) {
  * @param {string[]} noteNames - Note names (e.g. ['C', 'D', 'E', 'F', 'G', 'A', 'B'])
  */
 async function playArpeggio(noteNames) {
-    if (!noteNames || noteNames.length === 0) return;
+    if (!noteNames || noteNames.length === 0 || musicalPlaybackIsSuppressed()) return;
 
     await Tone.start();
     ensureSynth();
@@ -314,6 +327,6 @@ async function playError() {
 
 export {
     playChord, playNote, playInterval, playArpeggio, playError,
-    isPlaying, onPlaybackChange,
+    isPlaying, onPlaybackChange, setMusicalPlaybackSuppression,
     getParams, getDefaults, setParam
 };

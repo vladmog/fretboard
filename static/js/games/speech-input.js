@@ -27,8 +27,16 @@ let recognition = null;
 let listening = false;
 let starting = false;
 let restartTimer = null;
+let interimTimer = null;
 let statusText = 'Off';
 const statusNodes = new Set();
+
+// Pitched feedback creates long periods where a fast next answer is lost.
+// Hands-free mode keeps the short wrong-answer cue, but suppresses notes and
+// chords while an eligible game is active.
+Sound.setMusicalPlaybackSuppression(() =>
+    !!(settings.enabled && handlers && handlers.isEligible())
+);
 
 function setStatus(text) {
     statusText = text;
@@ -52,10 +60,29 @@ function outputIsActive() {
     return Voice.isSpeaking() || Sound.isPlaying();
 }
 
-function scheduleStart(delay = 250) {
+function scheduleStart(delay = 100) {
     clearTimeout(restartTimer);
     if (!canListen()) return;
     restartTimer = setTimeout(start, delay);
+}
+
+function parseResult(result) {
+    for (let i = 0; i < result.length; i++) {
+        const parsed = parseSpeechCommand(result[i].transcript);
+        if (parsed) return parsed;
+    }
+    return null;
+}
+
+function dispatchResult(instance, parsed) {
+    if (!parsed || recognition !== instance || !handlers) return;
+    // End this short utterance before invoking the game. This prevents a
+    // later final result from submitting the same command twice.
+    stop();
+    if (parsed.type === 'repeat') handlers.onRepeat();
+    else if (parsed.type === 'advance') handlers.onAdvance();
+    else parsed.notes.forEach(handlers.onNote);
+    scheduleStart();
 }
 
 function createRecognition() {
@@ -63,9 +90,26 @@ function createRecognition() {
     const instance = new Recognition();
     recognition = instance;
     instance.lang = 'en-US';
-    instance.continuous = true;
-    instance.interimResults = false;
+    // Short sessions avoid WebKit's long-running continuous-recognition
+    // stalls. Interim results let a stable short command land before Safari
+    // waits for slower finalization.
+    instance.continuous = false;
+    instance.interimResults = true;
     instance.maxAlternatives = 5;
+
+    // Newer engines can bias recognition toward our small vocabulary.
+    // Safari currently ignores this path, so feature-detect it.
+    const Phrase = window.SpeechRecognitionPhrase;
+    if ('phrases' in instance && Phrase) {
+        try {
+            instance.phrases = [
+                'A', 'B', 'C', 'D', 'E', 'F', 'G',
+                'A sharp', 'B flat', 'C sharp', 'D flat', 'D sharp', 'E flat',
+                'F sharp', 'G flat', 'G sharp', 'A flat',
+                'repeat', 'next'
+            ].map(phrase => new Phrase(phrase, 5));
+        } catch (error) { /* optional experimental API */ }
+    }
 
     instance.onstart = () => {
         if (recognition !== instance) return;
@@ -77,24 +121,19 @@ function createRecognition() {
     instance.onresult = (event) => {
         if (recognition !== instance) return;
         if (!handlers || modalIsOpen() || !handlers.isEligible()) return;
+        clearTimeout(interimTimer);
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const result = event.results[i];
-            if (!result.isFinal) continue;
-            let parsed = null;
-            for (let j = 0; j < result.length; j++) {
-                parsed = parseSpeechCommand(result[j].transcript);
-                if (parsed) break;
-            }
+            const parsed = parseResult(result);
             if (!parsed) continue;
-            if (parsed.type === 'repeat') {
-                handlers.onRepeat();
-                return;
-            } else if (parsed.type === 'advance') {
-                handlers.onAdvance();
-                return;
+            if (result.isFinal) {
+                dispatchResult(instance, parsed);
             } else {
-                parsed.notes.forEach(handlers.onNote);
+                // Wait briefly for another interim update so phrases such as
+                // “C E G” are not submitted after only the first note.
+                interimTimer = setTimeout(() => dispatchResult(instance, parsed), 300);
             }
+            return;
         }
     };
 
@@ -145,6 +184,7 @@ function start() {
 
 function stop() {
     clearTimeout(restartTimer);
+    clearTimeout(interimTimer);
     const instance = recognition;
     recognition = null;
     starting = false;
@@ -159,7 +199,7 @@ Voice.onSpeakingChange(speaking => {
         setStatus('Paused for audio');
         stop();
     } else {
-        scheduleStart(300);
+        scheduleStart(200);
     }
 });
 
@@ -169,7 +209,7 @@ Sound.onPlaybackChange(playing => {
         setStatus('Paused for audio');
         stop();
     } else {
-        scheduleStart(300);
+        scheduleStart(200);
     }
 });
 
@@ -241,7 +281,7 @@ export function renderSettings(container) {
 
     const hint = document.createElement('p');
     hint.className = 'voice-settings-hint';
-    hint.textContent = 'Say “note C”, “C sharp”, “repeat”, or “next”. Siri must be enabled on iPhone.';
+    hint.textContent = 'Say “note C”, “C sharp”, “repeat”, or “next”. Musical feedback is muted while listening; wrong answers still buzz. Siri must be enabled on iPhone.';
     group.appendChild(hint);
     container.appendChild(group);
 }
