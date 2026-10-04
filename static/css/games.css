@@ -18,7 +18,7 @@
     align-items: center;
     justify-content: flex-start;
     min-height: 100vh;
-    padding: calc(4rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-right, 0px)) calc(1rem + env(safe-area-inset-bottom, 0px)) calc(1rem + env(safe-area-inset-left, 0px));
+    padding: calc(4rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-right, 0px)) 1rem calc(1rem + env(safe-area-inset-left, 0px));
 }
 
 /* Back button */
@@ -44,7 +44,7 @@
 /* Controls box */
 .games-controls {
     position: fixed;
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    bottom: 1rem;
     right: calc(1rem + env(safe-area-inset-right, 0px));
     z-index: 120;
     display: flex;
@@ -511,7 +511,7 @@
     }
 
     .game-content {
-        padding: calc(3rem + env(safe-area-inset-top, 0px)) calc(0.75rem + env(safe-area-inset-right, 0px)) calc(5rem + env(safe-area-inset-bottom, 0px)) calc(0.75rem + env(safe-area-inset-left, 0px));
+        padding: calc(3rem + env(safe-area-inset-top, 0px)) calc(0.75rem + env(safe-area-inset-right, 0px)) 5rem calc(0.75rem + env(safe-area-inset-left, 0px));
     }
 
     .game-title-page {
@@ -565,7 +565,7 @@
     }
 
     .games-controls {
-        bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+        bottom: 0.5rem;
         right: calc(0.5rem + env(safe-area-inset-right, 0px));
     }
 
@@ -577,7 +577,7 @@
 
 @media (min-width: 769px) {
     .games-back-btn {
-        bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+        bottom: 1rem;
         left: calc(1rem + env(safe-area-inset-left, 0px));
     }
 }
@@ -640,7 +640,7 @@ select.rainbow-select {
 /* Override game-content when split layout is active */
 .fretboard-drills-active .game-content {
     padding-top: calc(1rem + env(safe-area-inset-top, 0px));
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 4.5rem;
     overflow: hidden;
     height: 100vh;
     height: 100dvh;
@@ -699,7 +699,7 @@ select.rainbow-select {
 /* Mobile: tighter padding */
 @media (max-width: 768px) {
     .fretboard-drills-active .game-content {
-        padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 calc(4rem + env(safe-area-inset-bottom, 0px)) 0;
+        padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 4rem 0;
     }
 
     .fretboard-drills-active .games-back-btn {
@@ -767,7 +767,7 @@ select.rainbow-select {
 .interval-locator-active .game-content,
 .note-locator-active .game-content {
     padding-top: calc(1rem + env(safe-area-inset-top, 0px));
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 4.5rem;
     overflow: hidden;
     height: 100vh;
     height: 100dvh;
@@ -864,7 +864,7 @@ select.rainbow-select {
     .note-id-active .game-content,
     .interval-locator-active .game-content,
     .note-locator-active .game-content {
-        padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 calc(4rem + env(safe-area-inset-bottom, 0px)) 0;
+        padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 4rem 0;
     }
 
     .interval-id-active .game-split-layout,

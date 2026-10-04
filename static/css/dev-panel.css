@@ -4,7 +4,7 @@
 
 #dev-toggle-btn {
     position: fixed;
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    bottom: 1rem;
     left: calc(1rem + env(safe-area-inset-left, 0px));
     z-index: 56;
     padding: 0.35rem 0.75rem;
