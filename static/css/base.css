@@ -38,7 +38,8 @@ body {
     .app-container {
         grid-template-rows: 1fr 1fr;
         grid-template-columns: 1fr;
-        padding: max(1.5rem, env(safe-area-inset-top)) max(1.5rem, env(safe-area-inset-right)) 1.5rem max(1.5rem, env(safe-area-inset-left));
+        /* iOS 27 blurs the top of installed PWAs; add 16px beyond the safe area. */
+        padding: max(1.5rem, calc(env(safe-area-inset-top, 0px) + 16px)) max(1.5rem, env(safe-area-inset-right)) 1.5rem max(1.5rem, env(safe-area-inset-left));
         gap: 1.5rem;
     }
 
@@ -89,7 +90,8 @@ body {
     .app-container {
         grid-template-columns: 1fr 1fr;
         grid-template-rows: 100%;
-        padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+        /* iOS 27 blurs the top of installed PWAs; add 16px beyond the safe area. */
+        padding: calc(env(safe-area-inset-top, 0px) + 16px) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
         gap: 0.5rem;
         height: 100lvh;
     }
