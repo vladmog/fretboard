@@ -1406,10 +1406,10 @@ function createIntervalTrainingGame(config) {
     }
 
     // Keyboard note input (games/note-keyboard.js via the framework)
-    function handleNoteKey(noteIndex, source) {
+    function handleNoteKey(noteIndex) {
         const api = gameState.circleApi;
         if (!api || !api.svg.isConnected || gameState.answered) return;
-        return handleNoteClick(noteIndex, (noteIndex - gameState.currentRootIndex + 12) % 12, source);
+        handleNoteClick(noteIndex, (noteIndex - gameState.currentRootIndex + 12) % 12);
     }
 
     function playRoundStartSounds() {
@@ -1433,10 +1433,7 @@ function createIntervalTrainingGame(config) {
                 setTimeout(() => {
                     Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
                 }, 400);
-            } else if ((mode === 'scale-builder' || mode === 'chord-builder') && !Voice.isEnabled()) {
-                // The spoken prompt already identifies the scale or chord.
-                // Avoid following it with a root note while hands-free input
-                // is about to resume.
+            } else if (mode === 'scale-builder' || mode === 'chord-builder') {
                 Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
             } else if (mode === 'interval-to-interval') {
                 // Play given note, then target note
@@ -1451,7 +1448,7 @@ function createIntervalTrainingGame(config) {
         }
     }
 
-    function handleNoteClick(noteIndex, semitone, source) {
+    function handleNoteClick(noteIndex, semitone) {
         if (gameState.answered || gameState.inputLocked) return;
 
         const mode = gameState.activeMode;
@@ -1460,22 +1457,20 @@ function createIntervalTrainingGame(config) {
             const expectedIndex = gameState.scaleNotes[gameState.currentDegreeIndex];
             if (noteIndex === expectedIndex) {
                 handleScaleCorrectStep(noteIndex);
-                return true;
             } else {
-                handleScaleWrongStep(noteIndex, source !== 'voice');
-                return false;
+                handleScaleWrongStep(noteIndex);
             }
+            return;
         }
 
         if (mode === 'chord-builder') {
             const expectedIndex = gameState.chordNotes[gameState.currentDegreeIndex];
             if (noteIndex === expectedIndex) {
                 handleChordCorrectStep(noteIndex);
-                return true;
             } else {
-                handleChordWrongStep(noteIndex, source !== 'voice');
-                return false;
+                handleChordWrongStep(noteIndex);
             }
+            return;
         }
 
         let correctNoteIndex;
@@ -1489,19 +1484,17 @@ function createIntervalTrainingGame(config) {
 
         if (noteIndex === correctNoteIndex) {
             handleCorrectAnswer(noteIndex);
-            return true;
         } else {
-            handleWrongAnswer(noteIndex, semitone, source !== 'voice');
-            return false;
+            handleWrongAnswer(noteIndex, semitone);
         }
     }
 
-    function handleWrongAnswer(clickedNoteIndex, clickedSemitone, playFeedback = true) {
+    function handleWrongAnswer(clickedNoteIndex, clickedSemitone) {
         gameState.hadMistake = true;
 
         // Wrong-answer buzz
         const gamesState = GameSession.getState();
-        if (playFeedback && gamesState && gamesState.soundEnabled) Sound.playError();
+        if (gamesState && gamesState.soundEnabled) Sound.playError();
 
         // Flash red
         const api = gameState.circleApi;
@@ -1693,14 +1686,14 @@ function createIntervalTrainingGame(config) {
         }
     }
 
-    function handleScaleWrongStep(noteIndex, playFeedback = true) {
+    function handleScaleWrongStep(noteIndex) {
         const api = gameState.circleApi;
         if (!api) return;
 
         // Wrong-answer buzz; the sequence restarts from the root. Input is
         // locked during the red flash so fast typing can't land mid-reset.
         const gamesState = GameSession.getState();
-        if (playFeedback && gamesState && gamesState.soundEnabled) Sound.playError();
+        if (gamesState && gamesState.soundEnabled) Sound.playError();
         gameState.inputLocked = true;
 
         gameState.hadMistake = true;
@@ -1885,14 +1878,14 @@ function createIntervalTrainingGame(config) {
         }
     }
 
-    function handleChordWrongStep(noteIndex, playFeedback = true) {
+    function handleChordWrongStep(noteIndex) {
         const api = gameState.circleApi;
         if (!api) return;
 
         // Wrong-answer buzz; the sequence restarts from the root. Input is
         // locked during the red flash so fast typing can't land mid-reset.
         const gamesState = GameSession.getState();
-        if (playFeedback && gamesState && gamesState.soundEnabled) Sound.playError();
+        if (gamesState && gamesState.soundEnabled) Sound.playError();
         gameState.inputLocked = true;
 
         gameState.hadMistake = true;

@@ -51,7 +51,7 @@ main.js                  Entry point: init(), resize handler, side-effect import
 core/                    Pure/reusable — no app-UI state, no knowledge of app/ or games/
   music-theory.js        All theory data + pure functions (source of truth for notes/scales/chords)
   fretboard.js           SVG fretboard renderer; createFretboard() factory
-  sound.js               Tone.js wrapper (lazy audio nodes + playback coordination for speech input)
+  sound.js               Tone.js wrapper (lazy audio-node construction)
   progressions.js        Roman-numeral parsing + progression data (fetched from static/data/progressions.json)
   weighted-selection.js  Weighted random question sampling
 app/                     Main visualizer UI
@@ -70,8 +70,6 @@ games/                   Training games (plugin architecture)
   game-utils.js          shuffleArray, stat colors, formatTime, reaction-time chart, round-count helpers
   note-keyboard.js       Keyboard note input (a–g; uppercase or hold ↑ = sharp, hold ↓ = flat; Enter next-or-repeat, Space next)
   voice.js               Global voice announcements (speechSynthesis) + its settings section
-  speech-input.js        Voice note/repeat/next input (SpeechRecognition) + settings
-  speech-commands.js     Pure parser for spoken notes and navigation commands
   blackout.js            AMOLED blackout: long-press whitespace in keyboard-capable games → black screen, tap restores
   matrix-game.js         createMatrixGame(config) factory for the matrix-drill family
   note-id.js, interval-id.js, note-locator.js, interval-locator.js   ~15-line matrix configs
@@ -128,10 +126,8 @@ let them grow back:
 4. Persistence: use `games/storage.js` only. Settings key
    `fretboard-<game-id>-settings`; stats go under your game id inside the
    shared `fretboard-games-stats` blob. Never hand-roll localStorage access.
-5. Optional hooks: `handleNoteKey(noteIndex, source)` (0–11, C = 0) receives
+5. Optional hooks: `handleNoteKey(noteIndex)` (0–11, C = 0) receives
    keyboard note input from `games/note-keyboard.js` via the framework, and
-   voice input passes `source === 'voice'`; return `true`/`false` when the
-   result is known so speech input can play distinct correct/wrong feedback.
    `repeatQuestion()` runs on Enter while unanswered (re-announce / replay);
    announce questions with `Voice.speak(text, onDone)` from `games/voice.js`
    (a no-op that calls `onDone` immediately when voice is off).
@@ -156,7 +152,6 @@ their persisted shape without a migration:
 - `fretboard-drills-stats` (fretboard-drills only, legacy separate key)
 - `fretboard-<game-id>-settings` (one per game)
 - `fretboard-voice-settings` (global voice announcements, `games/voice.js`)
-- `fretboard-speech-input-settings` (global voice input, `games/speech-input.js`)
 
 ## Git Workflow
 

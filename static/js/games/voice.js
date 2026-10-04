@@ -72,26 +72,9 @@ function pickVoice() {
 
 let lastText = '';
 let currentToken = 0;
-let speaking = false;
-const speakingListeners = new Set();
-
-function setSpeaking(value) {
-    if (speaking === value) return;
-    speaking = value;
-    speakingListeners.forEach(listener => listener(value));
-}
 
 export function isEnabled() {
     return !!(synth && settings.enabled);
-}
-
-export function isSpeaking() {
-    return speaking;
-}
-
-export function onSpeakingChange(listener) {
-    speakingListeners.add(listener);
-    return () => speakingListeners.delete(listener);
 }
 
 /**
@@ -104,7 +87,6 @@ export function speak(text, onDone) {
     const finish = () => {
         if (token !== currentToken) return;
         currentToken++;
-        setSpeaking(false);
         if (onDone) onDone();
     };
     if (!text || !isEnabled()) {
@@ -124,7 +106,6 @@ export function speak(text, onDone) {
     utterance.onerror = finish;
     // Some engines never fire onend; don't hold follow-up audio hostage
     setTimeout(finish, 1500 + text.length * 90);
-    setSpeaking(true);
     synth.speak(utterance);
 }
 
@@ -136,7 +117,6 @@ export function repeat() {
 export function cancel() {
     currentToken++;
     if (synth) synth.cancel();
-    setSpeaking(false);
 }
 
 // ---- Spoken text helpers ----

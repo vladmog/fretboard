@@ -13,7 +13,6 @@ import IntervalLocator from './interval-locator.js';
 import NoteLocator from './note-locator.js';
 import { gameState, isAwaitingAdvance, setAwaitingAdvance, markReady } from './session.js';
 import * as NoteKeyboard from './note-keyboard.js';
-import * as SpeechInput from './speech-input.js';
 import * as Voice from './voice.js';
 import * as Blackout from './blackout.js';
 
@@ -58,8 +57,7 @@ export const Games = (function() {
 
         updateSoundButton();
         NoteKeyboard.attach(handleNoteKey, repeatQuestion, tryAdvance);
-        SpeechInput.attach(handleNoteKey, replayQuestion, tryAdvance, supportsHandsFreeInput);
-        Blackout.attach(supportsHandsFreeInput);
+        Blackout.attach(hasKeyboardInput);
     }
 
     function deactivate() {
@@ -74,17 +72,16 @@ export const Games = (function() {
         }
 
         NoteKeyboard.detach();
-        SpeechInput.detach();
         Blackout.detach();
         Voice.cancel();
         closeModal();
     }
 
     // Keyboard note input: route to the current game's optional hook
-    function handleNoteKey(noteIndex, source) {
+    function handleNoteKey(noteIndex) {
         if (!gameState.active) return;
         const game = getCurrentGame();
-        if (game && game.handleNoteKey) return game.handleNoteKey(noteIndex, source);
+        if (game && game.handleNoteKey) game.handleNoteKey(noteIndex);
     }
 
     // Enter: advance once answered; otherwise re-announce / replay the
@@ -92,14 +89,6 @@ export const Games = (function() {
     function repeatQuestion() {
         if (!gameState.active) return;
         if (tryAdvance()) return;
-        const game = getCurrentGame();
-        if (game && game.repeatQuestion) game.repeatQuestion();
-    }
-
-    // Voice command "repeat" never doubles as advance; "next" has its own
-    // explicit command and routes to tryAdvance().
-    function replayQuestion() {
-        if (!gameState.active) return;
         const game = getCurrentGame();
         if (game && game.repeatQuestion) game.repeatQuestion();
     }
@@ -113,8 +102,8 @@ export const Games = (function() {
         return true;
     }
 
-    // Games with note or repeat hooks support keyboard, voice, and blackout.
-    function supportsHandsFreeInput() {
+    // Games playable without looking via keyboard can be blacked out
+    function hasKeyboardInput() {
         const game = getCurrentGame();
         return !!(game && (game.handleNoteKey || game.repeatQuestion));
     }
@@ -162,7 +151,6 @@ export const Games = (function() {
                 body.after(voiceBox);
             }
             Voice.renderVoiceSettings(voiceBox);
-            SpeechInput.renderSettings(voiceBox);
         }
 
         modal.style.display = 'flex';
