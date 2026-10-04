@@ -70,6 +70,8 @@ games/                   Training games (plugin architecture)
   game-utils.js          shuffleArray, stat colors, formatTime, reaction-time chart, round-count helpers
   note-keyboard.js       Keyboard note input (a–g; uppercase or hold ↑ = sharp, hold ↓ = flat; Enter next-or-repeat, Space next)
   voice.js               Global voice announcements (speechSynthesis) + its settings section
+  speech-input.js        Voice note/repeat/next input (SpeechRecognition) + settings
+  speech-commands.js     Pure parser for spoken notes and navigation commands
   blackout.js            AMOLED blackout: long-press whitespace in keyboard-capable games → black screen, tap restores
   matrix-game.js         createMatrixGame(config) factory for the matrix-drill family
   note-id.js, interval-id.js, note-locator.js, interval-locator.js   ~15-line matrix configs
@@ -152,6 +154,7 @@ their persisted shape without a migration:
 - `fretboard-drills-stats` (fretboard-drills only, legacy separate key)
 - `fretboard-<game-id>-settings` (one per game)
 - `fretboard-voice-settings` (global voice announcements, `games/voice.js`)
+- `fretboard-speech-input-settings` (global voice input, `games/speech-input.js`)
 
 ## Git Workflow
 

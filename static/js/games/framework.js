@@ -13,6 +13,7 @@ import IntervalLocator from './interval-locator.js';
 import NoteLocator from './note-locator.js';
 import { gameState, isAwaitingAdvance, setAwaitingAdvance, markReady } from './session.js';
 import * as NoteKeyboard from './note-keyboard.js';
+import * as SpeechInput from './speech-input.js';
 import * as Voice from './voice.js';
 import * as Blackout from './blackout.js';
 
@@ -57,7 +58,8 @@ export const Games = (function() {
 
         updateSoundButton();
         NoteKeyboard.attach(handleNoteKey, repeatQuestion, tryAdvance);
-        Blackout.attach(hasKeyboardInput);
+        SpeechInput.attach(handleNoteKey, replayQuestion, tryAdvance, supportsHandsFreeInput);
+        Blackout.attach(supportsHandsFreeInput);
     }
 
     function deactivate() {
@@ -72,6 +74,7 @@ export const Games = (function() {
         }
 
         NoteKeyboard.detach();
+        SpeechInput.detach();
         Blackout.detach();
         Voice.cancel();
         closeModal();
@@ -93,6 +96,14 @@ export const Games = (function() {
         if (game && game.repeatQuestion) game.repeatQuestion();
     }
 
+    // Voice command "repeat" never doubles as advance; "next" has its own
+    // explicit command and routes to tryAdvance().
+    function replayQuestion() {
+        if (!gameState.active) return;
+        const game = getCurrentGame();
+        if (game && game.repeatQuestion) game.repeatQuestion();
+    }
+
     // Shared by tap-anywhere and Space: advance once answered
     function tryAdvance() {
         if (!isAwaitingAdvance()) return false;
@@ -102,8 +113,8 @@ export const Games = (function() {
         return true;
     }
 
-    // Games playable hands-free via keyboard/voice can be blacked out
-    function hasKeyboardInput() {
+    // Games with note or repeat hooks support keyboard, voice, and blackout.
+    function supportsHandsFreeInput() {
         const game = getCurrentGame();
         return !!(game && (game.handleNoteKey || game.repeatQuestion));
     }
@@ -151,6 +162,7 @@ export const Games = (function() {
                 body.after(voiceBox);
             }
             Voice.renderVoiceSettings(voiceBox);
+            SpeechInput.renderSettings(voiceBox);
         }
 
         modal.style.display = 'flex';

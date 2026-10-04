@@ -16,6 +16,11 @@ import './app/rotation-toggle.js';
 import './games/framework.js';
 import './dev-panel.js';
 
+// iOS exposes standalone Home Screen mode outside the manifest media query.
+if (window.navigator.standalone === true) {
+    document.documentElement.classList.add('standalone');
+}
+
 /**
  * Initialize the application
  */
