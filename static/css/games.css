@@ -5,6 +5,7 @@
 #games-panel {
     position: fixed;
     inset: 0;
+    min-height: 100lvh;
     background: #fff;
     z-index: 100;
     display: none;
@@ -18,6 +19,7 @@
     align-items: center;
     justify-content: flex-start;
     min-height: 100vh;
+    min-height: 100lvh;
     padding: calc(4rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-right, 0px)) 1rem calc(1rem + env(safe-area-inset-left, 0px));
 }
 
@@ -936,10 +938,6 @@ html.amoled-on body,
 html.amoled-on #games-panel {
     background: #000;
     color-scheme: dark;
-}
-
-html.amoled-on::before {
-    background: #000;
 }
 
 .amoled-blackout {
