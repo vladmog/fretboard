@@ -938,6 +938,10 @@ html.amoled-on #games-panel {
     color-scheme: dark;
 }
 
+html.amoled-on::before {
+    background: #000;
+}
+
 .amoled-blackout {
     display: none;
     position: fixed;
