@@ -4,8 +4,8 @@
  * pure black (no visible elements, so nothing burns in on an always-on OLED
  * screen); a tap restores it. Keyboard input keeps reaching the game while
  * blacked out. Enabled by games/framework.js only for games that take
- * keyboard input. The iOS status bar sits outside the page and takes its
- * colour from the page background and theme-color, so those go black too.
+ * keyboard input. Installed iOS apps use black-translucent status-bar mode,
+ * so the page background also paints behind the system status bar.
  */
 
 const HOLD_MS = 600;
