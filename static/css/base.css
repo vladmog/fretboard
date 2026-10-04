@@ -89,7 +89,7 @@ body {
     .app-container {
         grid-template-columns: 1fr 1fr;
         grid-template-rows: 100%;
-        padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) 0.5rem max(0.5rem, env(safe-area-inset-left));
+        padding: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
         gap: 0.5rem;
         height: 100lvh;
     }
