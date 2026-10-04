@@ -7,6 +7,7 @@
 import { createSettingsStore } from './storage.js';
 import { parseSpeechCommand } from './speech-commands.js';
 import * as Voice from './voice.js';
+import * as Sound from '../core/sound.js';
 
 const Recognition = (typeof window !== 'undefined')
     ? (window.SpeechRecognition || window.webkitSpeechRecognition)
@@ -44,7 +45,11 @@ function modalIsOpen() {
 
 function canListen() {
     return !!(Recognition && isSecure && settings.enabled && handlers &&
-        document.visibilityState === 'visible' && !Voice.isSpeaking());
+        document.visibilityState === 'visible' && !Voice.isSpeaking() && !Sound.isPlaying());
+}
+
+function outputIsActive() {
+    return Voice.isSpeaking() || Sound.isPlaying();
 }
 
 function scheduleStart(delay = 250) {
@@ -54,20 +59,23 @@ function scheduleStart(delay = 250) {
 }
 
 function createRecognition() {
-    if (recognition || !Recognition) return recognition;
-    recognition = new Recognition();
-    recognition.lang = 'en-US';
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 5;
+    if (!Recognition) return null;
+    const instance = new Recognition();
+    recognition = instance;
+    instance.lang = 'en-US';
+    instance.continuous = true;
+    instance.interimResults = false;
+    instance.maxAlternatives = 5;
 
-    recognition.onstart = () => {
+    instance.onstart = () => {
+        if (recognition !== instance) return;
         starting = false;
         listening = true;
         setStatus('Listening');
     };
 
-    recognition.onresult = (event) => {
+    instance.onresult = (event) => {
+        if (recognition !== instance) return;
         if (!handlers || modalIsOpen() || !handlers.isEligible()) return;
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const result = event.results[i];
@@ -78,13 +86,20 @@ function createRecognition() {
                 if (parsed) break;
             }
             if (!parsed) continue;
-            if (parsed.type === 'repeat') handlers.onRepeat();
-            else if (parsed.type === 'advance') handlers.onAdvance();
-            else parsed.notes.forEach(handlers.onNote);
+            if (parsed.type === 'repeat') {
+                handlers.onRepeat();
+                return;
+            } else if (parsed.type === 'advance') {
+                handlers.onAdvance();
+                return;
+            } else {
+                parsed.notes.forEach(handlers.onNote);
+            }
         }
     };
 
-    recognition.onerror = (event) => {
+    instance.onerror = (event) => {
+        if (recognition !== instance) return;
         starting = false;
         listening = false;
         if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
@@ -100,13 +115,15 @@ function createRecognition() {
         }
     };
 
-    recognition.onend = () => {
+    instance.onend = () => {
+        if (recognition !== instance) return;
+        recognition = null;
         starting = false;
         listening = false;
         if (canListen()) scheduleStart();
-        else if (settings.enabled && Voice.isSpeaking()) setStatus('Paused while speaking');
+        else if (settings.enabled && outputIsActive()) setStatus('Paused for audio');
     };
-    return recognition;
+    return instance;
 }
 
 function start() {
@@ -119,6 +136,7 @@ function start() {
     try {
         instance.start();
     } catch (error) {
+        if (recognition === instance) recognition = null;
         starting = false;
         if (error && error.name !== 'InvalidStateError') setStatus('Could not start');
         scheduleStart(500);
@@ -127,17 +145,28 @@ function start() {
 
 function stop() {
     clearTimeout(restartTimer);
-    const wasActive = listening || starting;
+    const instance = recognition;
+    recognition = null;
     starting = false;
-    if (!recognition || !wasActive) return;
-    try { recognition.abort(); } catch (error) { /* already stopped */ }
     listening = false;
+    if (!instance) return;
+    try { instance.abort(); } catch (error) { /* already stopped */ }
 }
 
 Voice.onSpeakingChange(speaking => {
     if (!settings.enabled) return;
     if (speaking) {
-        setStatus('Paused while speaking');
+        setStatus('Paused for audio');
+        stop();
+    } else {
+        scheduleStart(300);
+    }
+});
+
+Sound.onPlaybackChange(playing => {
+    if (!settings.enabled) return;
+    if (playing) {
+        setStatus('Paused for audio');
         stop();
     } else {
         scheduleStart(300);

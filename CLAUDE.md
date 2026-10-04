@@ -51,7 +51,7 @@ main.js                  Entry point: init(), resize handler, side-effect import
 core/                    Pure/reusable — no app-UI state, no knowledge of app/ or games/
   music-theory.js        All theory data + pure functions (source of truth for notes/scales/chords)
   fretboard.js           SVG fretboard renderer; createFretboard() factory
-  sound.js               Tone.js wrapper (lazy audio-node construction)
+  sound.js               Tone.js wrapper (lazy audio nodes + playback activity signal for speech input)
   progressions.js        Roman-numeral parsing + progression data (fetched from static/data/progressions.json)
   weighted-selection.js  Weighted random question sampling
 app/                     Main visualizer UI

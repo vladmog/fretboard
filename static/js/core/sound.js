@@ -1,7 +1,7 @@
 /**
  * Sound Module - Audio playback for chords using Tone.js
  * Exports playChord, playNote, playInterval, playArpeggio, playError,
- * getParams, getDefaults, setParam
+ * isPlaying, onPlaybackChange, getParams, getDefaults, setParam
  */
 /* global Tone */
 
@@ -33,6 +33,51 @@ let errorSynth = null;
 let filter = null;
 let reverb = null;
 let limiter = null;
+
+// Speech recognition on iOS is not reliable while the page is producing
+// audio. Expose the audible playback window so hands-free input can pause and
+// resume around notes, chords, and the wrong-answer signal.
+let playbackTimer = null;
+let playbackUntil = 0;
+let playbackActive = false;
+const playbackListeners = new Set();
+
+function nowMs() {
+    return (typeof performance !== 'undefined') ? performance.now() : Date.now();
+}
+
+function setPlaybackActive(active) {
+    if (playbackActive === active) return;
+    playbackActive = active;
+    playbackListeners.forEach(listener => listener(active));
+}
+
+function finishPlaybackWindow() {
+    const remaining = playbackUntil - nowMs();
+    if (remaining > 10) {
+        playbackTimer = setTimeout(finishPlaybackWindow, remaining);
+        return;
+    }
+    playbackTimer = null;
+    playbackUntil = 0;
+    setPlaybackActive(false);
+}
+
+function markPlayback(seconds) {
+    playbackUntil = Math.max(playbackUntil, nowMs() + seconds * 1000);
+    setPlaybackActive(true);
+    clearTimeout(playbackTimer);
+    playbackTimer = setTimeout(finishPlaybackWindow, Math.max(0, playbackUntil - nowMs()));
+}
+
+function isPlaying() {
+    return playbackActive;
+}
+
+function onPlaybackChange(listener) {
+    playbackListeners.add(listener);
+    return () => playbackListeners.delete(listener);
+}
 
 /**
  * Lazy-initialize the effect chain and PolySynth on first use.
@@ -169,6 +214,9 @@ async function playChord(noteNames, startOctave) {
     }
 
     const now = Tone.now();
+    const audibleSeconds = params.noteDuration + params.release +
+        Math.max(0, notesWithOctaves.length - 1) * params.strumDelay;
+    markPlayback(audibleSeconds);
     notesWithOctaves.forEach((note, i) => {
         synth.triggerAttackRelease(note, params.noteDuration, now + i * params.strumDelay);
     });
@@ -189,6 +237,7 @@ async function playNote(noteName, octave, duration) {
 
     const index = MusicTheory.getNoteIndex(noteName);
     const sharpName = MusicTheory.CHROMATIC_NOTES[index];
+    markPlayback(duration + params.release);
     synth.triggerAttackRelease(sharpName + octave, duration);
 }
 
@@ -218,6 +267,7 @@ async function playInterval(rootName, targetName, semitone, rootOctave) {
     }
 
     const now = Tone.now();
+    markPlayback(params.noteDuration + params.release + params.strumDelay);
     synth.triggerAttackRelease(rootSharp + rootOctave, params.noteDuration, now);
     synth.triggerAttackRelease(targetSharp + targetOctave, params.noteDuration, now + params.strumDelay);
 }
@@ -234,6 +284,9 @@ async function playArpeggio(noteNames) {
 
     const notesWithOctaves = assignOctaves(noteNames);
     const now = Tone.now();
+    const audibleSeconds = params.arpeggioNoteDuration + params.release +
+        Math.max(0, notesWithOctaves.length - 1) * params.arpeggioDelay;
+    markPlayback(audibleSeconds);
     notesWithOctaves.forEach((note, i) => {
         synth.triggerAttackRelease(note, params.arpeggioNoteDuration, now + i * params.arpeggioDelay);
     });
@@ -254,8 +307,13 @@ async function playError() {
         errorSynth.volume.value = -20;
     }
     const now = Tone.now();
+    markPlayback(0.13 + 0.22 + 0.06);
     errorSynth.triggerAttackRelease('A#2', 0.11, now);
     errorSynth.triggerAttackRelease('E2', 0.22, now + 0.13);
 }
 
-export { playChord, playNote, playInterval, playArpeggio, playError, getParams, getDefaults, setParam };
+export {
+    playChord, playNote, playInterval, playArpeggio, playError,
+    isPlaying, onPlaybackChange,
+    getParams, getDefaults, setParam
+};

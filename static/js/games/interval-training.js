@@ -1433,7 +1433,10 @@ function createIntervalTrainingGame(config) {
                 setTimeout(() => {
                     Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
                 }, 400);
-            } else if (mode === 'scale-builder' || mode === 'chord-builder') {
+            } else if ((mode === 'scale-builder' || mode === 'chord-builder') && !Voice.isEnabled()) {
+                // The spoken prompt already identifies the scale or chord.
+                // Avoid following it with a root note while hands-free input
+                // is about to resume.
                 Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
             } else if (mode === 'interval-to-interval') {
                 // Play given note, then target note
