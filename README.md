@@ -25,7 +25,7 @@ A music theory tool for visualizing scales and chords on a guitar fretboard with
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/fretboard.git
+git clone https://github.com/vladmog/fretboard.git
 cd fretboard
 
 # Create virtual environment
