@@ -58,7 +58,7 @@ function diagram(shape, chord) {
 export function renderTriadControls(chord, refresh) {
     const panel = document.getElementById('triad-shapes');
     if (!panel || state.mode !== 'chord' || !['maj', 'min', 'dim'].includes(chord.type)) return null;
-    panel.style.display = 'block'; panel.replaceChildren();
+    panel.style.display = 'grid'; panel.replaceChildren();
     const key = `${chord.root}|${chord.type}|${state.instrument}`;
     if (key !== previousKey) { index = 0; previousKey = key; }
     const title = element('label', null, 'triad-toggle');
@@ -69,8 +69,10 @@ export function renderTriadControls(chord, refresh) {
     const all = getTriadShapes(chord, getInstrumentTuning(), getInstrumentMidiBases());
     const sets = [...new Set(all.map(s => s.strings))].sort().reverse();
     if (stringSet !== 'all' && !sets.includes(stringSet)) stringSet = 'all';
-    selectControl(panel, 'Three-string group', stringSet, [['all', 'Any three adjacent strings'], ...sets.map(s => [s, `Strings ${s}`])], value => { stringSet = value; });
-    selectControl(panel, 'Inversion', inversion, [['all', 'All inversions'], ...guide.inversions.map((v, i) => [String(i), v])], value => { inversion = value; });
+    const filters = element('div', null, 'triad-filters');
+    panel.appendChild(filters);
+    selectControl(filters, 'Three-string group', stringSet, [['all', 'Any adjacent group'], ...sets.map(s => [s, `Strings ${s}`])], value => { stringSet = value; });
+    selectControl(filters, 'Inversion', inversion, [['all', 'All inversions'], ...guide.inversions.map((v, i) => [String(i), v])], value => { inversion = value; });
     // Refresh after the individual selector has updated its filter.
     panel.querySelectorAll('select').forEach(select => select.addEventListener('change', refresh));
     const shapes = all.filter(s => (stringSet === 'all' || s.strings === stringSet) && (inversion === 'all' || s.inversion === Number(inversion)));
@@ -83,8 +85,10 @@ export function renderTriadControls(chord, refresh) {
         button.addEventListener('click', () => { index = (index + direction + shapes.length) % shapes.length; refresh(); });
         nav.appendChild(button);
     }
-    panel.append(nav, element('p', `${index + 1} / ${shapes.length} · ${guide.inversions[shape.inversion]}`, 'triad-caption'), diagram(shape, chord));
-    panel.appendChild(element('p', `Bass: ${chord.noteSpelling[shape.bass.noteIndex]} (${shape.bass.label}). Strings ${shape.strings}; frets ${shape.positions.map(p => p.fret).join('–')}.`, 'triad-caption'));
-    panel.appendChild(element('p', 'Red = root · green = third · blue = fifth. Diagram: high string at top, fret numbers above; 0 is open. Inversions depend on the lowest sounding note. Move a closed shape along the neck to transpose; shapes crossing the B string differ because of guitar tuning.', 'triad-caption'));
+    filters.append(nav, element('p', `${index + 1} / ${shapes.length} · ${guide.inversions[shape.inversion]}`, 'triad-caption'));
+    const preview = element('div', null, 'triad-preview');
+    preview.append(diagram(shape, chord), element('p', `Bass ${chord.noteSpelling[shape.bass.noteIndex]} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`, 'triad-caption'));
+    preview.title = 'Red: root; green: third; blue: fifth. High string at top; fret numbers above; 0 is open.';
+    panel.appendChild(preview);
     return shape;
 }
