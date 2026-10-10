@@ -4,6 +4,8 @@
  * dispatches to the current mode's renderer on every state change.
  */
 
+import { renderTriadControls } from './triad-shapes.js';
+import { guide } from './harmony-guide.js';
 import * as MusicTheory from '../core/music-theory.js';
 import * as ChordProgressions from '../core/progressions.js';
 import * as RotationToggle from './rotation-toggle.js';
@@ -113,7 +115,8 @@ export function displayChord(chord) {
 
     state.fretboard.clearMarkers();
 
-    const positions = getNotesOnActiveFretboard(
+    const triad = renderTriadControls(chord, updateDisplay);
+    const positions = triad ? triad.positions : getNotesOnActiveFretboard(
         chord.noteToInterval,
         15,
         chord.root
@@ -123,10 +126,10 @@ export function displayChord(chord) {
         const colors = MusicTheory.getIntervalColor(pos.label);
         const isRoot = pos.label === '1';
         state.fretboard.setMarker(pos.string, pos.fret, {
-            color: isRoot ? '#000' : colors.fill,
-            borderColor: colors.border,
+            color: triad ? guide.triadColors[chord.intervals.indexOf(pos.label)] : (isRoot ? '#000' : colors.fill),
+            borderColor: triad ? '#222' : colors.border,
             text: getMarkerLabel(pos, chord.noteSpelling),
-            textColor: isRoot ? '#fff' : colors.text
+            textColor: triad ? '#000' : (isRoot ? '#fff' : colors.text)
         });
     }
 
@@ -134,7 +137,7 @@ export function displayChord(chord) {
     RotationToggle.applyCurrentRotation();
 
     updateInfoPanel({
-        title: chord.symbol,
+        title: triad?.bass ? `${chord.symbol} · ${guide.inversions[triad.inversion]}` : chord.symbol,
         notes: chord.notes,
         intervals: chord.intervals,
         noteToInterval: chord.noteToInterval
@@ -696,6 +699,8 @@ export function updateInfoPanel(info) {
  * Update display based on current state
  */
 export function updateDisplay() {
+    const triadPanel = document.getElementById('triad-shapes');
+    if (triadPanel) triadPanel.style.display = 'none';
     if (state.selectedChordIndex >= 0 && state.selectedChordIndex < state.chordList.length) {
         // Display selected chord from list
         const item = state.chordList[state.selectedChordIndex];

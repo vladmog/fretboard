@@ -1,0 +1,19 @@
+{
+  "degrees": ["Tonic", "Supertonic", "Mediant", "Subdominant", "Dominant", "Submediant", "Leading tone"],
+  "families": {
+    "tonic": {"short": "T", "name": "Tonic", "meaning": "Home and resolution; iii and vi can prolong tonic, depending on context."},
+    "predominant": {"short": "PD", "name": "Predominant", "meaning": "Motion away from home, often preparing the dominant. Also called the subdominant family."},
+    "dominant": {"short": "D", "name": "Dominant", "meaning": "Tension and a tendency to resolve to tonic."},
+    "context": {"short": "—", "name": "Context dependent", "meaning": "Its role depends on the surrounding progression."}
+  },
+  "scales": {
+    "major": ["tonic", "predominant", "tonic", "predominant", "dominant", "tonic", "dominant"],
+    "natural_minor": ["tonic", "predominant", "tonic", "predominant", "dominant", "tonic", "context"],
+    "harmonic_minor": ["tonic", "predominant", "context", "predominant", "dominant", "tonic", "dominant"]
+  },
+  "contextNote": "These are useful tonal-harmony families, not fixed rules. The mediant (iii / III) is especially context dependent and can also participate in dominant motion.",
+  "minorNote": "Minor keys mix forms: natural minor has v and VII (subtonic). Raising degree 7 gives V and vii° with stronger pull to i. Harmonic minor also changes III to III+; not every minor-key chord must come from one fixed scale.",
+  "inversions": ["Root position", "First inversion", "Second inversion"],
+  "triadColors": ["#ff6b6b", "#64ce85", "#55c9df"],
+  "source": "https://openmusictheory.github.io/harmonicFunctions.html"
+}

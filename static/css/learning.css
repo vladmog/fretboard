@@ -1,0 +1,26 @@
+/* Learning features are scoped to their own controls; the main layout is unchanged. */
+.scale-chord-item.has-function { gap: 0.25rem; }
+.scale-chord-item.has-function .numeral { width: 2.75rem; }
+.scale-chord-item.has-function .chord-name { min-width: 0; overflow-wrap: anywhere; }
+.function-badge { margin-left: auto; flex-shrink: 0; padding: 0.125rem 0.25rem; border: 1px solid #555; color: #111; font-size: 0.625rem; line-height: 1.2; }
+.function-tonic { background: #ff9c9c; }
+.function-predominant { background: #8bd9e7; }
+.function-dominant { background: #88dca2; }
+.function-context { background: #eee; }
+.harmony-guide { margin-top: 0.5rem; font-size: 0.6875rem; line-height: 1.5; letter-spacing: 0; }
+.harmony-guide summary { cursor: pointer; font-weight: 600; min-height: 1.5rem; }
+.harmony-guide p, .harmony-guide ul { margin-block: 0.5rem; }
+.harmony-guide ul { padding-left: 1rem; }
+.harmony-guide a { color: inherit; text-decoration: underline; }
+#triad-shapes { grid-column: 1 / -1; min-width: 0; }
+#triad-shapes .triad-toggle { display: flex; align-items: center; gap: 0.375rem; cursor: pointer; }
+.triad-toggle input { width: 1rem; height: 1rem; accent-color: #000; }
+#triad-shapes > label { display: block; font-size: 0.6875rem; letter-spacing: 0; text-transform: none; }
+#triad-shapes select { margin-top: 0.25rem; min-width: 0; max-width: 100%; }
+.triad-navigation { display: flex; gap: 0.25rem; margin-top: 0.5rem; }
+.triad-navigation .btn { flex: 1; min-width: 0; padding-inline: 0.25rem; }
+.triad-caption { font-size: 0.6875rem; line-height: 1.5; letter-spacing: 0; margin-top: 0.375rem; overflow-wrap: anywhere; }
+#triad-shapes svg { display: block; width: 100%; max-width: 22rem; height: auto; margin: 0.5rem auto; background: #f7f7f7; }
+@media (max-width: 768px) {
+    .scale-chord-item.has-function .numeral { width: 2rem; }
+}

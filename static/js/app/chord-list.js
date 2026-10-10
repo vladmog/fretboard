@@ -3,6 +3,7 @@
  * The persistent chord list panel and the scale-chords button strip.
  */
 
+import { annotateChordButton, appendHarmonyGuide } from './harmony-guide.js';
 import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
 import { saveChordList, state } from './state.js';
@@ -151,6 +152,7 @@ export function renderScaleChords() {
             btn.classList.add('selected');
         }
         btn.innerHTML = `<span class="numeral">${chord.numeral}</span><span class="chord-name">${chord.symbol}</span>`;
+        annotateChordButton(btn, chordScaleType, chord);
         btn.addEventListener('click', () => {
             if (state.activeScaleChord && state.activeScaleChord.root === chord.root && state.activeScaleChord.type === chord.type) {
                 // Deactivate — return to scale view
@@ -174,5 +176,6 @@ export function renderScaleChords() {
     });
 
     container.appendChild(chordsRow);
+    appendHarmonyGuide(container, chordScaleType, chords);
     relocateAddButton(state.mode);
 }

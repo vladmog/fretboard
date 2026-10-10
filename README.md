@@ -52,6 +52,24 @@ HTTP origin.
 4. Use scale chord builder to generate progressions
 5. Save chords to your list for reference
 
+### Harmony and triad inversions
+
+In **Scale** mode, major, natural minor, and harmonic minor chords show **T**
+(tonic), **PD** (predominant), and **D** (dominant) badges. Expand **Harmonic
+functions** for degree names, family meanings, and the differences between
+natural minor and raised-leading-tone harmony. These labels describe common
+roles; a chord's function also depends on its musical context.
+
+In **Chord** mode, choose Major, Minor, or Diminished and enable **Triad
+inversions**. Filter by adjacent string set and inversion, then use Previous
+and Next to explore compact three-note voicings in frets 0–15. The diagram
+and main fretboard use red for the root, green for the third, and blue for
+the fifth. Inversions are determined by the lowest sounding note. Guitar
+and bass are supported; the normal chord view remains available by turning
+the checkbox off.
+
+Run the voicing checks with `node --test tests/triads.test.mjs`.
+
 ## File Structure
 
 ```

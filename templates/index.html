@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/find.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/games.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dev-panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/learning.css') }}?v=1">
 </head>
 <body>
     <div class="app-container">
@@ -121,6 +122,8 @@
                             <!-- Options populated by JavaScript based on mode -->
                         </select>
                     </div>
+
+                    <div id="triad-shapes" class="control-group" style="display: none;"></div>
 
                     <div id="prog-nav" class="prog-nav" style="display: none;">
                         <button id="prog-prev" class="prog-nav-btn">&#9650;</button>
