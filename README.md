@@ -55,10 +55,9 @@ HTTP origin.
 ### Harmony and triad inversions
 
 In **Scale** mode, major, natural minor, and harmonic minor chords show **T**
-(tonic), **PD** (predominant), and **D** (dominant) badges. Expand **Harmonic
-functions** for degree names, family meanings, and the differences between
-natural minor and raised-leading-tone harmony. These labels describe common
-roles; a chord's function also depends on its musical context.
+(tonic), **PD** (predominant), and **D** (dominant) badges. Hover over a chord
+for its degree name and function. These labels describe common roles; a
+chord's function also depends on its musical context.
 
 In **Chord** mode, choose Major, Minor, or Diminished and enable **Triad
 inversions**. Filter by adjacent string set and inversion, then use Previous

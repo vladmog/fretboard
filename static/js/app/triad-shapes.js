@@ -69,7 +69,7 @@ export function renderTriadControls(chord, refresh) {
     const all = getTriadShapes(chord, getInstrumentTuning(), getInstrumentMidiBases());
     const sets = [...new Set(all.map(s => s.strings))].sort().reverse();
     if (stringSet !== 'all' && !sets.includes(stringSet)) stringSet = 'all';
-    selectControl(panel, 'Strings (low to high)', stringSet, [['all', 'All string sets'], ...sets.map(s => [s, s])], value => { stringSet = value; });
+    selectControl(panel, 'Three-string group', stringSet, [['all', 'Any three adjacent strings'], ...sets.map(s => [s, `Strings ${s}`])], value => { stringSet = value; });
     selectControl(panel, 'Inversion', inversion, [['all', 'All inversions'], ...guide.inversions.map((v, i) => [String(i), v])], value => { inversion = value; });
     // Refresh after the individual selector has updated its filter.
     panel.querySelectorAll('select').forEach(select => select.addEventListener('change', refresh));

@@ -3,7 +3,7 @@
  * The persistent chord list panel and the scale-chords button strip.
  */
 
-import { annotateChordButton, appendHarmonyGuide } from './harmony-guide.js';
+import { annotateChordButton } from './harmony-guide.js';
 import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
 import { saveChordList, state } from './state.js';
@@ -176,6 +176,5 @@ export function renderScaleChords() {
     });
 
     container.appendChild(chordsRow);
-    appendHarmonyGuide(container, chordScaleType, chords);
     relocateAddButton(state.mode);
 }
