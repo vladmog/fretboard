@@ -648,6 +648,7 @@ export function updateInfoPanel(info) {
 
     if (titleEl) titleEl.textContent = info.title;
 
+
     if (!gridEl) return;
     gridEl.innerHTML = '';
 

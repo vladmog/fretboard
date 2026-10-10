@@ -34,11 +34,13 @@ function init() {
     const container = document.getElementById('fretboard-panel');
     const rebuildFretboard = () => {
         if (!container) return;
+        const settingsButton = document.querySelector('.app-settings-button');
         container.innerHTML = '';
         state.fretboard = createFretboard(container, {
             tuning: getInstrumentTuning(),
             frets: 15
         });
+        if (settingsButton) container.appendChild(settingsButton);
         if (isFindMode(state.mode)) {
             registerFindClickHandler();
         }

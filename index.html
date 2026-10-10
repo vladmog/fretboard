@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="static/css/games.css">
     <link rel="stylesheet" href="static/css/dev-panel.css">
     <link rel="stylesheet" href="static/css/learning.css?v=1">
+    <link rel="stylesheet" href="static/css/settings.css">
 </head>
 <body>
     <div class="app-container">
@@ -23,26 +24,7 @@
             <div class="controls-scroll-area">
             <!-- Mode Section: groups mode toggle with dependent controls -->
             <div class="mode-section">
-                <div class="instrument-selector">
-                    <span>Fretboard</span>
-                    <div class="radio-group instrument-toggle" aria-label="Fretboard instrument">
-                        <label class="radio-label checked">
-                            <input type="radio" name="instrument" value="guitar" checked>
-                            Guitar
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="instrument" value="bass">
-                            Bass
-                        </label>
-                    </div>
-                </div>
-                <label class="mode-header">
-                    Mode
-                    <span class="toggle-label" id="notenames-toggle-label">
-                        <input type="checkbox" id="notenames-toggle">
-                        <span class="toggle-text">Notes</span>
-                    </span>
-                </label>
+                <div class="mode-panel-title">Fretboard</div>
                 <div class="mode-toggle">
                     <div class="radio-group">
                         <label class="radio-label">
@@ -332,5 +314,21 @@
 
     <script src="https://cdn.jsdelivr.net/npm/tone/build/Tone.js"></script>
     <script type="module" src="static/js/main.js"></script>
+    <button class="app-settings-button" type="button" popovertarget="app-settings" aria-label="Settings" title="Settings"><svg class="settings-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 3 1-2h4l1 2 .5 2 2 .9 2-.4 2 3.5-1.5 1.5v2l1.5 1.5-2 3.5-2-.4-2 .9-.5 2-1 2h-4l-1-2-.5-2-2-.9-2 .4-2-3.5L4 13v-2L2.5 9.5l2-3.5 2 .4 2-.9Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    <div id="app-settings" popover aria-labelledby="app-settings-title">
+        <div class="settings-heading">
+            <strong id="app-settings-title">Settings</strong>
+            <button type="button" popovertarget="app-settings" popovertargetaction="hide" aria-label="Close settings">&times;</button>
+        </div>
+        <p class="settings-label">Instrument</p>
+        <div class="radio-group instrument-toggle" aria-label="Fretboard instrument">
+            <label class="radio-label checked"><input type="radio" name="instrument" value="guitar" checked>Guitar</label>
+            <label class="radio-label"><input type="radio" name="instrument" value="bass">Bass</label>
+        </div>
+        <label class="settings-note-label" id="notenames-toggle-label">
+            <input type="checkbox" id="notenames-toggle"> Show note names
+        </label>
+        <p class="settings-hint">Off shows intervals (1, 3, 5).</p>
+    </div>
 </body>
 </html>

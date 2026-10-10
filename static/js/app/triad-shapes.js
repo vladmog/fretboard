@@ -86,7 +86,9 @@ export function renderTriadControls(chord, refresh) {
         nav.appendChild(button);
     }
     filters.append(nav, element('p', `${index + 1} / ${shapes.length} · ${guide.inversions[shape.inversion]}`, 'triad-caption'));
-    const preview = element('div', null, 'triad-preview');
+    const preview = element('details', null, 'triad-preview');
+    preview.open = !window.matchMedia('(pointer: coarse) and (max-width: 1100px)').matches;
+    preview.appendChild(element('summary', 'Shape diagram'));
     preview.append(diagram(shape, chord), element('p', `Bass ${chord.noteSpelling[shape.bass.noteIndex]} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`, 'triad-caption'));
     preview.title = 'Red: root; green: third; blue: fifth. High string at top; fret numbers above; 0 is open.';
     panel.appendChild(preview);

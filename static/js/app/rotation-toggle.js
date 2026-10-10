@@ -24,7 +24,8 @@ function rotateMarkerText(angle) {
 /**
  * Toggle rotation between 0 and 90 degrees
  */
-function toggleRotation() {
+function toggleRotation(event) {
+    if (event?.target.closest('button')) return;
     if (['f.chord', 'f.scale'].includes(state.mode)) return;
     currentRotation = currentRotation === 0 ? 90 : 0;
     rotateMarkerText(currentRotation);
