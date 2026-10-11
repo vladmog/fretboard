@@ -24,3 +24,20 @@ test('pulse targets all matching pitch markers on only the requested board',()=>
  globalThis.window={matchMedia:()=>({matches:false})};
  try{pulsePluck('Db2',target);assert.deepEqual(calls,[1,2]);}finally{delete globalThis.window;}
 });
+test('reference circle pulses by pitch in both orders and skips hidden circles',()=>{
+ const calls=[];
+ const marker={animate:(frames,options)=>{calls.push({frames,options});return {cancel(){}};}};
+ let visible=true;
+ const circle={isConnected:true,getClientRects:()=>visible?[{}]:[],querySelectorAll:selector=>{
+  assert.equal(selector,'circle[data-pitch-class="1"]');return [marker];
+ }};
+ globalThis.document={getElementById:id=>{assert.equal(id,'chromatic-circle-svg');return circle;}};
+ globalThis.window={matchMedia:()=>({matches:false})};
+ try {
+  for(const order of ['chromatic','fifths']) {circle.dataset={order};pulsePluck('Db3',null);}
+  assert.equal(calls.length,2);
+  assert.deepEqual(calls[0].frames,[{strokeWidth:2},{strokeWidth:8},{strokeWidth:2}]);
+  assert.equal(calls[0].options.duration,240);
+  visible=false;pulsePluck('Db3',null);assert.equal(calls.length,2);
+ }finally {delete globalThis.document;delete globalThis.window;}
+});

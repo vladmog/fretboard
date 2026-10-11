@@ -2,9 +2,14 @@ import { getNoteIndex } from '../core/music-theory.js';
 const running = new WeakMap();
 /** Match pitch identity, so note-name and scale-relative labels work equally. */
 export function pulsePluck(note, target = document.getElementById('fretboard-panel')) {
-    if (!target || !target.isConnected || !target.getClientRects().length) return;
     const pitch = getNoteIndex(note.replace(/-?\d+$/, ''));
-    for (const marker of target.querySelectorAll(`.marker[data-pitch-class="${pitch}"] circle`)) {
+    const circle = globalThis.document?.getElementById('chromatic-circle-svg');
+    const visible = element => element?.isConnected && element.getClientRects().length;
+    const markers = [
+        ...(visible(target) ? target.querySelectorAll(`.marker[data-pitch-class="${pitch}"] circle`) : []),
+        ...(visible(circle) ? circle.querySelectorAll(`circle[data-pitch-class="${pitch}"]`) : [])
+    ];
+    for (const marker of markers) {
         running.get(marker)?.cancel();
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const animation = marker.animate([

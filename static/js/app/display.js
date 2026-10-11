@@ -538,6 +538,7 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
 
         const circle = document.createElementNS(ns, 'circle');
         circle.dataset.orbitNote = i;
+        circle.dataset.pitchClass = i;
         circle.dataset.orbitRadius = radius;
         circle.setAttribute('cx', x);
         circle.setAttribute('cy', y);
