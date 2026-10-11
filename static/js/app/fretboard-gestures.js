@@ -1,5 +1,5 @@
 /** Parallel gestures change one board; the perpendicular axis stays native scroll. */
-export function bindFretboardGestures(host, vertical, advance) {
+export function bindFretboardGestures(host, vertical, advance, isEnabled = () => true) {
     host.style.touchAction = vertical ? 'pan-x pinch-zoom' : 'pan-y pinch-zoom';
     host.style.userSelect = 'none';
     host.tabIndex = 0;
@@ -10,12 +10,14 @@ export function bindFretboardGestures(host, vertical, advance) {
     let suppressClickUntil = 0;
     const axes = (x, y) => vertical ? [y, x] : [x, y];
     host.addEventListener('pointerdown', event => {
+        if (!isEnabled()) return;
         if (!event.isPrimary || event.button !== 0) return;
         suppressClickUntil = 0; // A fresh tap is distinct from the prior swipe's click.
         start = { x: event.clientX, y: event.clientY, id: event.pointerId };
         host.setPointerCapture(event.pointerId);
     });
     host.addEventListener('pointerup', event => {
+        if (!isEnabled()) { start = null; return; }
         if (!start || start.id !== event.pointerId) return;
         const [parallel, perpendicular] = axes(event.clientX - start.x, event.clientY - start.y);
         start = null;
@@ -35,9 +37,14 @@ export function bindFretboardGestures(host, vertical, advance) {
         }
     }, true);
 
+    host.addEventListener('touchend', event => {
+        if (event.timeStamp <= suppressClickUntil) event.stopPropagation();
+    }, true);
+
     // A trackpad's momentum belongs to one gesture, not dozens of Next presses.
     let wheelTime = -Infinity, wheelTotal = 0, wheelDirection = 0, wheelStepped = false;
     host.addEventListener('wheel', event => {
+        if (!isEnabled()) return;
         if (event.ctrlKey) return; // Browser pinch-to-zoom.
         const [parallel, perpendicular] = axes(event.deltaX, event.deltaY);
         if (Math.abs(parallel) <= Math.abs(perpendicular) * 1.25) return;
@@ -54,6 +61,7 @@ export function bindFretboardGestures(host, vertical, advance) {
         }
     }, { passive: false });
     host.addEventListener('keydown', event => {
+        if (!isEnabled()) return;
         const next = vertical ? 'ArrowDown' : 'ArrowRight';
         const previous = vertical ? 'ArrowUp' : 'ArrowLeft';
         if (event.key === next || event.key === previous) {

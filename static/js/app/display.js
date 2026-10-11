@@ -1,3 +1,4 @@
+import { syncMainFretboardGestures } from './main-fretboard-gestures.js';
 import { preserveScrollPosition } from './scroll-position.js';
 /**
  * Display Rendering
@@ -5,8 +6,7 @@ import { preserveScrollPosition } from './scroll-position.js';
  * dispatches to the current mode's renderer on every state change.
  */
 
-import { renderTriadControls } from './triad-shapes.js';
-import { guide } from './harmony-guide.js';
+import { renderChordFretboard } from './chord-display.js';
 import * as MusicTheory from '../core/music-theory.js';
 import * as ChordProgressions from '../core/progressions.js';
 import * as RotationToggle from './rotation-toggle.js';
@@ -112,37 +112,7 @@ export function displayScale(scale) {
  * @param {Object} chord - Chord instance from buildChord()
  */
 export function displayChord(chord) {
-    if (!state.fretboard) return;
-
-    state.fretboard.clearMarkers();
-
-    const triad = renderTriadControls(chord, updateDisplay);
-    const positions = triad ? triad.positions : getNotesOnActiveFretboard(
-        chord.noteToInterval,
-        15,
-        chord.root
-    );
-
-    for (const pos of positions) {
-        const colors = MusicTheory.getIntervalColor(pos.label);
-        const isRoot = pos.label === '1';
-        state.fretboard.setMarker(pos.string, pos.fret, {
-            color: triad ? guide.triadColors[chord.intervals.indexOf(pos.label)] : (isRoot ? '#000' : colors.fill),
-            borderColor: triad ? '#222' : colors.border,
-            text: getMarkerLabel(pos, chord.noteSpelling),
-            textColor: triad ? '#000' : (isRoot ? '#fff' : colors.text)
-        });
-    }
-
-    // Apply current rotation to newly created markers
-    RotationToggle.applyCurrentRotation();
-
-    updateInfoPanel({
-        title: triad?.bass ? `${chord.symbol} · ${guide.inversions[triad.inversion]}` : chord.symbol,
-        notes: chord.notes,
-        intervals: chord.intervals,
-        noteToInterval: chord.noteToInterval
-    });
+    if (state.fretboard) updateInfoPanel(renderChordFretboard(chord, updateDisplay));
 }
 /**
  * Display a scale chord on the fretboard with scale-relative degrees
@@ -204,7 +174,7 @@ function displayScaleChord(chord, scale, parentRoot) {
     const chordRootIndex = MusicTheory.getNoteIndex(chord.root);
     const scaleRootIndex = MusicTheory.getNoteIndex(scale.root);
     for (const pos of positions) {
-        const colors = MusicTheory.getIntervalColor(pos.label);
+        const colors = MusicTheory.getIntervalColor(chord.noteToInterval[pos.noteIndex]);
         let fillColor = colors.fill;
         let textColor = colors.text;
         let borderColor = colors.border;
@@ -212,10 +182,8 @@ function displayScaleChord(chord, scale, parentRoot) {
         if (pos.noteIndex === chordRootIndex) {
             borderColor = '#000000';
             borderWidth = 3.5;
-            if (!useScaleDegrees) {
-                fillColor = '#000';
-                textColor = '#fff';
-            }
+            fillColor = '#000';
+            textColor = '#fff';
         }
         const isScaleRoot = pos.noteIndex === scaleRootIndex;
         if (isScaleRoot) {
@@ -701,7 +669,9 @@ export function updateInfoPanel(info) {
  * Update display based on current state
  */
 export function updateDisplay() {
-    return preserveScrollPosition(document.getElementById('triad-shapes'), updateDisplayContent);
+    const result = preserveScrollPosition(document.getElementById('triad-shapes'), updateDisplayContent);
+    syncMainFretboardGestures();
+    return result;
 }
 function updateDisplayContent() {
     const triadPanel = document.getElementById('triad-shapes');

@@ -1,3 +1,4 @@
+import { initChordKey } from './app/chord-key.js';
 import { initTriadComparison } from './app/triad-comparison.js';
 /**
  * Application entry point — the only script tag in the HTML (type="module").
@@ -56,6 +57,7 @@ function init() {
     renderScaleChords();
     initEventListeners({ onInstrumentChange: rebuildFretboard });
     initTriadComparison();
+    initChordKey(() => { renderChordList(); updateDisplay(); });
 
     // Color-code interval filter checkboxes
     document.querySelectorAll('.interval-check').forEach(label => {

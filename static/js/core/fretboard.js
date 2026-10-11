@@ -399,6 +399,7 @@ export function createFretboard(container, config = {}) {
 
     // Return API
     return {
+        isVertical,
         setMarker: (string, fret, options) => setMarker(fretboardConfig, string, fret, options),
         clearMarkers: () => clearMarkers(fretboardConfig),
         addShape: (points, options) => addShape(fretboardConfig, points, options),

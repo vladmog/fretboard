@@ -2,10 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { bindFretboardGestures } from '../static/js/app/fretboard-gestures.js';
 
-function setup(vertical) {
+function setup(vertical, isEnabled) {
     const events = {}, steps = [];
     const host = { style: {}, setAttribute() {}, setPointerCapture() {}, addEventListener: (name, fn) => { events[name] = fn; } };
-    bindFretboardGestures(host, vertical, step => steps.push(step));
+    bindFretboardGestures(host, vertical, step => steps.push(step), isEnabled);
     const fire = (name, data = {}) => {
         const event = { isPrimary: true, pointerId: 1, button: 0, timeStamp: 100, clientX: 0, clientY: 0,
             deltaX: 0, deltaY: 0, deltaMode: 0, preventDefault() { this.prevented = true; }, stopPropagation() { this.stopped = true; }, ...data };
@@ -40,4 +40,19 @@ test('trackpad momentum advances once; perpendicular scrolling and zoom remain n
     fire('wheel', { deltaX: -40, timeStamp: 300 });
     fire('wheel', { deltaX: -40, timeStamp: 600 });
     assert.deepEqual(steps, [1, -1, -1]);
+});
+
+test('disabled main-view gestures leave normal input intact', () => {
+    let enabled = false;
+    const {steps,fire}=setup(true, () => enabled);
+    fire('pointerdown');fire('pointerup',{clientY:80});
+    assert.equal(fire('wheel',{deltaY:80}).prevented,undefined);
+    assert.equal(fire('keydown',{key:'ArrowDown'}).prevented,undefined);
+    assert.deepEqual(steps,[]);
+    enabled=true;
+    fire('pointerdown');fire('pointerup',{clientY:80});
+    assert.deepEqual(steps,[1]);
+    assert.equal(fire('touchend').stopped,true);
+    fire('pointerdown');fire('pointerup',{timeStamp:120});
+    assert.equal(fire('touchend',{timeStamp:120}).stopped,undefined);
 });

@@ -120,3 +120,5 @@
     .mode-section .interval-check, .mode-section .interval-check span { min-height: 28px; }
     .mode-section .interval-check span { padding: 2px; }
 }
+
+#chord-key[hidden] { display: none; }

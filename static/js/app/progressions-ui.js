@@ -1,3 +1,4 @@
+import { restoreProgressionKey } from './chord-key.js';
 import { preserveScrollPosition } from './scroll-position.js';
 /**
  * Progression Mode UI
@@ -247,11 +248,15 @@ export function saveProgression() {
             prog.numerals = numerals;
             prog.description = description;
             prog.chords = chords;
+            prog.referenceKey = state.root;
+            state._selectedUserProgId = prog.id;
         }
     } else {
         // Create new
+        state._selectedUserProgId = Date.now();
         state.userProgressions.push({
-            id: Date.now(),
+            id: state._selectedUserProgId,
+            referenceKey: state.root,
             numerals: numerals,
             description: description,
             chords: chords
@@ -320,6 +325,7 @@ export function loadProgressionIntoBuilder(id) {
     const prog = state.userProgressions.find(p => p.id === id);
     if (!prog) return;
 
+    restoreProgressionKey(prog);
     state.editingProgressionId = id;
     state.builderDescription = prog.description || '';
     state.builderRows = prog.chords.map(token => {
@@ -476,9 +482,10 @@ export function addProgressionToChordList() {
         const { categoryIndex, progressionIndex } = ChordProgressions.flatIndexToCategory(state.progressionIndex);
         chords = ChordProgressions.buildProgressionChords(categoryIndex, progressionIndex, state.root);
     }
+    state.chordReferenceKey = state.root;
     chords.forEach(chord => {
         const built = MusicTheory.buildChord(chord.root, chord.type);
-        state.chordList.push({ root: chord.root, type: chord.type, symbol: built.symbol });
+        state.chordList.push({ root: chord.root, type: chord.type, symbol: built.symbol, referenceKey: state.root });
     });
     saveChordList();
     renderChordList();

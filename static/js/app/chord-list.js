@@ -1,3 +1,4 @@
+import { syncChordKey } from './chord-key.js';
 import { updateComparisonButton } from './triad-comparison.js';
 import { preserveScrollPosition } from './scroll-position.js';
 /**
@@ -17,6 +18,7 @@ import { relocateAddButton } from './controls.js';
  */
 export function renderChordList() {
     updateComparisonButton();
+    syncChordKey();
     return preserveScrollPosition(document.getElementById('chord-list-items'), renderChordListContent);
 }
 function renderChordListContent() {
@@ -33,7 +35,7 @@ function renderChordListContent() {
         }
 
         const span = document.createElement('span');
-        span.textContent = item.symbol;
+        span.textContent = item.symbol + (item.referenceKey ? ` · Key ${item.referenceKey}` : '');
 
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove-chord-btn';
@@ -59,7 +61,8 @@ export function addChordToList(root, type) {
     state.chordList.push({
         root,
         type,
-        symbol: chord.symbol
+        symbol: chord.symbol,
+        referenceKey: state.mode === 'prog' ? state.root : (state.mode === 'chord' ? state.chordReferenceKey : null)
     });
     saveChordList();
     renderChordList();
@@ -92,6 +95,14 @@ function selectChordFromList(index) {
         state.selectedChordIndex = -1;
     } else {
         state.selectedChordIndex = index;
+        state.chordReferenceKey = state.chordList[index].referenceKey || null;
+        if (state.mode === 'chord') {
+            const item = state.chordList[index];
+            state.root = item.root;
+            state.chordType = item.type;
+            document.getElementById('root-note').value = item.root;
+            document.getElementById('type-select').value = item.type;
+        }
         // Play the chord sound on select (if enabled)
         if (state.soundEnabled) {
             const item = state.chordList[index];

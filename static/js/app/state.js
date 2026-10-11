@@ -16,6 +16,7 @@ export const state = {
     root: 'C',
     scaleType: 'major',
     chordType: 'maj',
+    chordReferenceKey: null, // Key context, distinct from the chord root
     modeType: 'ionian',    // Selected mode in 'modes' mode
     cagedShape: 'all',      // 'all', 'C', 'A', 'G', 'E', or 'D'
     chordList: [],          // Array of { root, type, symbol }
@@ -72,7 +73,10 @@ export function loadChordList() {
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
-            state.chordList = JSON.parse(saved);
+            // Additive migration: old entries have no recoverable key context.
+            state.chordList = JSON.parse(saved).map(item => ({ referenceKey: null, ...item }));
+            const keys = new Set(state.chordList.map(item => item.referenceKey));
+            state.chordReferenceKey = keys.size === 1 ? [...keys][0] : null;
         }
     } catch (e) {
         console.error('Failed to load chord list:', e);
@@ -132,7 +136,7 @@ export function saveFavorites() {
 export function loadUserProgressions() {
     try {
         const saved = localStorage.getItem(USER_PROGRESSIONS_STORAGE_KEY);
-        if (saved) state.userProgressions = JSON.parse(saved);
+        if (saved) state.userProgressions = JSON.parse(saved).map(prog => ({ referenceKey: null, ...prog }));
     } catch (e) {
         state.userProgressions = [];
     }

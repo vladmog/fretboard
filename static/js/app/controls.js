@@ -1,3 +1,4 @@
+import { syncChordKey } from './chord-key.js';
 import { updateComparisonButton } from './triad-comparison.js';
 /**
  * Mode & Control Wiring
@@ -125,7 +126,7 @@ export function updateTypeDropdown() {
             state.userProgressions.forEach(prog => {
                 const option = document.createElement('option');
                 option.value = 'user-' + prog.id;
-                option.textContent = prog.numerals;
+                option.textContent = prog.numerals + (prog.referenceKey ? ` · Key ${prog.referenceKey}` : '');
                 if (state._selectedUserProgId === prog.id) {
                     option.selected = true;
                 }
@@ -272,6 +273,7 @@ export function setMode(mode) {
     }
 
     state.mode = mode;
+    syncChordKey();
     updateComparisonButton();
     state.selectedChordIndex = -1; // Deselect list item when changing mode
     state.activeScaleChord = null;

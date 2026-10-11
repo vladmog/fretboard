@@ -1,3 +1,4 @@
+import { restoreProgressionKey } from './chord-key.js';
 /**
  * Event Listeners
  * All DOM event wiring for the main app. Sits at the top of the app/
@@ -96,6 +97,7 @@ export function initEventListeners({ onInstrumentChange } = {}) {
                 const val = e.target.value;
                 if (val.startsWith('user-')) {
                     state._selectedUserProgId = parseInt(val.slice(5));
+                    restoreProgressionKey(state.userProgressions.find(prog => prog.id === state._selectedUserProgId));
                     state.browsingFavorites = false;
                 } else if (val.startsWith('fav-')) {
                     state._selectedUserProgId = null;

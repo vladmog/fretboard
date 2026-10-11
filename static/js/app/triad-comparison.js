@@ -65,7 +65,7 @@ function renderBoards() {
             const description = shape
                 ? `${item.shapeIndex + 1}/${shapes.length} · ${guide.inversions[shape.inversion]} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`
                 : 'All chord notes';
-            caption.textContent = description;
+            caption.textContent = `${item.referenceKey ? `Key ${item.referenceKey}` : 'Key not set'} · ${description}`;
             host.querySelector('svg').setAttribute('aria-label', `${chord.symbol}, ${description}`);
             board.clearMarkers();
             const positions = shape ? shape.positions
