@@ -11,6 +11,7 @@ let stringSet = 'all';
 let stringCount = 3;
 let inversion = 'all';
 let index = 0;
+let previewOpen = null;
 
 function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -66,6 +67,8 @@ function diagram(shape, chord) {
 export function renderTriadControls(chord, refresh) {
     const panel = document.getElementById('triad-shapes');
     if (!panel || state.mode !== 'chord') return null;
+    const previousPreview = panel.querySelectorAll('details')[0];
+    if (previousPreview) previewOpen = previousPreview.open;
     panel.style.display = 'grid'; panel.replaceChildren();
     const title = element('label', null, 'triad-toggle');
     const checkbox = element('input'); checkbox.type = 'checkbox'; checkbox.checked = enabled;
@@ -101,11 +104,11 @@ export function renderTriadControls(chord, refresh) {
         button.addEventListener('click', () => { index = (index + direction + shapes.length) % shapes.length; refresh(); });
         nav.appendChild(button);
     }
-    filters.append(nav, element('p', `${index + 1} / ${shapes.length} · ${inversionName(chord, shape.inversion)}`, 'triad-caption'));
+    filters.append(nav, element('p', `${index + 1} / ${shapes.length}`, 'triad-caption'));
     const preview = element('details', null, 'triad-preview');
-    preview.open = !window.matchMedia('(pointer: coarse) and (max-width: 1100px)').matches;
+    preview.open = previewOpen ?? !window.matchMedia('(pointer: coarse) and (max-width: 1100px)').matches;
     preview.appendChild(element('summary', 'Shape diagram'));
-    preview.append(diagram(shape, chord), element('p', `Bass ${chord.noteSpelling[shape.bass.noteIndex]} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`, 'triad-caption'));
+    preview.appendChild(diagram(shape, chord));
     preview.title = (new Set(shape.positions.map(p => p.string)).size < shape.positions.length ? 'Play the two notes on the same string successively. ' : '') + 'High string at top; fret numbers above; 0 is open. Unmarked strings are muted.';
     panel.appendChild(preview);
     return shape;

@@ -6,7 +6,7 @@ import { getShellIntervals } from './shell-voicings.js';
 export function inversionName(chord, inversion) {
     if (inversion === 0) return 'Root position';
     const ordinal = ['Root', 'First', 'Second', 'Third', 'Fourth', 'Fifth'][inversion];
-    return `${ordinal} inversion · ${chord.intervals[inversion]} in bass`;
+    return `${ordinal} inversion`;
 }
 export function getVoicingIntervals(chord, voicing = 'full') {
     return voicing === 'shell' ? getShellIntervals(chord.type) : chord.intervals;

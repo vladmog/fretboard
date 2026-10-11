@@ -36,7 +36,7 @@ for(const instrument of ['guitar','bass']) test(`${instrument}: full and shell v
 });
 test('seventh inversion and familiar C major seventh shell are available',()=>{
     const chord=Theory.buildChord('C','maj7');
-    assert.equal(inversionName(chord,3),'Third inversion · 7 in bass');
+    assert.equal(inversionName(chord,3),'Third inversion');
     const shapes=getChordVoicings(chord,undefined,undefined,{voicing:'shell'});
     assert.ok(shapes.some(s=>JSON.stringify(s.positions.map(p=>[p.string,p.fret]))==='[[5,3],[4,2],[3,4]]'));
     assert.ok(shapes.some(s=>s.inversion===3));

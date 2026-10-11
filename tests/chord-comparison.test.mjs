@@ -11,7 +11,7 @@ import { getTriadShapes } from '../static/js/core/triads.js';
 
 for (const stringCount of [2,3,'both']) for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${enabled}, strings: ${stringCount}`, () => {
     class Element {
-        constructor() { this.children = []; this.scrollTop = 0; this.clientWidth = 800; this.clientHeight = 150; }
+        constructor() { this.dataset = {}; this.children = []; this.scrollTop = 0; this.clientWidth = 800; this.clientHeight = 150; }
         appendChild(node) { this.children.push(node); }
         replaceChildren() { this.children = []; }
         querySelector() { return { setAttribute() {} }; }
