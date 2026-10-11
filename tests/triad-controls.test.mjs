@@ -37,7 +37,7 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
         }
     });
     const source = readFileSync(new URL('../static/js/app/triad-shapes.js', import.meta.url), 'utf8')
-        .replace(/^import .*;\n/gm, '').replace('export function', 'function');
+        .replace(/^import .*;\n/gm, '').replaceAll('export function', 'function');
     vm.runInContext(source, context);
     let shape;
     const refresh = () => { shape = context.renderTriadControls(Theory.buildChord(state.root, state.chordType), refresh); };

@@ -1,0 +1,46 @@
+#compare-chords[hidden] { display: none; }
+#triad-comparison {
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    border: 0;
+    margin: 0;
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    background: #f4f5f6;
+    color: #202630;
+    overflow: hidden;
+    letter-spacing: normal;
+}
+#triad-comparison[open] { display: flex; flex-direction: column; gap: 8px; }
+.comparison-header { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+.comparison-header h2 { font-size: 16px; margin: 0; padding: 0; border: 0; text-transform: none; letter-spacing: normal; }
+#comparison-count { margin-left: auto; font-size: 12px; white-space: nowrap; }
+#comparison-back { width: auto; flex: 0 0 auto; min-height: 36px; padding: 6px 12px; }
+#comparison-boards {
+    flex: 1; min-height: 0; overflow: auto;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: calc((100% - 8px) / 2); gap: 8px;
+    align-content: start;
+}
+.comparison-card { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 10px; border: 1px solid #c6ccd3; border-radius: 8px; background: white; overflow: hidden; }
+.comparison-card h3 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+.comparison-caption { font-size: 12px; line-height: 1.3; }
+.comparison-fretboard { flex: 1; min-height: 0; min-width: 0; }
+.comparison-fretboard svg { display: block; width: 100%; height: 100%; }
+.comparison-empty { font-size: 14px; line-height: 1.5; margin-top: 12px; }
+@media (orientation: portrait) and (max-width: 600px) {
+    #comparison-boards { grid-auto-rows: 100%; }
+    .comparison-card { padding: 6px; }
+    .comparison-caption { font-size: 11px; }
+    .comparison-header { gap: 8px; }
+    .comparison-header h2 { font-size: 14px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+    #comparison-boards { grid-template-columns: minmax(0, 1fr); }
+    .comparison-card { padding: 4px 8px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto minmax(0, 1fr); column-gap: 12px; }
+    .comparison-card h3 { font-size: 14px; margin: 0; }
+    .comparison-caption { font-size: 11px; align-self: center; }
+    .comparison-fretboard { grid-column: 1 / -1; }
+}

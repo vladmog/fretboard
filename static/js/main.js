@@ -1,3 +1,4 @@
+import { initTriadComparison } from './app/triad-comparison.js';
 /**
  * Application entry point — the only script tag in the HTML (type="module").
  * Wires up init and pulls in the side-effect modules (games framework,
@@ -54,6 +55,7 @@ function init() {
     renderChordList();
     renderScaleChords();
     initEventListeners({ onInstrumentChange: rebuildFretboard });
+    initTriadComparison();
 
     // Color-code interval filter checkboxes
     document.querySelectorAll('.interval-check').forEach(label => {

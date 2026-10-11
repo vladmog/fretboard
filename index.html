@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="static/css/learning.css?v=1">
     <link rel="stylesheet" href="static/css/settings.css">
     <link rel="stylesheet" href="static/css/control-workspace.css?v=2">
+    <link rel="stylesheet" href="static/css/triad-comparison.css">
 </head>
 <body>
     <div class="app-container">
@@ -80,6 +81,7 @@
                         </select>
                     </div>
 
+                    <button id="compare-chords" class="btn" type="button" hidden>Compare chord inversions</button>
                     <div id="triad-shapes" class="control-group" style="display: none;"></div>
 
                     <div id="prog-nav" class="prog-nav" style="display: none;">
@@ -288,6 +290,11 @@
             </div>
         </div>
     </div>
+
+    <dialog id="triad-comparison" aria-labelledby="comparison-title">
+        <header class="comparison-header"><button id="comparison-back" type="button" class="btn">← Back</button><h2 id="comparison-title">Chord inversions</h2><span id="comparison-count"></span></header>
+        <div id="comparison-boards"></div>
+    </dialog>
 
     <script src="https://cdn.jsdelivr.net/npm/tone/build/Tone.js"></script>
     <script type="module" src="static/js/main.js"></script>

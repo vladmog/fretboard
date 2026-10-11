@@ -33,12 +33,6 @@ function getMidFretPosition(f, totalFrets, totalLength) {
     return (getFretPosition(f - 1, totalFrets, totalLength) + getFretPosition(f, totalFrets, totalLength)) / 2;
 }
 
-// Current markers storage
-let currentMarkers = [];
-
-// Click callback for Find mode
-let clickCallback = null;
-
 /**
  * Apply style object to SVG element
  * @param {SVGElement} element - SVG element to style
@@ -136,10 +130,11 @@ export function createFretboard(container, config = {}) {
     } = config;
 
     const numStrings = tuning.length;
-    const isVertical = isVerticalOrientation();
+    const isVertical = config.vertical ?? isVerticalOrientation();
+    let clickCallback = null;
 
     // Dimensions
-    const stringSpacing = 35;
+    const stringSpacing = config.stringSpacing ?? 35;
     const fretSpacing = 70;
     const padding = 50;
     const nutWidth = 8;
@@ -378,6 +373,7 @@ export function createFretboard(container, config = {}) {
     const fretboardConfig = {
         svg,
         markerGroup,
+        markerScale: config.markerScale ?? 1,
         numStrings,
         frets,
         padding,
@@ -459,7 +455,7 @@ function setMarker(config, string, fret, options = {}) {
     const group = createSVGElement('g', { class: 'marker' });
 
     // Create circle with border
-    const circleStyle = { ...styles.marker, fill: color };
+    const circleStyle = { ...styles.marker, r: styles.marker.r * config.markerScale, fill: color };
     if (borderColor && !rainbowBorder) {
         circleStyle.stroke = borderColor;
         circleStyle.strokeWidth = borderWidth;
@@ -482,13 +478,12 @@ function setMarker(config, string, fret, options = {}) {
             y: y,
             'text-anchor': 'middle',
             'dominant-baseline': 'central'
-        }, { ...styles.markerText, fill: textColor });
+        }, { ...styles.markerText, fontSize: styles.markerText.fontSize * config.markerScale, fill: textColor });
         label.textContent = text;
         group.appendChild(label);
     }
 
     markerGroup.appendChild(group);
-    currentMarkers.push({ string, fret, element: group });
 }
 
 /**
@@ -500,7 +495,6 @@ function clearMarkers(config) {
     while (markerGroup.firstChild) {
         markerGroup.removeChild(markerGroup.firstChild);
     }
-    currentMarkers = [];
 }
 
 /**

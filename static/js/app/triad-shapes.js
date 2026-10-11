@@ -95,3 +95,7 @@ export function renderTriadControls(chord, refresh) {
     panel.appendChild(preview);
     return shape;
 }
+
+export function getTriadPreferences() {
+    return { stringSet, inversion, index };
+}

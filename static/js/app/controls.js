@@ -1,3 +1,4 @@
+import { updateComparisonButton } from './triad-comparison.js';
 /**
  * Mode & Control Wiring
  * Mode switching and the controls that depend on the current mode
@@ -271,6 +272,7 @@ export function setMode(mode) {
     }
 
     state.mode = mode;
+    updateComparisonButton();
     state.selectedChordIndex = -1; // Deselect list item when changing mode
     state.activeScaleChord = null;
     state.browsingFavorites = false;

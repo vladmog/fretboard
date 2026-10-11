@@ -1,3 +1,4 @@
+import { updateComparisonButton } from './triad-comparison.js';
 import { preserveScrollPosition } from './scroll-position.js';
 /**
  * Chord List
@@ -15,6 +16,7 @@ import { relocateAddButton } from './controls.js';
  * Render the chord list UI
  */
 export function renderChordList() {
+    updateComparisonButton();
     return preserveScrollPosition(document.getElementById('chord-list-items'), renderChordListContent);
 }
 function renderChordListContent() {
