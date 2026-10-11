@@ -825,6 +825,7 @@ input[name="caged-shape"][value="D"] ~ * {
 }
 
 #chromatic-circle-svg { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#chromatic-circle-svg:focus:not(:focus-visible) { outline: none; }
 #chromatic-circle-svg:focus-visible { outline: 1px solid #777; outline-offset: -2px; }
 
 .app-container[hidden], #fifths-mode[hidden] { display: none !important; }

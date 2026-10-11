@@ -93,6 +93,13 @@ function renderCreator() {
         f.index=Math.min(f.index,Math.max(0,shapes.length-1));
         const shape=entry.savedShape || shapes[f.index];
         const nav = node('div'); nav.className = 'creator-shape-nav'; host.append(nav);
+        nav.addEventListener('shape-scrub', event => {
+            if (!shapes.length) return;
+            const next = Math.round(event.detail * (shapes.length - 1));
+            if (next === f.index) return;
+            f.index = next; delete entry.savedShape; initSongCreator();
+            if (state.soundEnabled && entry.savedShape) Sound.playChord(voicingNotes(entry.savedShape, state.instrument));
+        });
         for (const [label,delta] of [['Previous shape',-1],['Next shape',1]]) {
             const button = act(label, () => {
                 if (!shapes.length) return;

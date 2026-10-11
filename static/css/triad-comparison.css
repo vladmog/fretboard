@@ -73,3 +73,5 @@
 .comparison-card .comparison-chord-play:hover { text-decoration: underline; }
 .comparison-card .comparison-chord-play:focus-visible { outline: 1px solid currentColor; outline-offset: 2px; }
 .comparison-card .comparison-chord-play:disabled { cursor: default; opacity: .5; }
+.comparison-shape-counter { display:block; font-size:11px; font-weight:400; letter-spacing:0; margin-top:2px; }
+.comparison-shape-counter:empty { display:none; }

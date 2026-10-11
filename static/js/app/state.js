@@ -11,6 +11,7 @@ import * as ChordProgressions from '../core/progressions.js';
 
 // Application state
 export const state = {
+    inversionScrubbing: true,
     instrument: 'guitar',  // 'guitar' or 'bass'
     mode: 'scale',          // 'scale', 'chord', 'interval', 'caged', 'modes', 'prog', 'f.chord', 'f.scale', or 'games'
     root: 'C',
@@ -166,4 +167,14 @@ export function saveUserProgressions() {
     try {
         localStorage.setItem(USER_PROGRESSIONS_STORAGE_KEY, JSON.stringify(state.userProgressions));
     } catch (e) { /* ignore */ }
+}
+
+const SCRUB_STORAGE_KEY = 'fretboard-inversion-scrubbing';
+export function loadInversionScrubbing() {
+    try { state.inversionScrubbing = localStorage.getItem(SCRUB_STORAGE_KEY) !== 'false'; }
+    catch { state.inversionScrubbing = true; }
+}
+export function saveInversionScrubbing() {
+    try { localStorage.setItem(SCRUB_STORAGE_KEY, String(state.inversionScrubbing)); }
+    catch { /* Keep the current preference when storage is unavailable. */ }
 }

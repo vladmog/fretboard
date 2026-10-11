@@ -108,6 +108,12 @@ export function renderTriadControls(chord, refresh) {
     const shape = shapes[index];
     activeShape = shape;
     const nav = element('div', null, 'triad-navigation');
+    nav.addEventListener('shape-scrub', event => {
+        const next = Math.round(event.detail * (shapes.length - 1));
+        if (next === index) return;
+        index = next; refresh();
+        if (state.soundEnabled) Sound.playChord(voicingNotes(shapes[index], state.instrument));
+    });
     for (const [text, direction] of [['Previous', -1], ['Next', 1]]) {
         const button = element('button', text, 'btn btn-sm'); button.type = 'button';
         button.addEventListener('click', () => { index = (index + direction + shapes.length) % shapes.length; refresh(); if (state.soundEnabled) Sound.playChord(voicingNotes(shapes[index], state.instrument)); });

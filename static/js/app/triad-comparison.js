@@ -66,6 +66,8 @@ function renderBoards() {
         play.setAttribute('aria-label', `Play ${chord.symbol}`);
         play.title = 'Play chord (uses the Sound setting)';
         heading.appendChild(play);
+        const counter = element('span', 'comparison-shape-counter');
+        heading.appendChild(counter);
         card.appendChild(heading);
         container.appendChild(card);
         const restored = shapePreferences(item, state.instrument);
@@ -106,6 +108,7 @@ function renderBoards() {
         host.querySelector('svg').setAttribute('role', 'img');
         const draw = () => {
             const shape = shapes[item.shapeIndex] ?? null;
+            counter.textContent = shape ? `${item.shapeIndex + 1} / ${shapes.length}` : '';
             const description = shape
                 ? `${item.shapeIndex + 1}/${shapes.length} · ${inversionName(chord, shape.inversion)} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`
                 : 'All chord notes';
@@ -128,8 +131,9 @@ function renderBoards() {
         };
         draw();
         if (shapes.length > 1) {
-            bindFretboardGestures(host, vertical, direction => {
-                item.shapeIndex = (item.shapeIndex + direction + shapes.length) % shapes.length;
+            const selectShape = next => {
+                if (next === item.shapeIndex) return;
+                item.shapeIndex = next;
                 const shape = shapes[item.shapeIndex];
                 // Keep the comparison's browsing filters stable while saving the
                 // exact selection to its original list entry (including repeats).
@@ -146,7 +150,9 @@ function renderBoards() {
                 draw();
                 if (state.soundEnabled) Sound.playChord(voicingNotes(shapes[item.shapeIndex],state.instrument), undefined, host);
                 applyCurrentRotation();
-            });
+            };
+            bindFretboardGestures(host, vertical, direction => selectShape((item.shapeIndex + direction + shapes.length) % shapes.length),
+                () => true, fraction => selectShape(Math.round(fraction * (shapes.length - 1))), () => state.inversionScrubbing);
         }
     });
     applyCurrentRotation();

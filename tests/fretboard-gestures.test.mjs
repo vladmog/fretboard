@@ -78,3 +78,22 @@ for (const vertical of [false, true]) test(`short diagonal swipes commit once be
     fire('pointerup',point(60,40));
     assert.deepEqual(steps,[1,-1], 'native perpendicular scrolling does not navigate');
 });
+for (const vertical of [false,true]) test(`scrubbing maps absolute positions continuously and preserves taps (${vertical})`,()=>{
+ const events={},values=[],steps=[];
+ const host={style:{},setAttribute(){},setPointerCapture(){},getBoundingClientRect:()=>({left:100,top:100,width:200,height:200}),addEventListener:(name,fn)=>events[name]=fn};
+ bindFretboardGestures(host,vertical,v=>steps.push(v),()=>true,v=>values.push(v));
+ const fire=(name,p,q=150)=>events[name]({isPrimary:true,button:0,pointerId:1,timeStamp:100,clientX:vertical?q:p,clientY:vertical?p:q,preventDefault(){},stopPropagation(){}});
+ fire('pointerdown',150);fire('pointermove',200);fire('pointermove',250);fire('pointermove',400);fire('pointerup',50);
+ assert.deepEqual(values,[0.5,0.75,1,0]);assert.deepEqual(steps,[]);
+ values.length=0;fire('pointerdown',150);fire('pointerup',150);assert.deepEqual(values,[]);
+ fire('pointerdown',150);fire('pointermove',155,230);fire('pointercancel',155);assert.deepEqual(values,[]);
+});
+test('scrubbing preference changes existing gesture bindings immediately',()=>{
+ const events={},steps=[],values=[];let enabled=true;
+ const host={style:{},setAttribute(){},setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:100,height:100}),addEventListener:(n,f)=>events[n]=f};
+ bindFretboardGestures(host,false,v=>steps.push(v),()=>true,v=>values.push(v),()=>enabled);
+ const fire=(name,x)=>events[name]({isPrimary:true,pointerId:1,button:0,clientX:x,clientY:0,timeStamp:100});
+ fire('pointerdown',0);fire('pointerup',50);assert.deepEqual(values,[0.5]);
+ enabled=false;fire('pointerdown',0);fire('pointermove',50);fire('pointerup',90);assert.deepEqual(steps,[1]);assert.deepEqual(values,[0.5]);
+ enabled=true;fire('pointerdown',0);fire('pointerup',90);assert.deepEqual(values,[0.5,0.9]);
+});

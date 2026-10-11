@@ -1,11 +1,13 @@
 /** Parallel gestures change one board; the perpendicular axis stays native scroll. */
-export function bindFretboardGestures(host, vertical, advance, isEnabled = () => true) {
+export function bindFretboardGestures(host, vertical, advance, isEnabled = () => true, scrub, scrubEnabled = () => true) {
     host.style.touchAction = vertical ? 'pan-x pinch-zoom' : 'pan-y pinch-zoom';
     host.style.userSelect = 'none';
     host.tabIndex = 0;
-    host.setAttribute('aria-label', vertical
-        ? 'Swipe up or down to change this chord shape; swipe sideways for more chords'
-        : 'Swipe left or right to change this chord shape; scroll vertically for more chords');
+    host.setAttribute('aria-label', !(scrub && scrubEnabled())
+        ? `Swipe ${vertical ? 'up or down' : 'left or right'} to change this chord shape`
+        : vertical
+        ? 'Drag from top to bottom to scrub through chord shapes; swipe sideways for more chords'
+        : 'Drag from left to right to scrub through chord shapes; scroll vertically for more chords');
     let start = null;
     let suppressClickUntil = 0;
     const axes = (x, y) => vertical ? [y, x] : [x, y];
@@ -22,6 +24,14 @@ export function bindFretboardGestures(host, vertical, advance, isEnabled = () =>
         const [parallel, perpendicular] = axes(event.clientX - start.x, event.clientY - start.y);
         if (Math.max(Math.abs(parallel), Math.abs(perpendicular)) > 10) {
             suppressClickUntil = event.timeStamp + 500;
+        }
+        if (scrub && scrubEnabled() && (start.stepped || (Math.abs(parallel) >= 10 && Math.abs(parallel) > Math.abs(perpendicular)))) {
+            start.stepped = true;
+            suppressClickUntil = event.timeStamp + 500;
+            const rect = host.getBoundingClientRect();
+            const length = vertical ? rect.height : rect.width;
+            if (length > 0) scrub(Math.max(0, Math.min(1, ((vertical ? event.clientY : event.clientX) - (vertical ? rect.top : rect.left)) / length)));
+            return;
         }
         // Commit once while moving, so a slight return before lift-off cannot
         // erase a swipe. Keep perpendicular movement available for list scrolling.
