@@ -43,18 +43,21 @@ export function initDisclosureMotion() {
     }, true);
 
     // Capture before synchronous state/render handlers; measure their final layout
-    // next frame. No animation for a shape change with unchanged panel height.
+    // next frame. Only options revealing/removing controls animate; mode changes,
+    // button navigation, and ordinary content resizing remain immediate.
     let pending = false;
-    for (const type of ['click', 'change']) document.addEventListener(type, event => {
+    document.addEventListener('change', event => {
         if (pending || reduced() || event.target.closest('summary')) return;
-        if (!event.target.closest('#controls-panel, #games-panel')) return;
+        if (!event.target.closest('#controls-panel')) return;
+        if (event.target.closest('#mode-select, #song-select, #games-select')) return;
         const panels = [...document.querySelectorAll('.control-workspace .mode-controls > .control-group, #scale-chord-builder, #find-controls, #game-content')];
-        const before = panels.map(node => [node, node.getBoundingClientRect().height]);
+        const controlCount = node => node.querySelectorAll('input, select, button, details').length;
+        const before = panels.map(node => [node, node.getBoundingClientRect().height, controlCount(node)]);
         pending = true;
         requestAnimationFrame(() => {
             pending = false;
-            for (const [node, from] of before) {
-                if (!node.isConnected) continue;
+            for (const [node, from, count] of before) {
+                if (!node.isConnected || count === controlCount(node)) continue;
                 running.get(node)?.cancel();
                 const to = node.getBoundingClientRect().height;
                 // Hidden mode controls should not be made interactive again.
