@@ -87,7 +87,6 @@
                         <label for="chord-reference-scale">Reference scale</label>
                         <select id="chord-reference-scale"><option value="">Not set</option></select>
                         <label class="chord-scale-toggle"><input type="checkbox" id="chord-scale-degrees"> Scale-relative degrees</label>
-                        <small id="chord-scale-hint">Set a reference key to show scale degrees</small>
                     </div>
                     <button id="compare-chords" class="btn" type="button" hidden>Compare chords</button>
                     <div id="triad-shapes" class="control-group" style="display: none;"></div>
@@ -302,7 +301,10 @@
     </div>
 
     <dialog id="triad-comparison" aria-labelledby="comparison-title">
-        <header class="comparison-header"><button id="comparison-back" type="button" class="btn">← Back</button><h2 id="comparison-title">Compare chords</h2><span id="comparison-count"></span></header>
+        <header class="comparison-header"><button id="comparison-back" type="button" class="btn">← Back</button><h2 id="comparison-title">Compare chords</h2><div class="comparison-switches">
+                <button id="comparison-note-names" type="button" role="switch" aria-checked="false" aria-label="Show note names">Intervals</button>
+                <button id="comparison-scale-degrees" type="button" role="switch" aria-checked="false" aria-label="Use scale-relative degrees">Chord relative</button>
+            </div></header>
         <div id="comparison-boards"></div>
     </dialog>
 

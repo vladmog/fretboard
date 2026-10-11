@@ -13,6 +13,20 @@ let entries = [];
 let preferences;
 let resizeObserver;
 let lastSize = '';
+let showNoteNames = false;
+let scaleRelative = false;
+
+function syncComparisonSwitches() {
+    const notes = document.getElementById('comparison-note-names');
+    const scale = document.getElementById('comparison-scale-degrees');
+    notes.setAttribute('aria-checked', String(showNoteNames));
+    notes.textContent = showNoteNames ? 'Notes' : 'Intervals';
+    scale.setAttribute('aria-checked', String(scaleRelative));
+    scale.textContent = scaleRelative ? 'Scale relative' : 'Chord relative';
+    scale.disabled = !entries.some(item => item.referenceKey && Theory.SCALES[item.referenceScale]);
+    scale.title = scale.disabled ? 'Save a reference key and scale on a chord to enable scale-relative degrees' : 'Use each chord’s saved reference key and scale';
+}
+
 
 export function updateComparisonButton() {
     const button = document.getElementById('compare-chords');
@@ -38,7 +52,7 @@ function renderBoards() {
     entries.forEach((item, order) => {
         const chord = Theory.buildChord(item.root, item.type);
         const card = element('section', 'comparison-card');
-        card.appendChild(element('h3', '', `${order + 1}. ${chord.symbol}`));
+        card.appendChild(element('h3', '', `${item.progressionDegree ? `${item.progressionDegree} ·` : `${order + 1}.`} ${chord.symbol}`));
         container.appendChild(card);
         let shapes = [];
         if (preferences.enabled && ['maj', 'min', 'dim'].includes(item.type)) {
@@ -71,8 +85,8 @@ function renderBoards() {
             board.clearMarkers();
             const positions = shape ? shape.positions
                 : Theory.getNotesOnFretboard(chord.noteToInterval, 15, chord.root, tuning);
-            const context = getChordScaleContext(chord, item.referenceKey, state.chordScaleDegrees, item.referenceScale);
-            drawChordScaleBackground(board, context, positions, tuning, state.showNoteNames);
+            const context = getChordScaleContext(chord, item.referenceKey, scaleRelative, item.referenceScale);
+            drawChordScaleBackground(board, context, positions, tuning, showNoteNames);
             for (const position of positions) {
                 const colors = Theory.getIntervalColor(position.label);
                 const isRoot = position.label === '1';
@@ -80,7 +94,7 @@ function renderBoards() {
                     color: shape ? guide.triadColors[chord.intervals.indexOf(position.label)] : (isRoot ? '#000' : colors.fill),
                     borderColor: shape ? '#222' : (isRoot ? '#000' : colors.border),
                     textColor: shape ? '#000' : (isRoot ? '#fff' : colors.text),
-                    text: state.showNoteNames ? chord.noteSpelling[position.noteIndex] : (context?.noteToDegree[position.noteIndex] ?? position.label)
+                    text: showNoteNames ? chord.noteSpelling[position.noteIndex] : (context?.noteToDegree[position.noteIndex] ?? position.label)
                 });
             }
         };
@@ -106,12 +120,20 @@ export function initTriadComparison() {
     button.addEventListener('click', () => {
         entries = state.chordList.map(chord => ({ ...chord }));
         preferences = getTriadPreferences();
-        document.getElementById('comparison-count').textContent = `${entries.length} chords`;
+        showNoteNames = state.showNoteNames;
+        scaleRelative = false;
+        syncComparisonSwitches();
         dialog.showModal();
         renderBoards();
         document.getElementById('comparison-boards').scrollTop = 0;
         document.getElementById('comparison-boards').scrollLeft = 0;
         back.focus({ preventScroll: true });
+    });
+    document.getElementById('comparison-note-names').addEventListener('click', () => {
+        showNoteNames = !showNoteNames; syncComparisonSwitches(); renderBoards();
+    });
+    document.getElementById('comparison-scale-degrees').addEventListener('click', () => {
+        scaleRelative = !scaleRelative; syncComparisonSwitches(); renderBoards();
     });
     back.addEventListener('click', () => dialog.close());
     document.getElementById('comparison-boards').addEventListener('click', event => {

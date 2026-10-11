@@ -58,6 +58,17 @@ export function getInstrumentMidiBases() {
         : undefined;
 }
 // Storage key for chord list persistence
+const INSTRUMENT_STORAGE_KEY = 'fretboard-instrument';
+export function loadInstrument() {
+    try {
+        const saved = localStorage.getItem(INSTRUMENT_STORAGE_KEY);
+        if (saved === 'guitar' || saved === 'bass') state.instrument = saved;
+    } catch { /* Storage may be unavailable; retain the default instrument. */ }
+}
+export function saveInstrument() {
+    try { localStorage.setItem(INSTRUMENT_STORAGE_KEY, state.instrument); }
+    catch { /* Instrument switching still works without persistent storage. */ }
+}
 const STORAGE_KEY = 'fretboard-chord-list';
 const FAVORITES_STORAGE_KEY = 'fretboard-prog-favorites';
 const USER_PROGRESSIONS_STORAGE_KEY = 'fretboard-user-progressions';
@@ -77,7 +88,7 @@ export function loadChordList() {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
             // Additive migration: old entries have no recoverable key context.
-            state.chordList = JSON.parse(saved).map(item => ({ referenceKey: null, referenceScale: null, ...item }));
+            state.chordList = JSON.parse(saved).map(item => ({ referenceKey: null, referenceScale: null, progressionDegree: null, ...item }));
             const scales = new Set(state.chordList.map(item => item.referenceScale));
             state.chordReferenceScale = scales.size === 1 ? [...scales][0] : null;
             const keys = new Set(state.chordList.map(item => item.referenceKey));

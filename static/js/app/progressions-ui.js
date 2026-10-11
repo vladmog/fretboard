@@ -1,3 +1,4 @@
+import { formatProgressionDegree } from '../core/progression-degree.js';
 import { getProgressionScale } from './progression-context.js';
 import { restoreProgressionKey } from './chord-key.js';
 import { preserveScrollPosition } from './scroll-position.js';
@@ -493,7 +494,7 @@ export function addProgressionToChordList() {
     state.chordReferenceScale = getProgressionScale();
     chords.forEach(chord => {
         const built = MusicTheory.buildChord(chord.root, chord.type);
-        state.chordList.push({ root: chord.root, type: chord.type, symbol: built.symbol, referenceKey: state.root, referenceScale: getProgressionScale() });
+        state.chordList.push({ root: chord.root, type: chord.type, symbol: built.symbol, progressionDegree: formatProgressionDegree(chord.numeral, chord.type), referenceKey: state.root, referenceScale: getProgressionScale() });
     });
     saveChordList();
     renderChordList();
@@ -534,9 +535,6 @@ function renderProgressionChordsContent() {
     }
 
     container.innerHTML = '';
-    const contextLabel = document.createElement('p');
-    contextLabel.className = 'triad-caption';
-    contextLabel.textContent = `${state.root} · ${MusicTheory.SCALES[progression?.referenceScale]?.name || 'Reference scale not set'}`;
     const chordsRow = document.createElement('div');
     chordsRow.className = 'scale-chords-list progression-chords-list';
 
@@ -556,7 +554,7 @@ function renderProgressionChordsContent() {
                 && state.activeScaleChord.type === chord.type && state.activeScaleChord._progIdx === idx) {
                 state.activeScaleChord = null;
             } else {
-                state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol, _progIdx: idx };
+                state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol, numeral: chord.numeral, _progIdx: idx };
                 if (state.soundEnabled) {
                     const builtChord = MusicTheory.buildChord(chord.root, chord.type);
                     const chordRootIndex = MusicTheory.getNoteIndex(chord.root);
@@ -573,7 +571,6 @@ function renderProgressionChordsContent() {
     });
 
     container.appendChild(chordsRow);
-    container.appendChild(contextLabel);
     relocateAddButton(state.mode);
 
     // Update info panel based on selection state

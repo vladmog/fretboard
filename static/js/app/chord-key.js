@@ -14,10 +14,7 @@ export function syncChordKey() {
     }
     const scaleSelect = document.getElementById('chord-reference-scale');
     if (scaleSelect) scaleSelect.value = state.chordReferenceScale || '';
-    const hint = document.getElementById('chord-scale-hint');
-    if (hint) hint.textContent = state.chordReferenceKey && state.chordReferenceScale
-        ? `${state.chordReferenceKey} ${Theory.SCALES[state.chordReferenceScale]?.name} · Colors follow the chord`
-        : 'Set a reference key and scale to show scale degrees';
+
 
 }
 
@@ -43,7 +40,7 @@ export function initChordKey(refresh) {
             state[field] = select.value || null;
             if (field === 'chordReferenceScale') {
                 const item = state.chordList[state.selectedChordIndex];
-                if (item) { item.referenceScale = state[field]; saveChordList(); }
+                if (item) { item.referenceScale = state[field]; item.progressionDegree = null; saveChordList(); }
             }
             refresh();
         });
@@ -65,6 +62,7 @@ export function initChordKey(refresh) {
         const item = state.chordList[state.selectedChordIndex];
         if (item) {
             item.referenceKey = state.chordReferenceKey;
+            item.progressionDegree = null;
             saveChordList();
         }
         refresh();

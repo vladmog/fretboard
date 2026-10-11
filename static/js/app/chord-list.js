@@ -1,3 +1,4 @@
+import { formatProgressionDegree } from '../core/progression-degree.js';
 import { getProgressionScale } from './progression-context.js';
 import { syncChordKey } from './chord-key.js';
 import { updateComparisonButton } from './triad-comparison.js';
@@ -36,7 +37,7 @@ function renderChordListContent() {
         }
 
         const span = document.createElement('span');
-        span.textContent = item.symbol + (item.referenceKey ? ` · ${item.referenceKey} ${MusicTheory.SCALES[item.referenceScale]?.name || '(scale not set)'}` : '');
+        span.textContent = (item.progressionDegree ? `${item.progressionDegree} · ` : '') + item.symbol + (item.referenceKey ? ` · ${item.referenceKey} ${MusicTheory.SCALES[item.referenceScale]?.name || '(scale not set)'}` : '');
 
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove-chord-btn';
@@ -63,6 +64,8 @@ export function addChordToList(root, type) {
         root,
         type,
         symbol: chord.symbol,
+        progressionDegree: state.mode === 'prog' && state.activeScaleChord?.root === root
+            && state.activeScaleChord?.type === type ? formatProgressionDegree(state.activeScaleChord.numeral, type) : null,
         referenceScale: state.mode === 'prog' ? getProgressionScale() : (state.mode === 'chord' ? state.chordReferenceScale : null),
         referenceKey: state.mode === 'prog' ? state.root : (state.mode === 'chord' ? state.chordReferenceKey : null)
     });

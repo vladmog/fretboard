@@ -1,0 +1,27 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import * as Theory from '../static/js/core/music-theory.js';
+test('comparison switches are local and reopen chord-relative while preserving shape selections',()=>{
+ const nodes={};
+ for(const id of ['triad-comparison','compare-chords','comparison-back','comparison-boards','comparison-note-names','comparison-scale-degrees']) nodes[id]={listeners:{},attrs:{},addEventListener(n,fn){this.listeners[n]=fn;},setAttribute(k,v){this.attrs[k]=v;},showModal(){this.open=true;},focus(){},replaceChildren(){}};
+ const state={mode:'chord',showNoteNames:false,chordScaleDegrees:true,chordList:[{root:'F',type:'maj',referenceKey:'C',referenceScale:'major'}]};
+ let renders=0;
+ const context=vm.createContext({state,Theory,document:{getElementById:id=>nodes[id]},getTriadPreferences:()=>({enabled:true,index:2}),ResizeObserver:class{observe(){}}});
+ const source=readFileSync(new URL('../static/js/app/triad-comparison.js',import.meta.url),'utf8').replace(/^import .*;$/gm,'').replaceAll('export function','function');
+ vm.runInContext(source,context);context.countRender=()=>renders++;
+ vm.runInContext('renderBoards = countRender;',context);
+ context.initTriadComparison();nodes['compare-chords'].listeners.click();
+ assert.equal(nodes['comparison-scale-degrees'].attrs['aria-checked'],'false');
+ nodes['comparison-scale-degrees'].listeners.click();nodes['comparison-note-names'].listeners.click();
+ assert.equal(nodes['comparison-scale-degrees'].attrs['aria-checked'],'true');
+ assert.equal(nodes['comparison-note-names'].textContent,'Notes');
+ assert.equal(state.showNoteNames,false);assert.equal(state.chordScaleDegrees,true);
+ assert.equal(vm.runInContext('preferences.index',context),2);
+ nodes['compare-chords'].listeners.click();
+ assert.equal(nodes['comparison-scale-degrees'].attrs['aria-checked'],'false');
+ assert.equal(renders,4);
+ state.chordList=[{root:'C',type:'maj'}];nodes['compare-chords'].listeners.click();
+ assert.equal(nodes['comparison-scale-degrees'].disabled,true);
+});

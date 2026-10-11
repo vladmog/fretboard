@@ -54,4 +54,15 @@ for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${
         assert.equal(JSON.stringify(boards.at(-3)), changedFirst, 'selection survives orientation rerender');
     }
 
+    vm.runInContext(`entries = [
+        {root:'C',type:'maj',progressionDegree:'I'},
+        {root:'F',type:'maj',progressionDegree:'IV'},
+        {root:'G',type:'maj',progressionDegree:'V'},
+        {root:'C',type:'maj',progressionDegree:'I'},
+        {root:'A',type:'min'},
+        {root:'B',type:'dim',progressionDegree:'vii°'}
+    ]; preferences.enabled = false; renderBoards();`, context);
+    assert.deepEqual(container.children.map(card => card.children[0].textContent),
+        ['I · C', 'IV · F', 'V · G', 'I · C', '5. Am', 'vii° · Bdim']);
+
 });

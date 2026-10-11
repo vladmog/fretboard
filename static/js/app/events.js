@@ -8,7 +8,7 @@ import { restoreProgressionKey } from './chord-key.js';
 import * as MusicTheory from '../core/music-theory.js';
 import * as ChordProgressions from '../core/progressions.js';
 import * as Sound from '../core/sound.js';
-import { getProgressionKey, getResolvedFavorites, isFindMode, saveFavorites, state } from './state.js';
+import { getProgressionKey, getResolvedFavorites, isFindMode, saveInstrument, saveFavorites, state } from './state.js';
 import { updateDisplay, updateRelToggleVisibility } from './display.js';
 import { addChordToList, clearChordList, renderChordList, renderScaleChords } from './chord-list.js';
 import { addFindResultToChordList, clearFindMarkers, renderFindScaleChords } from './find-mode.js';
@@ -29,8 +29,11 @@ export function initEventListeners({ onInstrumentChange } = {}) {
     };
 
     document.querySelectorAll('input[name="instrument"]').forEach(radio => {
+        radio.checked = radio.value === state.instrument;
+        radio.closest('.radio-label')?.classList.toggle('checked', radio.checked);
         radio.addEventListener('change', (e) => {
             state.instrument = e.target.value;
+            saveInstrument();
             if (isFindMode(state.mode)) {
                 clearFindMarkers();
             } else {

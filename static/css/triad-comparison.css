@@ -16,7 +16,11 @@
 #triad-comparison[open] { display: flex; flex-direction: column; gap: 8px; }
 .comparison-header { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
 .comparison-header h2 { font-size: 16px; margin: 0; padding: 0; border: 0; text-transform: none; letter-spacing: normal; }
-#comparison-count { margin-left: auto; font-size: 12px; white-space: nowrap; }
+.comparison-switches { margin-left: auto; display: flex; gap: 6px; }
+.comparison-switches button { width: auto; min-height: 34px; padding: 5px 10px; border: 1px solid #aab2bc; border-radius: 6px; background: #fff; color: #202630; font: inherit; font-size: 12px; white-space: nowrap; text-transform: none; letter-spacing: normal; cursor: pointer; }
+.comparison-switches button[aria-checked="true"] { background: #202630; color: #fff; }
+.comparison-switches button:disabled { opacity: .5; cursor: default; }
+.comparison-switches button:focus-visible { outline: 2px solid #2299dd; outline-offset: 2px; }
 #comparison-back { width: auto; flex: 0 0 auto; min-height: 36px; padding: 6px 12px; }
 #comparison-boards {
     flex: 1; min-height: 0; overflow: auto;
@@ -44,7 +48,9 @@
     .comparison-card h3 { font-size: 18px; margin-bottom: 4px; }
     .comparison-caption { align-self: auto; }
     .comparison-caption { font-size: 11px; }
-    .comparison-header { gap: 8px; }
+    .comparison-header { gap: 8px; flex-wrap: wrap; }
+    .comparison-switches { width: 100%; margin-left: 0; }
+    .comparison-switches button { flex: 1; }
     .comparison-header h2 { font-size: 14px; }
 }
 @media (orientation: landscape) and (max-height: 500px) {

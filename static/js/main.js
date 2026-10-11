@@ -9,7 +9,7 @@ import { initTriadComparison } from './app/triad-comparison.js';
 
 import * as MusicTheory from './core/music-theory.js';
 import { createFretboard } from './core/fretboard.js';
-import { getInstrumentTuning, isFindMode, loadChordList, loadFavorites, loadUserProgressions, state } from './app/state.js';
+import { getInstrumentTuning, isFindMode, loadInstrument, loadChordList, loadFavorites, loadUserProgressions, state } from './app/state.js';
 import { updateDisplay } from './app/display.js';
 import { renderChordList, renderScaleChords } from './app/chord-list.js';
 import { registerFindClickHandler } from './app/find-mode.js';
@@ -28,6 +28,8 @@ if (window.navigator.standalone === true) {
  * Initialize the application
  */
 async function init() {
+    // Restore instrument before the first fretboard is created.
+    loadInstrument();
     // Load persisted data
     loadChordList();
     loadFavorites();
