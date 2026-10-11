@@ -113,6 +113,17 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
     assert.deepEqual([...new Set(shape.positions.map(p=>p.label))].sort(),['1','3','7']);
     select('Inversion','3');
     assert.equal(shape.bass.label,'7');
+    select('Pattern strings','2');
+    select('Inversion','all');
+    assert.equal(new Set(shape.positions.map(p=>p.string)).size,2);
+    select('Pattern strings','both');
+    const shellSeen=new Set();
+    const shellTotal=getChordVoicings(Theory.buildChord(state.root,state.chordType),tuning,bases,{voicing:'shell',stringCount:'both'}).length;
+    for(let i=0;i<shellTotal;i++) {
+        shellSeen.add(new Set(shape.positions.map(p=>p.string)).size);
+        panel.querySelectorAll('button').find(n=>n.textContent==='Next').fire('click');
+    }
+    assert.deepEqual([...shellSeen].sort(),[2,3]);
     toggle(false);toggle(true);
     assert.equal(context.getTriadPreferences().voicing,'shell');
     state.chordType='min';refresh();

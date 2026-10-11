@@ -9,10 +9,10 @@ test('major, minor and diminished triads contain each chord tone once, with corr
         for (const [tuning, bases] of [[Theory.STANDARD_TUNING, undefined], [Theory.BASS_TUNING, Theory.BASS_STRING_MIDI_BASES]]) {
             const shapes = getTriadShapes(chord, tuning, bases);
             assert(shapes.length > 0, `${root} ${type}`);
-            assert.deepEqual([...new Set(shapes.map(s => s.inversion))].sort(), [0, 1, 2]);
+            assert(shapes.every(s => [0, 1, 2].includes(s.inversion))); // Some inversions require the excluded wider stretch.
             for (const shape of shapes) {
                 assert.equal(new Set(shape.positions.map(p => p.noteIndex)).size, 3);
-                assert(shape.high - shape.low <= 4);
+                assert(shape.high - shape.low <= 3);
                 for (const p of shape.positions) {
                     assert(p.fret >= 0 && p.fret <= 15);
                     assert.equal(Theory.getNoteAt(tuning.length - p.string, p.fret, tuning), p.noteIndex);
@@ -57,7 +57,7 @@ test('two-string patterns contain all three tones, cover both distributions, and
                 assert.equal(new Set(shape.positions.map(p=>p.noteIndex)).size,3);
                 const strings=[...new Set(shape.positions.map(p=>p.string))];
                 assert.equal(strings.length,2);assert.equal(Math.abs(strings[0]-strings[1]),1);
-                assert.ok(shape.high-shape.low<=4);
+                assert.ok(shape.high-shape.low<=3);
                 const lowest=shape.positions.reduce((a,b)=>a.midi<b.midi?a:b);
                 assert.equal(shape.inversion,chord.intervals.indexOf(lowest.label));
                 for(const p of shape.positions) assert.equal(chord.noteToInterval[p.noteIndex],p.label);

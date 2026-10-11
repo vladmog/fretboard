@@ -2,17 +2,22 @@
 import * as MusicTheory from './music-theory.js';
 
 export function getTriadShapes(chord, tuning = MusicTheory.STANDARD_TUNING, midiBases, maxFret = 15, stringCount = 3) {
+    if (!['maj', 'min', 'dim'].includes(chord.type)) return [];
+    return getThreeNotePatterns(chord, tuning, midiBases, maxFret, stringCount);
+}
+
+export function getThreeNotePatterns(chord, tuning = MusicTheory.STANDARD_TUNING, midiBases, maxFret = 15, stringCount = 3) {
     if (stringCount === 'both') {
-        return [...getTriadShapes(chord, tuning, midiBases, maxFret, 2),
-            ...getTriadShapes(chord, tuning, midiBases, maxFret, 3)].sort(compareShapes);
+        return [...getThreeNotePatterns(chord, tuning, midiBases, maxFret, 2),
+            ...getThreeNotePatterns(chord, tuning, midiBases, maxFret, 3)].sort(compareShapes);
     }
-    if (!['maj', 'min', 'dim'].includes(chord.type) || ![2, 3].includes(stringCount)) return [];
+    if (new Set(Object.values(chord.noteToInterval)).size !== 3 || ![2, 3].includes(stringCount)) return [];
     const shapes = [];
     const add = positions => {
         if (new Set(positions.map(p => p.noteIndex)).size !== 3) return;
         const low = Math.min(...positions.map(p => p.fret));
         const high = Math.max(...positions.map(p => p.fret));
-        if (high - low > 4) return;
+        if (high - low > 3) return;
         const bass = positions.reduce((x, y) => x.midi < y.midi ? x : y);
         shapes.push({
             positions, low, high,

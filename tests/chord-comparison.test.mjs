@@ -34,12 +34,12 @@ for (const stringCount of [2,3,'both']) for (const enabled of [false, true]) tes
         .replace(/^import .*;\n/gm, '').replaceAll('export function', 'function');
     vm.runInContext(source, context);
     vm.runInContext(`entries = [{root:'C',type:'maj'}, {root:'A',type:'min'}, {root:'G',type:'dim'}];
-        preferences = {enabled:${enabled},stringCount:${JSON.stringify(stringCount)},stringSet:'${stringCount===2?'2-1':'3-2-1'}',inversion:'1',index:0}; renderBoards();`, context);
+        preferences = {enabled:${enabled},stringCount:${JSON.stringify(stringCount)},stringSet:'${stringCount===2?'2-1':'3-2-1'}',inversion:'all',index:0}; renderBoards();`, context);
     assert.equal(boards.length, 3);
     for (const [index, [root, type]] of [['C', 'maj'], ['A', 'min'], ['G', 'dim']].entries()) {
         const chord = Theory.buildChord(root, type);
         const expected = enabled
-            ? getTriadShapes(chord, undefined, undefined, 15, stringCount).filter(shape => shape.strings === (stringCount===2?'2-1':'3-2-1') && shape.inversion === 1)[0].positions
+            ? getTriadShapes(chord, undefined, undefined, 15, stringCount).filter(shape => shape.strings === (stringCount===2?'2-1':'3-2-1'))[0].positions
             : Theory.getNotesOnFretboard(chord.noteToInterval, 15, root);
         assert.deepEqual(boards[index], expected.map(p => [p.string, p.fret]));
     }

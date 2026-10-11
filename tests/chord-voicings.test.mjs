@@ -20,7 +20,7 @@ for(const instrument of ['guitar','bass']) test(`${instrument}: full and shell v
         for(const shape of shapes) {
             assert.deepEqual(shape.positions.map(p=>p.label).sort(),[...tones].sort());
             assert.equal(new Set(shape.positions.map(p=>p.string)).size,tones.length);
-            assert.ok(shape.high-shape.low<=4);
+            assert.ok(shape.high-shape.low<=3);
             for(const p of shape.positions) {
                 const idx=tuning.length-p.string;
                 assert.equal(p.noteIndex,(bases[idx]+p.fret)%12);
@@ -53,4 +53,31 @@ test('mixed comparisons retain third inversion for sevenths and visibly fall bac
     const shell=getComparisonVoicings(Theory.buildChord('F','maj'),undefined,undefined,{...preferences,voicing:'shell',stringSet:'6-4-3-2'});
     assert.ok(shell.shapes.length);assert.match(shell.notice,/No shell/);assert.match(shell.notice,/string group unavailable/);
     assert.equal(preferences.inversion,'3');
+});
+
+test('two-string shells and combined sets retain all shell tones and full-chord bass labels',()=>{
+    for(const [tuning,bases] of [[Theory.STANDARD_TUNING,undefined],[Theory.BASS_TUNING,Theory.BASS_STRING_MIDI_BASES]]) {
+        for(const root of ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B']) for(const type of Object.keys(Theory.CHORD_TYPES)) {
+            const tones=getShellIntervals(type);if(!tones.length)continue;
+            const chord=Theory.buildChord(root,type);
+            const two=getChordVoicings(chord,tuning,bases,{voicing:'shell',stringCount:2});
+            const three=getChordVoicings(chord,tuning,bases,{voicing:'shell',stringCount:3});
+            const both=getChordVoicings(chord,tuning,bases,{voicing:'shell',stringCount:'both'});
+            assert.ok(two.length,`${root} ${type}`);
+            assert.equal(both.length,two.length+three.length);
+            const key=s=>JSON.stringify(s.positions.map(p=>[p.string,p.fret]));
+            assert.equal(new Set(both.map(key)).size,both.length);
+            assert.deepEqual(new Set(both.map(key)),new Set([...two,...three].map(key)));
+            for(const shape of two) {
+                assert.deepEqual(shape.positions.map(p=>p.label).sort(),[...tones].sort());
+                const strings=[...new Set(shape.positions.map(p=>p.string))];
+                assert.equal(strings.length,2);assert.equal(Math.abs(strings[0]-strings[1]),1);
+                assert.ok(shape.high-shape.low<=3);
+                assert.equal(shape.bass.midi,Math.min(...shape.positions.map(p=>p.midi)));
+                assert.equal(chord.intervals[shape.inversion],shape.bass.label);
+            }
+            const comparison=getComparisonVoicings(chord,tuning,bases,{voicing:'shell',stringCount:2,inversion:'all',stringSet:'all'});
+            assert.deepEqual(comparison.shapes,two);
+        }
+    }
 });

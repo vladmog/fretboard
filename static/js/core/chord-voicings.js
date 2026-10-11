@@ -1,6 +1,6 @@
 /** Full chord grips and shell grips, sharing the established triad patterns. */
 import * as Theory from './music-theory.js';
-import { getTriadShapes } from './triads.js';
+import { getTriadShapes, getThreeNotePatterns } from './triads.js';
 import { getShellIntervals } from './shell-voicings.js';
 
 export function inversionName(chord, inversion) {
@@ -18,6 +18,12 @@ export function getChordVoicings(chord, tuning = Theory.STANDARD_TUNING, midiBas
     }
     const intervals = getVoicingIntervals(chord, voicing);
     if (!intervals.length || intervals.length > tuning.length) return [];
+    let twoStringShapes = [];
+    if (voicing === 'shell' && (stringCount === 2 || stringCount === 'both')) {
+        const shell = { ...chord, noteToInterval: Object.fromEntries(Object.entries(chord.noteToInterval).filter(([,label]) => intervals.includes(label))) };
+        twoStringShapes = getThreeNotePatterns(shell, tuning, midiBases, 15, 2);
+        if (stringCount === 2) return twoStringShapes;
+    }
     const choices = tuning.map((_, index) => {
         const positions = [];
         for (let fret = 0; fret <= 15; fret++) {
@@ -27,7 +33,7 @@ export function getChordVoicings(chord, tuning = Theory.STANDARD_TUNING, midiBas
         }
         return positions;
     });
-    const shapes = [];
+    const shapes = [...twoStringShapes];
     function visit(start, positions, used, low, high) {
         if (positions.length === intervals.length) {
             const bass=positions.reduce((p,q)=>p.midi<=q.midi?p:q);
@@ -38,7 +44,7 @@ export function getChordVoicings(chord, tuning = Theory.STANDARD_TUNING, midiBas
             for(const p of choices[string]) {
                 if(used.has(p.label)) continue;
                 const nextLow=Math.min(low,p.fret), nextHigh=Math.max(high,p.fret);
-                if(nextHigh-nextLow>4) continue;
+                if(nextHigh-nextLow>3) continue;
                 visit(string+1,[...positions,p],new Set([...used,p.label]),nextLow,nextHigh);
             }
         }

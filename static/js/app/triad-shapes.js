@@ -82,7 +82,7 @@ export function renderTriadControls(chord, refresh) {
     panel.appendChild(filters);
     if (supportsShell) selectControl(filters, 'Voicing', activeVoicing, [['full', 'Full chord'], ['shell', 'Shell voicing']], value => { voicing = value; stringSet = 'all'; inversion = 'all'; });
     const triadPatterns = activeVoicing === 'full' && ['maj', 'min', 'dim'].includes(chord.type);
-    if (triadPatterns) selectControl(filters, 'Pattern strings', String(stringCount), [['3', 'Three strings'], ['2', 'Two strings'], ['both', 'Two and three strings']], value => { stringCount = value === 'both' ? 'both' : Number(value); stringSet = 'all'; });
+    if (triadPatterns || activeVoicing === 'shell') selectControl(filters, 'Pattern strings', String(stringCount), [['3', 'Three strings'], ['2', 'Two strings'], ['both', 'Two and three strings']], value => { stringCount = value === 'both' ? 'both' : Number(value); stringSet = 'all'; });
     selectControl(filters, !triadPatterns || stringCount === 'both' ? 'String group' : (stringCount === 2 ? 'Two-string group' : 'Three-string group'), stringSet, [['all', triadPatterns ? 'Any adjacent group' : 'Any string group'], ...sets.map(s => [s, `Strings ${s}`])], value => { stringSet = value; });
     const tones = getVoicingIntervals(chord, activeVoicing);
     const inversions = tones.map(tone => chord.intervals.indexOf(tone));
