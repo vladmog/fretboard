@@ -60,3 +60,7 @@
     .comparison-caption { font-size: 11px; align-self: center; }
     .comparison-fretboard { grid-column: 1 / -1; }
 }
+
+@media (orientation: portrait) and (min-width: 601px) and (max-width: 1024px) {
+    #comparison-boards.comparison-five-rows { grid-auto-rows: calc((100% - 32px) / 5); }
+}
