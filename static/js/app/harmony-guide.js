@@ -23,6 +23,6 @@ export function annotateChordButton(button, scaleType, chord) {
     badge.textContent = info.short;
     badge.title = `${info.degreeName} · ${info.name}. ${info.qualification}`;
     button.title = `${chord.numeral}: ${info.degreeName} · ${info.name}. ${info.qualification}`;
-    button.setAttribute('aria-label', `${chord.numeral} ${chord.symbol}, ${info.degreeName}, ${info.name}`);
+    button.setAttribute('aria-label', `${chord.symbol} ${chord.numeral}, ${info.degreeName}, ${info.name}`);
     button.appendChild(badge);
 }

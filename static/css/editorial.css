@@ -49,7 +49,10 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spaci
 #controls-panel .mode-section :is(button,select,input,summary):focus-visible,
 #controls-panel .mode-section :is(.radio-label,.interval-check):has(input:focus-visible),
 .comparison-switches button:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
-#controls-panel .mode-section #chord-key { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; }
+#controls-panel .mode-section #chord-key {
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px;
+    margin-top: 18px;
+}
 #controls-panel .mode-section #chord-key[hidden] { display: none; }
 #chord-key > label[for="chord-reference-key"] { grid-column: 1; grid-row: 1; }
 #chord-key > label[for="chord-reference-scale"] { grid-column: 2; grid-row: 1; }
@@ -165,3 +168,18 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spaci
 #song-browser .numeral { flex-basis: 5rem; width: 5rem; min-width: 5rem; font-size: 12px; }
 #song-browser .scale-chords-list { grid-template-columns: minmax(0, 1fr); }
 #song-browser .btn { width: 100%; white-space: normal; }
+
+/* Stable columns keep symbols, degrees, and scale context aligned across rows. */
+.chord-list-item {
+    display: grid;
+    grid-template-columns: 7ch 7ch minmax(0, 1fr) 20px;
+    gap: 6px;
+}
+.chord-list-item.selected { padding-inline: 0; }
+.chord-list-item > span { min-width: 0; overflow-wrap: anywhere; }
+.chord-list-item .remove-chord-btn { padding: 0; }
+@media (max-width: 600px) and (orientation: portrait) {
+    .chord-list-item { font-size: 12px; grid-template-columns: 6ch 7ch minmax(0, 1fr) 16px; gap: 4px; }
+}
+
+#scale-chords .scale-chord-item .chord-name { flex: 0 0 4.5rem; width: 4.5rem; }

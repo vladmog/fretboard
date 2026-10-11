@@ -16,18 +16,24 @@ export function bindFretboardGestures(host, vertical, advance, isEnabled = () =>
         start = { x: event.clientX, y: event.clientY, id: event.pointerId };
         host.setPointerCapture(event.pointerId);
     });
-    host.addEventListener('pointerup', event => {
+    const trackSwipe = event => {
         if (!isEnabled()) { start = null; return; }
         if (!start || start.id !== event.pointerId) return;
         const [parallel, perpendicular] = axes(event.clientX - start.x, event.clientY - start.y);
-        start = null;
         if (Math.max(Math.abs(parallel), Math.abs(perpendicular)) > 10) {
             suppressClickUntil = event.timeStamp + 500;
         }
-        if (Math.abs(parallel) >= 32 && Math.abs(parallel) > Math.abs(perpendicular) * 1.25) {
-            // Follow the finger: right/down is Next; left/up is Previous.
+        // Commit once while moving, so a slight return before lift-off cannot
+        // erase a swipe. Keep perpendicular movement available for list scrolling.
+        if (!start.stepped && Math.abs(parallel) >= 20 && Math.abs(parallel) > Math.abs(perpendicular)) {
+            start.stepped = true;
             advance(parallel > 0 ? 1 : -1);
         }
+    };
+    host.addEventListener('pointermove', trackSwipe);
+    host.addEventListener('pointerup', event => {
+        trackSwipe(event);
+        if (start?.id === event.pointerId) start = null;
     });
     host.addEventListener('pointercancel', () => { start = null; });
     host.addEventListener('click', event => {

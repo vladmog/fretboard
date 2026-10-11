@@ -36,8 +36,16 @@ function renderChordListContent() {
             li.classList.add('selected');
         }
 
-        const span = document.createElement('span');
-        span.textContent = (item.progressionDegree ? `${item.progressionDegree} · ` : '') + item.symbol + (item.referenceKey ? ` · ${item.referenceKey} ${MusicTheory.SCALES[item.referenceScale]?.name || '(scale not set)'}` : '');
+        for (const [className, text] of [
+            ['saved-chord-name', item.symbol],
+            ['saved-chord-degree', item.progressionDegree || ''],
+            ['saved-chord-context', item.referenceKey ? `${item.referenceKey} ${MusicTheory.SCALES[item.referenceScale]?.name || '(scale not set)'}` : '']
+        ]) {
+            const cell = document.createElement('span');
+            cell.className = className;
+            cell.textContent = text;
+            li.appendChild(cell);
+        }
 
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove-chord-btn';
@@ -47,7 +55,6 @@ function renderChordListContent() {
             removeChordFromList(index);
         });
 
-        li.appendChild(span);
         li.appendChild(removeBtn);
         li.addEventListener('click', () => selectChordFromList(index));
         listEl.appendChild(li);
@@ -177,7 +184,7 @@ function renderScaleChordsContent() {
         if (state.activeScaleChord && state.activeScaleChord.root === chord.root && state.activeScaleChord.type === chord.type) {
             btn.classList.add('selected');
         }
-        btn.innerHTML = `<span class="numeral">${chord.numeral}</span><span class="chord-name">${chord.symbol}</span>`;
+        btn.innerHTML = `<span class="chord-name">${chord.symbol}</span><span class="numeral">${chord.numeral}</span>`;
         annotateChordButton(btn, chordScaleType, chord);
         btn.addEventListener('click', () => {
             if (state.activeScaleChord && state.activeScaleChord.root === chord.root && state.activeScaleChord.type === chord.type) {

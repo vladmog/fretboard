@@ -56,3 +56,25 @@ test('disabled main-view gestures leave normal input intact', () => {
     fire('pointerdown');fire('pointerup',{timeStamp:120});
     assert.equal(fire('touchend',{timeStamp:120}).stopped,undefined);
 });
+
+for (const vertical of [false, true]) test(`short diagonal swipes commit once before release (${vertical})`, () => {
+    const {steps, fire} = setup(vertical);
+    const point = (parallel, perpendicular) => vertical
+        ? {clientX:perpendicular,clientY:parallel} : {clientX:parallel,clientY:perpendicular};
+    fire('pointerdown');
+    fire('pointermove',point(24,21));
+    assert.deepEqual(steps,[1]);
+    fire('pointermove',point(60,24));
+    fire('pointerup',point(12,8));
+    assert.deepEqual(steps,[1], 'returning toward the start neither loses nor duplicates a swipe');
+    assert.equal(fire('click').stopped,true);
+    fire('pointerdown');
+    fire('pointermove',point(-24,20));
+    fire('pointerup',point(-40,22));
+    assert.deepEqual(steps,[1,-1]);
+    fire('pointerdown');
+    fire('pointermove',point(15,35));
+    fire('pointercancel');
+    fire('pointerup',point(60,40));
+    assert.deepEqual(steps,[1,-1], 'native perpendicular scrolling does not navigate');
+});
