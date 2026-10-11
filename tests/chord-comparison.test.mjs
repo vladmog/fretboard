@@ -99,6 +99,21 @@ for (const stringCount of [2,3,'both']) for (const enabled of [false, true]) tes
 
     }
 
+    // A saved full voicing must not override an explicit shell selection.
+    vm.runInContext(`{
+        const chord=Theory.buildChord('C','maj7');
+        const full=getChordVoicings(chord,undefined,undefined,{voicing:'full'})[0];
+        state.chordList=[{root:'C',type:'maj7',savedShape:{...full,instrument:'guitar'},filters:{voicing:'full',stringCount:3,stringSet:'all',inversion:'all',index:0}}];
+        entries=state.chordList.map(chord=>({...chord,sourceChord:chord}));
+        preferences={enabled:true,voicing:'shell',stringCount:3,stringSet:'all',inversion:'all',index:0};
+        renderBoards();
+    }`,context);
+    assert.equal(boards.at(-1).length,3,'shell selection overrides saved full seventh');
+    gestures.at(-1)(1);
+    assert.equal(context.state.chordList[0].filters.voicing,'shell');
+    vm.runInContext(`entries=state.chordList.map(chord=>({...chord,sourceChord:chord})); preferences.voicing='full'; renderBoards();`,context);
+    assert.equal(boards.at(-1).length,4,'full selection overrides saved shell');
+
     vm.runInContext(`entries = [
         {root:'C',type:'maj',progressionDegree:'I'},
         {root:'F',type:'maj',progressionDegree:'IV'},

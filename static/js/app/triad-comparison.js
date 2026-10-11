@@ -71,7 +71,8 @@ function renderBoards() {
         const restored = shapePreferences(item, state.instrument);
         // Saved positions choose the starting shape; they must not narrow the
         // browsing range to that shape's inversion and strings on reopening.
-        const boardPreferences = restored
+        const voicingChanged = restored && restored.voicing !== (preferences.voicing ?? 'full');
+        const boardPreferences = restored && !voicingChanged
             ? {...restored, ...item.filters, enabled: true}
             : preferences;
         let shapes = [], notice = '';
