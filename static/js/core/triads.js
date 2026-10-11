@@ -6,10 +6,10 @@ export function getTriadShapes(chord, tuning = MusicTheory.STANDARD_TUNING, midi
     return getThreeNotePatterns(chord, tuning, midiBases, maxFret, stringCount);
 }
 
-export function getThreeNotePatterns(chord, tuning = MusicTheory.STANDARD_TUNING, midiBases, maxFret = 15, stringCount = 3) {
+export function getThreeNotePatterns(chord, tuning = MusicTheory.STANDARD_TUNING, midiBases, maxFret = 15, stringCount = 3, adjacentOnly = true) {
     if (stringCount === 'both') {
-        return [...getThreeNotePatterns(chord, tuning, midiBases, maxFret, 2),
-            ...getThreeNotePatterns(chord, tuning, midiBases, maxFret, 3)].sort(compareShapes);
+        return [...getThreeNotePatterns(chord, tuning, midiBases, maxFret, 2, adjacentOnly),
+            ...getThreeNotePatterns(chord, tuning, midiBases, maxFret, 3, adjacentOnly)].sort(compareShapes);
     }
     if (new Set(Object.values(chord.noteToInterval)).size !== 3 || ![2, 3].includes(stringCount)) return [];
     const shapes = [];
@@ -25,9 +25,16 @@ export function getThreeNotePatterns(chord, tuning = MusicTheory.STANDARD_TUNING
             inversion: chord.intervals.indexOf(bass.label), bass
         });
     };
+    const groups = [];
     for (let first = 0; first <= tuning.length - stringCount; first++) {
-        const choices = Array.from({length: stringCount}, (_, offset) => {
-            const index = first + offset;
+        if (stringCount === 2 && !adjacentOnly) {
+            for (let second = first + 1; second < tuning.length; second++) groups.push([first, second]);
+        } else {
+            groups.push(Array.from({length: stringCount}, (_, offset) => first + offset));
+        }
+    }
+    for (const group of groups) {
+        const choices = group.map(index => {
             const notes = [];
             for (let fret = 0; fret <= maxFret; fret++) {
                 const noteIndex = MusicTheory.getNoteAt(index, fret, tuning);

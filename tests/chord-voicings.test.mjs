@@ -71,7 +71,7 @@ test('two-string shells and combined sets retain all shell tones and full-chord 
             for(const shape of two) {
                 assert.deepEqual(shape.positions.map(p=>p.label).sort(),[...tones].sort());
                 const strings=[...new Set(shape.positions.map(p=>p.string))];
-                assert.equal(strings.length,2);assert.equal(Math.abs(strings[0]-strings[1]),1);
+                assert.equal(strings.length,2);
                 assert.ok(shape.high-shape.low<=3);
                 assert.equal(shape.bass.midi,Math.min(...shape.positions.map(p=>p.midi)));
                 assert.equal(chord.intervals[shape.inversion],shape.bass.label);
@@ -80,4 +80,14 @@ test('two-string shells and combined sets retain all shell tones and full-chord 
             assert.deepEqual(comparison.shapes,two);
         }
     }
+});
+
+test('nonadjacent two-string shells include a compact C minor seventh root position',()=>{
+    const chord=Theory.buildChord('C','min7');
+    const result=getComparisonVoicings(chord,undefined,undefined,{voicing:'shell',stringCount:2,stringSet:'6-4',inversion:'0'});
+    assert.equal(result.notice,'');
+    assert.ok(result.shapes.some(s=>JSON.stringify(s.positions.map(p=>[p.string,p.fret]))==='[[6,8],[6,11],[4,8]]'));
+    assert.ok(result.shapes.every(s=>s.strings==='6-4'&&s.inversion===0&&s.high-s.low<=3));
+    const major=getChordVoicings(Theory.buildChord('C','maj7'),undefined,undefined,{voicing:'shell',stringCount:2});
+    assert.equal(major.filter(s=>s.inversion===0).length,0,'major seventh root position still requires a wider span');
 });

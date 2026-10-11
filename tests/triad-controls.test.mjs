@@ -126,6 +126,13 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
     assert.deepEqual([...shellSeen].sort(),[2,3]);
     toggle(false);toggle(true);
     assert.equal(context.getTriadPreferences().voicing,'shell');
+    state.root='C';state.chordType='min7';refresh();
+    select('Pattern strings','2');
+    select('String group',instrument==='guitar'?'6-4':'4-2');
+    select('Inversion','0');
+    assert.equal(shape.bass.label,'1');
+    assert.equal(shape.strings,instrument==='guitar'?'6-4':'4-2');
+
     state.chordType='min';refresh();
     assert.ok(shape.positions.every(p=>['1','b3','5'].includes(p.label)));
     assert.notEqual(context.getTriadPreferences().inversion,'3');

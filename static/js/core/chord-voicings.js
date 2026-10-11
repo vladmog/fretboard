@@ -21,7 +21,7 @@ export function getChordVoicings(chord, tuning = Theory.STANDARD_TUNING, midiBas
     let twoStringShapes = [];
     if (voicing === 'shell' && (stringCount === 2 || stringCount === 'both')) {
         const shell = { ...chord, noteToInterval: Object.fromEntries(Object.entries(chord.noteToInterval).filter(([,label]) => intervals.includes(label))) };
-        twoStringShapes = getThreeNotePatterns(shell, tuning, midiBases, 15, 2);
+        twoStringShapes = getThreeNotePatterns(shell, tuning, midiBases, 15, 2, false);
         if (stringCount === 2) return twoStringShapes;
     }
     const choices = tuning.map((_, index) => {
