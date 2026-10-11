@@ -87,7 +87,8 @@ export function displayScale(scale) {
 
     const originalRootIndex = MusicTheory.getNoteIndex(scale.root);
     for (const pos of positions) {
-        const colors = getMarkerColor(pos.label);
+        const muted = state.mode === 'f.scale' && !state.findMarkers[`${pos.string}-${pos.fret}`];
+        const colors = muted ? { fill: '#fff', border: '#ccc', text: '#bbb' } : getMarkerColor(pos.label);
         const isRoot = state.showRelative ? (pos.noteIndex === originalRootIndex) : (pos.label === '1');
         state.fretboard.setMarker(pos.string, pos.fret, {
             color: colors.fill,
@@ -694,7 +695,7 @@ function updateDisplayContent() {
             const chord = MusicTheory.buildChord(item.root, item.type);
             displayChord(chord);
         }
-    } else if (state.mode === 'song') {
+    } else if ((state.mode === 'song' || state.mode === 'creator')) {
         if (state.songPreview) displayChord(MusicTheory.buildChord(state.songPreview.root, state.songPreview.type));
         else { state.fretboard?.clearMarkers(); updateInfoPanel({ title: 'Songs', notes: ['Choose a song section to explore.'] }); }
     } else if (isFindMode(state.mode)) {

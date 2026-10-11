@@ -29,15 +29,6 @@ export function registerFindClickHandler() {
             // Same position — toggle off
             delete state.findMarkers[key];
         } else {
-            // In f.chord mode, remove any existing marker on this string first
-            if (state.mode === 'f.chord') {
-                for (const k of Object.keys(state.findMarkers)) {
-                    if (state.findMarkers[k].string === string) {
-                        delete state.findMarkers[k];
-                    }
-                }
-            }
-
             const tuning = getInstrumentTuning();
             const stringIndex = tuning.length - string;
             const noteIndex = MusicTheory.getNoteAt(stringIndex, fret, tuning);

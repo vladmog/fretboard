@@ -16,8 +16,14 @@ export function buildSongSection(song, section) {
         if (!validNote(chord.root) || !MusicTheory.CHORD_TYPES[chord.type]) {
             throw new Error('Invalid song chord.');
         }
+        if (chord.savedShape) {
+            const shape = chord.savedShape;
+            const strings = shape.instrument === 'bass' ? 4 : 6;
+            if (!['bass', 'guitar'].includes(shape.instrument) || !Array.isArray(shape.positions) || !shape.positions.length || shape.positions.some(p => !Number.isInteger(p.string) || p.string < 1 || p.string > strings || !Number.isInteger(p.fret) || p.fret < 0 || p.fret > 15)) throw new Error('Invalid saved chord shape.');
+        }
         return {
             root: chord.root, type: chord.type,
+            ...(chord.savedShape ? { savedShape: structuredClone(chord.savedShape) } : {}),
             symbol: MusicTheory.buildChord(chord.root, chord.type).symbol,
             progressionDegree: referenceKey && chord.degree ? formatProgressionDegree(chord.degree, chord.type) : null,
             referenceKey, referenceScale, songId: song.id, songSection: section.name

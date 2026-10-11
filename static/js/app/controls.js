@@ -1,3 +1,5 @@
+import { saveFindSession, restoreFindSession } from '../core/find-session.js';
+import { initSongCreator } from './song-creator.js';
 import { syncChordKey } from './chord-key.js';
 import { updateComparisonButton } from './triad-comparison.js';
 /**
@@ -264,15 +266,16 @@ export function setMode(mode) {
     // Leaving Find mode — clean up
     if (isFindMode(state.mode)) {
         if (state.fretboard) state.fretboard.onFretClick(null);
-        state.findMarkers = {};
-        state.findResults = [];
-        state.findSelectedIndex = -1;
+        saveFindSession(state);
         document.body.classList.remove('find-mode-active');
         const builderSection = document.getElementById('scale-chord-builder');
         if (builderSection) builderSection.classList.remove('disabled');
     }
 
     state.mode = mode;
+    if (isFindMode(mode)) restoreFindSession(state);
+    document.getElementById('song-creator').hidden = mode !== 'creator';
+    if (mode === 'creator') initSongCreator();
     document.getElementById('song-browser').hidden = mode !== 'song';
     syncChordKey();
     updateComparisonButton();
@@ -285,7 +288,7 @@ export function setMode(mode) {
     // Show/hide type selector based on mode (hide for interval and find)
     const typeGroup = document.querySelector('.control-group:has(#type-select)');
     if (typeGroup) {
-        typeGroup.style.display = (mode === 'interval' || mode === 'song' || isFindMode(mode)) ? 'none' : 'block';
+        typeGroup.style.display = (mode === 'interval' || (mode === 'song' || mode === 'creator') || isFindMode(mode)) ? 'none' : 'block';
     }
 
     // When entering CAGED mode, ensure chordType is a valid CAGED type
@@ -317,7 +320,7 @@ export function setMode(mode) {
     // Show/hide root note selector (hide in find mode)
     const rootGroup = document.querySelector('.control-group:has(#root-note)');
     if (rootGroup) {
-        rootGroup.style.display = (isFindMode(mode) || mode === 'song') ? 'none' : 'block';
+        rootGroup.style.display = (isFindMode(mode) || (mode === 'song' || mode === 'creator')) ? 'none' : 'block';
     }
 
     const rootSelect = document.getElementById('root-note');
@@ -426,7 +429,7 @@ export function setMode(mode) {
         }
         registerFindClickHandler();
         renderFindResults();
-        displayFindMarkers();
+        updateDisplay();
         return;
     }
 

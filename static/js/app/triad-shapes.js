@@ -30,7 +30,7 @@ function selectControl(panel, text, value, options, change) {
     select.addEventListener('change', () => { change(select.value); index = 0; });
     label.appendChild(select); panel.appendChild(label);
 }
-function diagram(shape, chord) {
+export function diagram(shape, chord) {
     const ns = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(ns, 'svg');
     const add = (tag, attrs, text) => {

@@ -1,3 +1,4 @@
+import { readUserSongs } from '../core/user-songs.js';
 /** Browse curated song analyses and import sections into the persistent chord list. */
 import * as MusicTheory from '../core/music-theory.js';
 import * as Sound from '../core/sound.js';
@@ -21,7 +22,7 @@ export async function initSongs() {
     const container = document.getElementById('song-browser');
     if (!container) return;
     try {
-        const songs = await loadSongs();
+        const songs = [...await loadSongs(), ...readUserSongs()];
         container.replaceChildren();
         if (!songs.length) {
             container.append(element('p', 'No songs saved yet. Ask for a song analysis to add its key and progressions here.'));
@@ -46,7 +47,7 @@ export async function initSongs() {
             if (song.version) details.append(element('p', song.version));
             if (song.tuning && song.tuning !== 'standard') details.append(element('p', `Tuning: ${song.tuning}`));
             details.append(element('p', song.artist));
-            details.append(element('p', contextLabel(song.referenceKey, song.referenceScale)));
+            if (song.referenceKey) details.append(element('p', contextLabel(song.referenceKey, song.referenceScale)));
             const analysis = element('details');
             analysis.append(element('summary', 'Analysis & sources'));
             if (song.notes) analysis.append(element('p', song.notes));
@@ -105,7 +106,7 @@ export async function initSongs() {
                     analysis.append(link);
                 } catch { /* Ignore invalid source URLs. */ }
             }
-            details.append(analysis);
+            if (song.notes || song.sources?.length) details.append(analysis);
             if (state.mode === 'song') updateDisplay();
         };
         select.addEventListener('change', render);
