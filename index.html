@@ -278,13 +278,17 @@
 
     <div id="games-panel" style="display: none;">
         <button id="games-back-btn" class="games-back-btn">&larr; Back</button>
-        <div id="games-controls" class="games-controls">
-            <select id="games-select">
+        <button id="games-controls-toggle" class="games-controls-toggle" type="button" aria-label="Game controls" aria-expanded="false" aria-controls="games-controls">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="18" r="2"/></svg>
+        </button>
+        <div id="games-controls" class="games-controls" hidden>
+            <select id="games-select" aria-label="Game">
                 <option value="interval-training">Interval Training</option>
                 <option value="blind-interval-training">Blind Interval Training</option>
                 <option value="ear-training">Ear Training</option>
                 <option value="chromatic-circle-drills">Chromatic Circle Drills</option>
                 <option value="fretboard-drills">Fretboard Drills</option>
+                <option value="voice-leading">Voice leading</option>
                 <optgroup label="Matrix Drills">
                     <option value="interval-id">Interval ID</option>
                     <option value="note-id">Note ID</option>

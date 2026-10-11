@@ -11,6 +11,7 @@ import IntervalId from './interval-id.js';
 import NoteId from './note-id.js';
 import IntervalLocator from './interval-locator.js';
 import NoteLocator from './note-locator.js';
+import VoiceLeading from './voice-leading.js';
 import { gameState, isAwaitingAdvance, setAwaitingAdvance, markReady } from './session.js';
 import * as NoteKeyboard from './note-keyboard.js';
 import * as Voice from './voice.js';
@@ -29,6 +30,7 @@ export const Games = (function() {
         'interval-id': IntervalId,
         'note-id': NoteId,
         'interval-locator': IntervalLocator,
+        'voice-leading': VoiceLeading,
         'note-locator': NoteLocator
     };
 
@@ -41,11 +43,13 @@ export const Games = (function() {
         'interval-id': 'Interval ID',
         'note-id': 'Note ID',
         'interval-locator': 'Interval Locator',
+        'voice-leading': 'Voice leading',
         'note-locator': 'Note Locator'
     };
 
     function activate() {
         gameState.active = true;
+        setControlsOpen(false);
         setAwaitingAdvance(false);
         const panel = document.getElementById('games-panel');
         if (panel) panel.style.display = 'block';
@@ -62,6 +66,7 @@ export const Games = (function() {
 
     function deactivate() {
         gameState.active = false;
+        setControlsOpen(false);
         setAwaitingAdvance(false);
         const panel = document.getElementById('games-panel');
         if (panel) panel.style.display = 'none';
@@ -126,6 +131,7 @@ export const Games = (function() {
     }
 
     function openModal() {
+        setControlsOpen(false);
         const modal = document.getElementById('game-settings-modal');
         if (!modal) return;
 
@@ -159,9 +165,31 @@ export const Games = (function() {
     function closeModal() {
         const modal = document.getElementById('game-settings-modal');
         if (modal) modal.style.display = 'none';
+        if (gameState.active) document.getElementById('games-controls-toggle')?.focus();
+    }
+
+    function setControlsOpen(open, restoreFocus = false) {
+        const controls = document.getElementById('games-controls');
+        const toggle = document.getElementById('games-controls-toggle');
+        if (controls) controls.hidden = !open;
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', String(open));
+            if (restoreFocus) toggle.focus();
+        }
     }
 
     function initEventListeners() {
+        const toggle = document.getElementById('games-controls-toggle');
+        toggle?.addEventListener('click', () => setControlsOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+        document.addEventListener('pointerdown', event => {
+            if (!event.target.closest('#games-controls, #games-controls-toggle')) setControlsOpen(false);
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') {
+                setControlsOpen(false, true);
+                event.stopPropagation();
+            }
+        });
         // Back button
         const backBtn = document.getElementById('games-back-btn');
         if (backBtn) {
@@ -215,6 +243,7 @@ export const Games = (function() {
                 if (game && game.cleanup) game.cleanup();
 
                 gameState.currentGame = e.target.value;
+                setControlsOpen(false, true);
                 // Drop focus so typed note letters don't jump the dropdown
                 gameSelect.blur();
 
@@ -253,6 +282,7 @@ export const Games = (function() {
     }
 
     return {
+        configureVoiceLeading: VoiceLeading.configure,
         activate,
         deactivate,
         getState: () => ({ ...gameState }),

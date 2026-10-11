@@ -262,6 +262,7 @@ export function setMode(mode) {
         Games.setPreviousMode(state.mode);
         document.getElementById('controls-panel').style.display = 'none';
         document.getElementById('fretboard-panel').style.display = 'none';
+        Games.configureVoiceLeading({instrument:state.instrument,userProgressions:state.userProgressions});
         Games.activate();
         return;
     }
