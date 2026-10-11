@@ -679,5 +679,532 @@
         ]
       }
     ]
+  },
+  {
+    "name": "Borrowed / Bittersweet / Cinematic",
+    "progressions": [
+      {
+        "id": "chromatic-v1-01-01",
+        "referenceScale": "natural_minor",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "i – ♭VII – ♭VI – V",
+        "description": "Andalusian cadence: descending minor-key roots, ending on a major dominant with a raised leading tone.",
+        "chords": [
+          "i",
+          "♭VII",
+          "♭VI",
+          "V"
+        ]
+      },
+      {
+        "id": "chromatic-v1-01-02",
+        "referenceScale": "natural_minor",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "i – ♭VII – ♭VI – V7",
+        "description": "Andalusian seventh: the same descent with a dominant seventh pulling back to the minor tonic.",
+        "chords": [
+          "i",
+          "♭VII",
+          "♭VI",
+          "V7"
+        ]
+      },
+      {
+        "id": "chromatic-v1-01-03",
+        "referenceScale": "major",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "I – IV – iv – I",
+        "description": "Minor plagal turn: the major IV darkens into minor iv before returning home.",
+        "chords": [
+          "I",
+          "IV",
+          "iv",
+          "I"
+        ]
+      },
+      {
+        "id": "chromatic-v1-01-04",
+        "referenceScale": "major",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "I – ♭VI – ♭VII – I",
+        "description": "Borrowed lift: two chords from parallel minor lead back to a major tonic.",
+        "chords": [
+          "I",
+          "♭VI",
+          "♭VII",
+          "I"
+        ]
+      },
+      {
+        "id": "chromatic-v1-01-05",
+        "referenceScale": "major",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "I – iii – IV – iv",
+        "description": "Bittersweet loop: the final minor iv brings a chromatic descent back to I.",
+        "chords": [
+          "I",
+          "iii",
+          "IV",
+          "iv"
+        ]
+      },
+      {
+        "id": "chromatic-v1-01-06",
+        "referenceScale": "natural_minor",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "i – iv – V – I",
+        "description": "Picardy ending: a minor-key phrase resolves to a major tonic.",
+        "chords": [
+          "i",
+          "iv",
+          "V",
+          "I"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Chromatic / Applied Dominants / Surprising",
+    "progressions": [
+      {
+        "id": "chromatic-v1-02-01",
+        "referenceScale": "major",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "I – V7/ii – ii7 – V7 – I",
+        "description": "Applied dominant of ii: a brief push toward the supertonic before the home cadence.",
+        "chords": [
+          "I",
+          "V7/ii",
+          "ii7",
+          "V7",
+          "I"
+        ]
+      },
+      {
+        "id": "chromatic-v1-02-02",
+        "referenceScale": "major",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "I – V7/vi – vi – IV – V",
+        "description": "Applied dominant of vi: a bright dominant leads into the relative minor chord.",
+        "chords": [
+          "I",
+          "V7/vi",
+          "vi",
+          "IV",
+          "V"
+        ]
+      },
+      {
+        "id": "chromatic-v1-02-03",
+        "referenceScale": "major",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "I – II7 – V7 – I",
+        "description": "Dominant of the dominant: II7 intensifies the approach to V7.",
+        "chords": [
+          "I",
+          "II7",
+          "V7",
+          "I"
+        ]
+      },
+      {
+        "id": "chromatic-v1-02-04",
+        "referenceScale": "major",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "I7 – IV7 – I7 – V7 – IV7 – I7",
+        "description": "Blues-flavored turnaround: dominant sevenths on I and IV add notes outside the major reference.",
+        "chords": [
+          "I7",
+          "IV7",
+          "I7",
+          "V7",
+          "IV7",
+          "I7"
+        ]
+      },
+      {
+        "id": "chromatic-v1-02-05",
+        "referenceScale": "major",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "Imaj7 – ♭IIImaj7 – ♭VImaj7 – V7",
+        "description": "Chromatic mediants: major-seventh colors move through distant roots before the dominant.",
+        "chords": [
+          "Imaj7",
+          "♭IIImaj7",
+          "♭VImaj7",
+          "V7"
+        ]
+      },
+      {
+        "id": "chromatic-v1-02-06",
+        "referenceScale": "major",
+        "scaleRelationship": "chromatic",
+        "numeralBasis": "major",
+        "numerals": "ii7 – ♭II7 – Imaj7",
+        "description": "Tritone-substitution cadence: the flat-II dominant replaces V7 and resolves down a semitone.",
+        "chords": [
+          "ii7",
+          "♭II7",
+          "Imaj7"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Midwest emo / Open / Wistful",
+    "progressions": [
+      {
+        "id": "emo-v1-01",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "Imaj7 – IVmaj7 – vi7 – Vsus4",
+        "description": "Original style study: open major-seventh colors and an unresolved suspended ending. Try interlocking picked parts.",
+        "chords": [
+          "Imaj7",
+          "IVmaj7",
+          "vi7",
+          "Vsus4"
+        ],
+        "sources": [
+          {
+            "title": "American Football: first-person discussion of tunings and interlocking parts",
+            "url": "https://lifeoftherecord.com/american-football-notes"
+          }
+        ]
+      },
+      {
+        "id": "emo-v1-02",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "IVmaj7 – Iadd9 – vi7 – Vsus4",
+        "description": "Original style study: begin away from home, with a ringing added ninth and a suspended turnaround.",
+        "chords": [
+          "IVmaj7",
+          "Iadd9",
+          "vi7",
+          "Vsus4"
+        ],
+        "sources": [
+          {
+            "title": "American Football: first-person discussion of tunings and interlocking parts",
+            "url": "https://lifeoftherecord.com/american-football-notes"
+          }
+        ]
+      },
+      {
+        "id": "emo-v1-03",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "ii7 – IVmaj7 – Imaj7 – V",
+        "description": "Original style study: a soft minor opening, wide major-seventh colors, and a clearer dominant return.",
+        "chords": [
+          "ii7",
+          "IVmaj7",
+          "Imaj7",
+          "V"
+        ],
+        "sources": [
+          {
+            "title": "American Football: first-person discussion of tunings and interlocking parts",
+            "url": "https://lifeoftherecord.com/american-football-notes"
+          }
+        ]
+      },
+      {
+        "id": "emo-v1-04",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "vi7 – IVmaj7 – Iadd9 – Vsus4",
+        "description": "Original style study: relative-minor melancholy against bright open chords.",
+        "chords": [
+          "vi7",
+          "IVmaj7",
+          "Iadd9",
+          "Vsus4"
+        ],
+        "sources": [
+          {
+            "title": "American Football: first-person discussion of tunings and interlocking parts",
+            "url": "https://lifeoftherecord.com/american-football-notes"
+          }
+        ]
+      },
+      {
+        "id": "emo-v1-05",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "Imaj7 – iii7 – IVmaj7 – iv",
+        "description": "Original style study: the borrowed minor iv darkens a gentle major-key loop.",
+        "chords": [
+          "Imaj7",
+          "iii7",
+          "IVmaj7",
+          "iv"
+        ],
+        "sources": [
+          {
+            "title": "American Football: first-person discussion of tunings and interlocking parts",
+            "url": "https://lifeoftherecord.com/american-football-notes"
+          }
+        ],
+        "scaleRelationship": "chromatic"
+      },
+      {
+        "id": "emo-v1-06",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "Iadd9 – iii7 – ii7 – IVmaj7",
+        "description": "Original style study: an open-ended loop without a dominant cadence; try uneven phrase lengths.",
+        "chords": [
+          "Iadd9",
+          "iii7",
+          "ii7",
+          "IVmaj7"
+        ],
+        "sources": [
+          {
+            "title": "American Football: first-person discussion of tunings and interlocking parts",
+            "url": "https://lifeoftherecord.com/american-football-notes"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Midwest emo / Ninths / Open colors",
+    "progressions": [
+      {
+        "id": "emo-open-v1-01",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "Imaj9 – IVmaj9",
+        "chords": [
+          "Imaj9",
+          "IVmaj9"
+        ],
+        "description": "Original study: Two-chord major-ninth drift; let shared tones ring."
+      },
+      {
+        "id": "emo-open-v1-02",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "IVmaj9 – Vadd9 – vi9 – Imaj9",
+        "chords": [
+          "IVmaj9",
+          "Vadd9",
+          "vi9",
+          "Imaj9"
+        ],
+        "description": "Original study: Ascending roots into relative minor, then a bright return."
+      },
+      {
+        "id": "emo-open-v1-03",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "Iadd9 – ii9 – IVmaj9",
+        "chords": [
+          "Iadd9",
+          "ii9",
+          "IVmaj9"
+        ],
+        "description": "Original study: Three-chord loop with a minor ninth between open major colors."
+      },
+      {
+        "id": "emo-open-v1-04",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "vi9 – IVmaj9 – ii9 – Vadd9",
+        "chords": [
+          "vi9",
+          "IVmaj9",
+          "ii9",
+          "Vadd9"
+        ],
+        "description": "Original study: Minor-ninth melancholy with a gentle dominant lift."
+      },
+      {
+        "id": "emo-open-v1-05",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "IVmaj9 – vi9 – Iadd9 – Vadd9",
+        "chords": [
+          "IVmaj9",
+          "vi9",
+          "Iadd9",
+          "Vadd9"
+        ],
+        "description": "Original study: Start on IV; keep a high common tone across the changes."
+      },
+      {
+        "id": "emo-open-v1-06",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "Imaj9 – vi9 – ii9 – IVmaj9",
+        "chords": [
+          "Imaj9",
+          "vi9",
+          "ii9",
+          "IVmaj9"
+        ],
+        "description": "Original study: A spacious turnaround that avoids a strong dominant ending."
+      },
+      {
+        "id": "emo-open-v1-07",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "ii9 – IVadd9 – Imaj9",
+        "chords": [
+          "ii9",
+          "IVadd9",
+          "Imaj9"
+        ],
+        "description": "Original study: Minor-nine opening into an added-nine plagal return."
+      },
+      {
+        "id": "emo-open-v1-08",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "Imaj9 – Iadd9 – IVmaj9 – IVadd9",
+        "chords": [
+          "Imaj9",
+          "Iadd9",
+          "IVmaj9",
+          "IVadd9"
+        ],
+        "description": "Original study: Alternate seventh-rich and simpler added-nine colors on the same roots."
+      }
+    ]
+  },
+  {
+    "name": "Melodic post-hardcore / Tension / Release",
+    "progressions": [
+      {
+        "id": "posthardcore-v1-01",
+        "referenceScale": "natural_minor",
+        "numeralBasis": "major",
+        "numerals": "i – ♭VI – ♭III – ♭VII",
+        "description": "Original style study, not a Touché Amoré transcription: minor-root motion for contrasting sparse verses and forceful choruses.",
+        "chords": [
+          "i",
+          "♭VI",
+          "♭III",
+          "♭VII"
+        ],
+        "sources": [
+          {
+            "title": "Nick Steinhardt interview: transparent tones, independent parts, and dynamic contrast",
+            "url": "https://www.gitarrebass.de/stories/interview-nick-steinhardt-touche-amore/"
+          }
+        ]
+      },
+      {
+        "id": "posthardcore-v1-02",
+        "referenceScale": "natural_minor",
+        "numeralBasis": "major",
+        "numerals": "i7 – ♭VImaj7 – ♭IIIadd9 – ♭VII",
+        "description": "Original style study: exposed upper voices over a minor-key foundation; keep the bass clear.",
+        "chords": [
+          "i7",
+          "♭VImaj7",
+          "♭IIIadd9",
+          "♭VII"
+        ],
+        "sources": [
+          {
+            "title": "Nick Steinhardt interview: transparent tones, independent parts, and dynamic contrast",
+            "url": "https://www.gitarrebass.de/stories/interview-nick-steinhardt-touche-amore/"
+          }
+        ]
+      },
+      {
+        "id": "posthardcore-v1-03",
+        "referenceScale": "natural_minor",
+        "numeralBasis": "major",
+        "numerals": "i – iv – ♭VI – ♭VII",
+        "description": "Original style study: rising tension with no dominant resolution; repeat or extend the final chord.",
+        "chords": [
+          "i",
+          "iv",
+          "♭VI",
+          "♭VII"
+        ],
+        "sources": [
+          {
+            "title": "Nick Steinhardt interview: transparent tones, independent parts, and dynamic contrast",
+            "url": "https://www.gitarrebass.de/stories/interview-nick-steinhardt-touche-amore/"
+          }
+        ]
+      },
+      {
+        "id": "posthardcore-v1-04",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "vi – IV – I – Vsus4",
+        "description": "Original style study: relative-minor tension and a suspended release; vary dynamics instead of adding distortion.",
+        "chords": [
+          "vi",
+          "IV",
+          "I",
+          "Vsus4"
+        ],
+        "sources": [
+          {
+            "title": "Nick Steinhardt interview: transparent tones, independent parts, and dynamic contrast",
+            "url": "https://www.gitarrebass.de/stories/interview-nick-steinhardt-touche-amore/"
+          }
+        ]
+      },
+      {
+        "id": "posthardcore-v1-05",
+        "referenceScale": "natural_minor",
+        "numeralBasis": "major",
+        "numerals": "i – ♭II – ♭VI – V",
+        "description": "Original style study: a Phrygian-flavored flat II followed by a major dominant. Chromatic against natural minor.",
+        "chords": [
+          "i",
+          "♭II",
+          "♭VI",
+          "V"
+        ],
+        "sources": [
+          {
+            "title": "Nick Steinhardt interview: transparent tones, independent parts, and dynamic contrast",
+            "url": "https://www.gitarrebass.de/stories/interview-nick-steinhardt-touche-amore/"
+          }
+        ],
+        "scaleRelationship": "chromatic"
+      },
+      {
+        "id": "posthardcore-v1-06",
+        "referenceScale": "major",
+        "numeralBasis": "major",
+        "numerals": "I – IV – iv – I",
+        "description": "Original style study: a borrowed minor-plagal turn; contrast separate instrumental voices with a unison return.",
+        "chords": [
+          "I",
+          "IV",
+          "iv",
+          "I"
+        ],
+        "sources": [
+          {
+            "title": "Nick Steinhardt interview: transparent tones, independent parts, and dynamic contrast",
+            "url": "https://www.gitarrebass.de/stories/interview-nick-steinhardt-touche-amore/"
+          }
+        ],
+        "scaleRelationship": "chromatic"
+      }
+    ]
   }
 ]

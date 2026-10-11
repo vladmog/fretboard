@@ -2,12 +2,12 @@
  * Chord Progressions Module
  * Data and parsing for Roman numeral chord progressions
  *
- * Data source: static/data/progressions.json (explicit scale-bound catalog)
+ * Data source: static/data/progressions.json (explicit reference-scale catalog)
  */
 
 import * as MusicTheory from './music-theory.js';
 
-// Progression data: mood-based, scale-bound entries loaded from
+// Progression data: mood-based entries with reference scales loaded from
 // static/data/progressions.json.
 // Each entry includes a stable id, referenceScale, and major-relative numeralBasis.
 // Top-level await: the module graph (and therefore app init) waits for the
@@ -72,9 +72,9 @@ function parseRomanNumeral(token, key) {
         const parts = token.split('/');
         const secondary = parseRomanNumeral(parts[1], key);
         if (!secondary) return null;
-        // Build V of the secondary chord's root
-        const secScale = MusicTheory.buildScale(secondary.root, 'major');
-        return { root: secScale.notes[4], type: 'maj', numeral: token };
+        // Parse the numerator in the target key, preserving its quality (V7/ii).
+        const applied = parseRomanNumeral(parts[0], secondary.root);
+        return applied ? { ...applied, numeral: token } : null;
     }
 
     let pos = 0;
