@@ -44,10 +44,10 @@
         overflow-y: hidden;
         scroll-snap-type: x proximity;
     }
+    #comparison-boards[data-instrument="bass"] { grid-auto-columns: calc((100% - 16px) / 3); }
     .comparison-card { display: flex; flex-direction: column; padding: 6px; scroll-snap-align: start; }
-    .comparison-card h3 { font-size: 18px; margin-bottom: 4px; }
-    .comparison-caption { align-self: auto; }
-    .comparison-caption { font-size: 11px; }
+    .comparison-card h3 { font-size: 18px; min-height: 2.5em; margin-bottom: 4px; overflow-wrap: anywhere; }
+    .comparison-caption { display: none; }
     .comparison-header { gap: 8px; flex-wrap: wrap; }
     .comparison-switches { width: 100%; margin-left: 0; }
     .comparison-switches button { flex: 1; }

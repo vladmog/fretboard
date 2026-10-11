@@ -47,6 +47,7 @@ function element(tag, className, text) {
 function renderBoards() {
     const container = document.getElementById('comparison-boards');
     container.className = entries.length > 4 ? 'comparison-five-rows' : '';
+    container.dataset.instrument = state.instrument;
     const scroll = container.scrollTop;
     const scrollLeft = container.scrollLeft;
     const vertical = window.matchMedia('(orientation: portrait) and (max-width: 600px)').matches;
