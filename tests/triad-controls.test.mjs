@@ -1,3 +1,5 @@
+import { getChordVoicings, getVoicingIntervals, inversionName } from '../static/js/core/chord-voicings.js';
+import { getShellIntervals } from '../static/js/core/shell-voicings.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
@@ -25,7 +27,7 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
     const tuning = instrument === 'bass' ? Theory.BASS_TUNING : Theory.STANDARD_TUNING;
     const bases = instrument === 'bass' ? Theory.BASS_STRING_MIDI_BASES : undefined;
     const context = vm.createContext({
-        state, getTriadShapes,
+        state, getTriadShapes, getChordVoicings, getVoicingIntervals, inversionName, getShellIntervals, Theory,
         getInstrumentTuning: () => tuning, getInstrumentMidiBases: () => bases,
         guide: JSON.parse(readFileSync(new URL('../static/data/harmony-guide.json', import.meta.url))),
         window: { matchMedia: () => ({ matches: false }) },
@@ -102,5 +104,20 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
         panel.querySelectorAll('button').find(node=>node.textContent==='Next').fire('click');
     }
     assert.deepEqual([...seen].sort(),[2,3]);
+    state.chordType='maj7';refresh();
+    assert.equal(shape.positions.length,4);
+    select('Inversion','3');
+    assert.equal(shape.bass.label,'7');
+    select('Voicing','shell');
+    assert.equal(shape.positions.length,3);
+    assert.deepEqual([...new Set(shape.positions.map(p=>p.label))].sort(),['1','3','7']);
+    select('Inversion','3');
+    assert.equal(shape.bass.label,'7');
+    toggle(false);toggle(true);
+    assert.equal(context.getTriadPreferences().voicing,'shell');
+    state.chordType='min';refresh();
+    assert.ok(shape.positions.every(p=>['1','b3','5'].includes(p.label)));
+    assert.notEqual(context.getTriadPreferences().inversion,'3');
+
 
 });

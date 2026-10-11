@@ -8,7 +8,7 @@ test('comparison switches are local and reopen chord-relative while preserving s
  for(const id of ['triad-comparison','compare-chords','comparison-back','comparison-boards','comparison-note-names','comparison-scale-degrees']) nodes[id]={listeners:{},attrs:{},addEventListener(n,fn){this.listeners[n]=fn;},setAttribute(k,v){this.attrs[k]=v;},showModal(){this.open=true;},focus(){},replaceChildren(){}};
  const state={mode:'chord',showNoteNames:false,chordScaleDegrees:true,chordList:[{root:'F',type:'maj',referenceKey:'C',referenceScale:'major'}]};
  let renders=0;
- const context=vm.createContext({state,Theory,document:{getElementById:id=>nodes[id]},getTriadPreferences:()=>({enabled:true,index:2}),ResizeObserver:class{observe(){}}});
+ const context=vm.createContext({bindTouchTap(){},toggleRotation(){},state,Theory,document:{getElementById:id=>nodes[id]},getTriadPreferences:()=>({enabled:true,index:2}),ResizeObserver:class{observe(){}}});
  const source=readFileSync(new URL('../static/js/app/triad-comparison.js',import.meta.url),'utf8').replace(/^import .*;$/gm,'').replaceAll('export function','function');
  vm.runInContext(source,context);context.countRender=()=>renders++;
  vm.runInContext('renderBoards = countRender;',context);

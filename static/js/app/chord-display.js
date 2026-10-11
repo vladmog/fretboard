@@ -4,6 +4,7 @@ import * as RotationToggle from './rotation-toggle.js';
 import { state, getInstrumentTuning } from './state.js';
 import { renderTriadControls } from './triad-shapes.js';
 import { guide } from './harmony-guide.js';
+import { inversionName } from '../core/chord-voicings.js';
 
 export function renderChordFretboard(chord, refresh) {
     if (!state.fretboard) return;
@@ -19,14 +20,15 @@ export function renderChordFretboard(chord, refresh) {
 
     const context = getChordScaleContext(chord, state.chordReferenceKey, state.mode === 'chord' && state.chordScaleDegrees, state.chordReferenceScale);
     drawChordScaleBackground(state.fretboard, context, positions, getInstrumentTuning(), state.showNoteNames);
+    const triadColors = triad && ['maj', 'min', 'dim'].includes(chord.type);
     for (const pos of positions) {
         const colors = MusicTheory.getIntervalColor(pos.label);
         const isRoot = pos.label === '1';
         state.fretboard.setMarker(pos.string, pos.fret, {
-            color: triad ? guide.triadColors[chord.intervals.indexOf(pos.label)] : (isRoot ? '#000' : colors.fill),
-            borderColor: triad ? '#222' : colors.border,
+            color: triadColors ? guide.triadColors[chord.intervals.indexOf(pos.label)] : (isRoot ? '#000' : colors.fill),
+            borderColor: triadColors ? '#222' : colors.border,
             text: state.showNoteNames ? chord.noteSpelling[pos.noteIndex] || MusicTheory.getNoteName(pos.noteIndex, false) : (context?.noteToDegree[pos.noteIndex] ?? pos.label),
-            textColor: triad ? '#000' : (isRoot ? '#fff' : colors.text)
+            textColor: triadColors ? '#000' : (isRoot ? '#fff' : colors.text)
         });
     }
 
@@ -34,7 +36,7 @@ export function renderChordFretboard(chord, refresh) {
     RotationToggle.applyCurrentRotation();
 
     return {
-        title: triad?.bass ? `${chord.symbol} · ${guide.inversions[triad.inversion]}` : chord.symbol,
+        title: triad?.bass ? `${chord.symbol} · ${inversionName(chord, triad.inversion)}` : chord.symbol,
         notes: chord.notes,
         intervals: context ? Object.keys(chord.noteToInterval).map(Number).sort((a,b) =>
             (a - MusicTheory.getNoteIndex(chord.root) + 12) % 12 - (b - MusicTheory.getNoteIndex(chord.root) + 12) % 12

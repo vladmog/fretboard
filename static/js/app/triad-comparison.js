@@ -1,11 +1,12 @@
+import { bindTouchTap } from '../core/touch-tap.js';
+import { guide } from './harmony-guide.js';
 import { getChordScaleContext, drawChordScaleBackground } from './chord-scale-context.js';
 import { bindFretboardGestures } from './fretboard-gestures.js';
 /** Independent chord comparisons; the main workspace stays intact. */
 import * as Theory from '../core/music-theory.js';
 import { createFretboard } from '../core/fretboard.js';
-import { getTriadShapes } from '../core/triads.js';
+import { getComparisonVoicings, inversionName } from '../core/chord-voicings.js';
 import { state, getInstrumentTuning, getInstrumentMidiBases } from './state.js';
-import { guide } from './harmony-guide.js';
 import { applyCurrentRotation, toggleRotation } from './rotation-toggle.js';
 import { getTriadPreferences } from './triad-shapes.js';
 
@@ -54,13 +55,11 @@ function renderBoards() {
         const card = element('section', 'comparison-card');
         card.appendChild(element('h3', '', `${item.progressionDegree ? `${item.progressionDegree} ·` : `${order + 1}.`} ${chord.symbol}`));
         container.appendChild(card);
-        let shapes = [];
-        if (preferences.enabled && ['maj', 'min', 'dim'].includes(item.type)) {
-            shapes = getTriadShapes(chord, getInstrumentTuning(), getInstrumentMidiBases(), 15, preferences.stringCount ?? 3)
-                .filter(shape => (preferences.stringSet === 'all' || shape.strings === preferences.stringSet)
-                    && (preferences.inversion === 'all' || shape.inversion === Number(preferences.inversion)));
+        let shapes = [], notice = '';
+        if (preferences.enabled) {
+            ({shapes, notice} = getComparisonVoicings(chord, getInstrumentTuning(), getInstrumentMidiBases(), preferences));
             if (!shapes.length) {
-                card.appendChild(element('p', 'comparison-empty', 'No triad shape matches the selected filters.'));
+                card.appendChild(element('p', 'comparison-empty', 'No compact chord shape matches these filters and instrument.'));
                 return;
             }
             item.shapeIndex = Math.min(item.shapeIndex ?? preferences.index, shapes.length - 1);
@@ -78,22 +77,23 @@ function renderBoards() {
         const draw = () => {
             const shape = shapes[item.shapeIndex] ?? null;
             const description = shape
-                ? `${item.shapeIndex + 1}/${shapes.length} · ${guide.inversions[shape.inversion]} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`
+                ? `${item.shapeIndex + 1}/${shapes.length} · ${inversionName(chord, shape.inversion)} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`
                 : 'All chord notes';
-            caption.textContent = `${item.referenceKey ? `Key ${item.referenceKey} ${Theory.SCALES[item.referenceScale]?.name || '(scale not set)'}` : 'Key not set'} · ${description}`;
+            caption.textContent = `${notice ? `${notice} · ` : ''}${item.referenceKey ? `Key ${item.referenceKey} ${Theory.SCALES[item.referenceScale]?.name || '(scale not set)'}` : 'Key not set'} · ${description}`;
             host.querySelector('svg').setAttribute('aria-label', `${chord.symbol}, ${description}`);
             board.clearMarkers();
             const positions = shape ? shape.positions
                 : Theory.getNotesOnFretboard(chord.noteToInterval, 15, chord.root, tuning);
             const context = getChordScaleContext(chord, item.referenceKey, scaleRelative, item.referenceScale);
             drawChordScaleBackground(board, context, positions, tuning, showNoteNames);
+            const triadColors = shape && ['maj', 'min', 'dim'].includes(chord.type);
             for (const position of positions) {
                 const colors = Theory.getIntervalColor(position.label);
                 const isRoot = position.label === '1';
                 board.setMarker(position.string, position.fret, {
-                    color: shape ? guide.triadColors[chord.intervals.indexOf(position.label)] : (isRoot ? '#000' : colors.fill),
-                    borderColor: shape ? '#222' : (isRoot ? '#000' : colors.border),
-                    textColor: shape ? '#000' : (isRoot ? '#fff' : colors.text),
+                    color: triadColors ? guide.triadColors[chord.intervals.indexOf(position.label)] : (isRoot ? '#000' : colors.fill),
+                    borderColor: triadColors ? '#222' : (isRoot ? '#000' : colors.border),
+                    textColor: triadColors ? '#000' : (isRoot ? '#fff' : colors.text),
                     text: showNoteNames ? chord.noteSpelling[position.noteIndex] : (context?.noteToDegree[position.noteIndex] ?? position.label)
                 });
             }
@@ -136,9 +136,8 @@ export function initTriadComparison() {
         scaleRelative = !scaleRelative; syncComparisonSwitches(); renderBoards();
     });
     back.addEventListener('click', () => dialog.close());
-    document.getElementById('comparison-boards').addEventListener('touchend', event => {
-        if (event.target.closest('.comparison-fretboard')) toggleRotation(event);
-    });
+    bindTouchTap(document.getElementById('comparison-boards'), toggleRotation,
+        target => !!target.closest('.comparison-fretboard'));
     dialog.addEventListener('close', () => {
         document.getElementById('comparison-boards').replaceChildren();
         entries = [];

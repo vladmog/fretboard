@@ -3,6 +3,7 @@
  * Toggles marker text rotation by 90° clockwise on fretboard tap
  */
 
+import { bindTouchTap } from '../core/touch-tap.js';
 import { state } from './state.js';
 
 let currentRotation = 0; // 0 or 90
@@ -45,7 +46,7 @@ function applyCurrentRotation() {
 function init() {
     const fretboard = document.getElementById('fretboard-panel');
     if (fretboard) {
-        fretboard.addEventListener('touchend', toggleRotation);
+        bindTouchTap(fretboard, toggleRotation, target => !!target.closest('svg'));
     }
 }
 

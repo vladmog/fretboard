@@ -22,6 +22,6 @@ export function syncMainFretboardGestures() {
     svg.style.touchAction = active ? (vertical ? 'pan-x pinch-zoom' : 'pan-y pinch-zoom') : 'auto';
     svg.tabIndex = active ? 0 : -1;
     svg.setAttribute('aria-label', active
-        ? `Fretboard. Swipe ${vertical ? 'down for Next, up for Previous' : 'right for Next, left for Previous'} triad shape.`
+        ? `Fretboard. Swipe ${vertical ? 'down for Next, up for Previous' : 'right for Next, left for Previous'} chord shape.`
         : 'Fretboard');
 }
