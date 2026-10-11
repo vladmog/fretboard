@@ -11,6 +11,7 @@ import * as ChordProgressions from '../core/progressions.js';
 
 // Application state
 export const state = {
+    fretboardTapAction: 'rotate',
     inversionScrubbing: true,
     instrument: 'guitar',  // 'guitar' or 'bass'
     mode: 'scale',          // 'scale', 'chord', 'interval', 'caged', 'modes', 'prog', 'f.chord', 'f.scale', or 'games'
@@ -177,4 +178,14 @@ export function loadInversionScrubbing() {
 export function saveInversionScrubbing() {
     try { localStorage.setItem(SCRUB_STORAGE_KEY, String(state.inversionScrubbing)); }
     catch { /* Keep the current preference when storage is unavailable. */ }
+}
+
+const TAP_ACTION_STORAGE_KEY = 'fretboard-tap-action';
+export function loadTapAction() {
+    try { state.fretboardTapAction = localStorage.getItem(TAP_ACTION_STORAGE_KEY) === 'play' ? 'play' : 'rotate'; }
+    catch { state.fretboardTapAction = 'rotate'; }
+}
+export function saveTapAction() {
+    try { localStorage.setItem(TAP_ACTION_STORAGE_KEY, state.fretboardTapAction); }
+    catch { /* Tap behavior remains available without storage. */ }
 }

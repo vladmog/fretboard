@@ -5,7 +5,7 @@
 .app-settings-button { position: absolute; anchor-name: --fretboard-settings; right: 0.5rem; bottom: 0.5rem; z-index: 50; width: 2rem; height: 2rem; display: grid; place-items: center; border: 0; border-radius: 0.25rem; background: transparent; color: #555; font-size: 1.125rem; cursor: pointer; }
 .app-settings-button:hover { color: #000; border-color: #000; }
 .app-settings-button:focus-visible, #app-settings button:focus-visible { outline: 2px solid #000; outline-offset: 3px; }
-#app-settings { position: fixed; inset: auto 0.75rem 3rem auto; margin: 0; width: min(17rem, calc(100vw - 1.5rem)); max-height: calc(100dvh - 2rem); overflow: auto; padding: 1rem; border: 1px solid #555; background: #fff; color: #111; box-shadow: 0 4px 20px #0002; }
+#app-settings { position: fixed; inset: auto 0.75rem 3rem auto; margin: 0; width: min(17rem, calc(100vw - 1.5rem)); box-sizing: border-box; max-height: calc(100dvh - 3.75rem - env(safe-area-inset-top, 0px)); overflow: auto; overscroll-behavior: contain; padding: 1rem; border: 1px solid #555; background: #fff; color: #111; box-shadow: 0 4px 20px #0002; }
 .settings-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .settings-heading button { border: 0; background: transparent; color: inherit; font-size: 1.5rem; cursor: pointer; padding: 0.25rem; }
 .settings-label { margin: 0.75rem 0 0.5rem; font-size: 0.75rem; }
@@ -17,7 +17,7 @@
 .settings-hint { margin: 0.5rem 0 0; font-size: 0.75rem; color: #555; }
 
 @supports (position-anchor: --fretboard-settings) {
-    #app-settings { position-anchor: --fretboard-settings; inset: auto; right: clamp(0.75rem, anchor(right), max(0.75rem, calc(100vw - 17rem - 0.75rem))); bottom: clamp(0.75rem, anchor(top), max(0.75rem, calc(100dvh - 16rem))); margin-bottom: 0.5rem; }
+    #app-settings { position-anchor: --fretboard-settings; inset: auto; right: clamp(0.75rem, anchor(right), max(0.75rem, calc(100vw - 17rem - 0.75rem))); bottom: 3rem; }
 }
 
 #fretboard-panel .app-settings-button .settings-icon { width: 22px; height: 22px; flex: none; }
@@ -47,4 +47,4 @@
 .sound-actions button { padding: .45rem; font-size: .75rem; }
 #sound-copy-fallback { width: 100%; height: 8rem; margin-top: .5rem; }
 /* An expanded sound editor needs the available viewport, not the short-menu anchor. */
-#app-settings:has(#sound-settings[open]) { bottom: .75rem; max-height: calc(100dvh - 2rem); }
+#app-settings:has(#sound-settings[open]) { bottom: .75rem; max-height: calc(100dvh - 1.5rem - env(safe-area-inset-top, 0px)); }

@@ -5,6 +5,10 @@
 
 import { bindTouchTap } from '../core/touch-tap.js';
 import { state } from './state.js';
+import * as Sound from '../core/sound.js';
+import { voicingNotes } from '../core/voicing-audio.js';
+const comparisonBoards = new WeakMap();
+export function registerTapBoard(host, board) { comparisonBoards.set(host, board); }
 
 let currentRotation = 0; // 0 or 90
 
@@ -28,7 +32,17 @@ function rotateMarkerText(angle) {
 function toggleRotation(event) {
     if (event?.type !== 'touchend') return;
     if (event?.target.closest('button')) return;
-    if (['f.chord', 'f.scale'].includes(state.mode)) return;
+    const comparisonHost = event.target.closest('.comparison-fretboard');
+    if (!comparisonHost && ['f.chord', 'f.scale'].includes(state.mode)) return;
+    if (state.fretboardTapAction === 'play') {
+        if (!state.soundEnabled) return;
+        const touch = event.changedTouches?.[0];
+        const board = comparisonHost ? comparisonBoards.get(comparisonHost) : state.fretboard;
+        if (!touch || !board?.positionAt) return;
+        const position = board.positionAt(touch.clientX, touch.clientY);
+        if (position) Sound.playChord(voicingNotes({positions:[position]}, state.instrument));
+        return;
+    }
     currentRotation = currentRotation === 0 ? 90 : 0;
     rotateMarkerText(currentRotation);
 }

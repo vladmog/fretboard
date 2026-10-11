@@ -29,7 +29,7 @@ for (const stringCount of [2,3,'both']) for (const enabled of [false, true]) tes
     let stored;
     let listRenders = 0;
     const context = vm.createContext({songShape, structuredClone, saveChordList: () => { stored = JSON.stringify(context.state.chordList); }, renderChordList: () => listRenders++, shapePreferences, getMarkerColor, voicingNotes, Sound: {playChord: notes => played.push(notes)},
-        getChordScaleContext, drawChordScaleBackground, bindFretboardGestures: (_, __, advance) => gestures.push(advance), applyCurrentRotation() {}, Theory, getTriadShapes, getComparisonVoicings, getChordVoicings, inversionName, getShellIntervals, state: { showNoteNames: false, soundEnabled: true, instrument: 'guitar' },
+        getChordScaleContext, drawChordScaleBackground, bindFretboardGestures: (_, __, advance) => gestures.push(advance), applyCurrentRotation() {}, registerTapBoard() {}, Theory, getTriadShapes, getComparisonVoicings, getChordVoicings, inversionName, getShellIntervals, state: { showNoteNames: false, soundEnabled: true, instrument: 'guitar' },
         guide: JSON.parse(readFileSync(new URL('../static/data/harmony-guide.json', import.meta.url))),
         getInstrumentTuning: () => Theory.STANDARD_TUNING,
         getInstrumentMidiBases: () => undefined,

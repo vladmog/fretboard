@@ -11,7 +11,7 @@ import * as Theory from '../core/music-theory.js';
 import { createFretboard } from '../core/fretboard.js';
 import { getComparisonVoicings, inversionName } from '../core/chord-voicings.js';
 import { state, getInstrumentTuning, getInstrumentMidiBases, saveChordList } from './state.js';
-import { applyCurrentRotation, toggleRotation } from './rotation-toggle.js';
+import { applyCurrentRotation, toggleRotation, registerTapBoard } from './rotation-toggle.js';
 import { getTriadPreferences } from './triad-shapes.js';
 
 let entries = [];
@@ -105,6 +105,7 @@ function renderBoards() {
         const boardHeight = (tuning.length - 1) * 48 + 100;
         const fretSpacing = vertical ? 70 : Math.max(70, (host.clientWidth / Math.max(1, host.clientHeight) * boardHeight - 100) / 15);
         const board = createFretboard(host, { tuning, frets: 15, vertical, stringSpacing: 48, markerScale: 1.35, fretSpacing });
+        registerTapBoard(host, board);
         host.querySelector('svg').setAttribute('role', 'img');
         const draw = () => {
             const shape = shapes[item.shapeIndex] ?? null;

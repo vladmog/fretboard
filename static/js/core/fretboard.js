@@ -386,13 +386,18 @@ export function createFretboard(container, config = {}) {
         tuning
     };
 
+    const positionAt = (clientX, clientY) => {
+        const point = new DOMPoint(clientX, clientY);
+        const matrix = svg.getScreenCTM();
+        if (!matrix) return null;
+        const local = point.matrixTransform(matrix.inverse());
+        return getStringFretFromPoint(fretboardConfig, local.x, local.y);
+    };
     // Click listener for Find mode
     svg.addEventListener('click', (e) => {
         if (!clickCallback) return;
         e.stopPropagation();
-        const point = new DOMPoint(e.clientX, e.clientY);
-        const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
-        const result = getStringFretFromPoint(fretboardConfig, svgPoint.x, svgPoint.y);
+        const result = positionAt(e.clientX, e.clientY);
         if (result) {
             clickCallback(result.string, result.fret);
         }
@@ -401,6 +406,7 @@ export function createFretboard(container, config = {}) {
     // Return API
     return {
         isVertical,
+        positionAt,
         setMarker: (string, fret, options) => setMarker(fretboardConfig, string, fret, options),
         clearMarkers: () => clearMarkers(fretboardConfig),
         addShape: (points, options) => addShape(fretboardConfig, points, options),

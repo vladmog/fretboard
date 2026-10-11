@@ -10,7 +10,7 @@ import { restoreProgressionKey } from './chord-key.js';
 import * as MusicTheory from '../core/music-theory.js';
 import * as ChordProgressions from '../core/progressions.js';
 import * as Sound from './instrument-sound.js';
-import { getProgressionKey, getResolvedFavorites, isFindMode, saveInversionScrubbing, saveInstrument, saveFavorites, state } from './state.js';
+import { getProgressionKey, getResolvedFavorites, isFindMode, saveInversionScrubbing, saveTapAction, saveInstrument, saveFavorites, state } from './state.js';
 import { updateDisplay, updateRelToggleVisibility } from './display.js';
 import { addChordToList, clearChordList, renderChordList, renderScaleChords } from './chord-list.js';
 import { addFindResultToChordList, clearFindMarkers, renderFindScaleChords } from './find-mode.js';
@@ -21,6 +21,14 @@ import { setMode, updateTypeDropdown } from './controls.js';
  * Initialize event listeners
  */
 export function initEventListeners({ onInstrumentChange } = {}) {
+    const tapAction = document.getElementById('fretboard-tap-action');
+    if (tapAction) {
+        tapAction.value = state.fretboardTapAction;
+        tapAction.addEventListener('change', () => {
+            state.fretboardTapAction = tapAction.value;
+            saveTapAction();
+        });
+    }
     const scrubToggle = document.getElementById('inversion-scrubbing');
     if (scrubToggle) {
         scrubToggle.checked = state.inversionScrubbing;

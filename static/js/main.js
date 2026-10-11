@@ -12,7 +12,7 @@ import { initTriadComparison } from './app/triad-comparison.js';
 
 import * as MusicTheory from './core/music-theory.js';
 import { createFretboard } from './core/fretboard.js';
-import { getInstrumentTuning, isFindMode, loadInversionScrubbing, loadInstrument, loadChordList, loadFavorites, loadUserProgressions, state } from './app/state.js';
+import { getInstrumentTuning, isFindMode, loadInversionScrubbing, loadTapAction, loadInstrument, loadChordList, loadFavorites, loadUserProgressions, state } from './app/state.js';
 import { updateDisplay } from './app/display.js';
 import { renderChordList, renderScaleChords } from './app/chord-list.js';
 import { registerFindClickHandler } from './app/find-mode.js';
@@ -34,6 +34,7 @@ async function init() {
     // Restore instrument before the first fretboard is created.
     loadInstrument();
     loadInversionScrubbing();
+    loadTapAction();
     // Load persisted data
     loadChordList();
     loadFavorites();
