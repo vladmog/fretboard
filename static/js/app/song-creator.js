@@ -2,7 +2,7 @@ import { songShape, portableSong } from '../core/song-shape.js';
 import { voicingNotes } from '../core/voicing-audio.js';
 import { preserveScrollPosition } from './scroll-position.js';
 /** Local song editor; shares the chord explorer's voicing generator and diagram. */
-import * as Sound from '../core/sound.js';
+import * as Sound from './instrument-sound.js';
 import * as Theory from '../core/music-theory.js';
 import { getShellIntervals } from '../core/shell-voicings.js';
 import { getChordVoicings, inversionName } from '../core/chord-voicings.js';

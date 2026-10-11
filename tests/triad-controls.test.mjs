@@ -66,7 +66,7 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
         toggle(true);
         assert.equal(JSON.stringify(shape), selected);
         assert.equal(panel.querySelectorAll('p')[0].textContent, caption);
-        assert.deepEqual(panel.querySelectorAll('select').map(node => node.value), ['3', '3-2-1', inversion]);
+        assert.deepEqual(panel.querySelectorAll('select').map(node => node.value), ['full', '3', '3-2-1', inversion]);
         assert.equal(state.root, 'C');
         assert.equal(state.chordType, 'maj');
     }
@@ -82,7 +82,7 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
         const expected = Math.min(priorIndex, matches.length - 1);
         assert.equal(context.getTriadPreferences().index, expected, `${root} ${type} must preserve shape index`);
         assert.equal(JSON.stringify(shape), JSON.stringify(matches[expected]));
-        assert.deepEqual(panel.querySelectorAll('select').map(node => node.value), ['3', '3-2-1', 'all']);
+        assert.deepEqual(panel.querySelectorAll('select').map(node => node.value), ['full', '3', '3-2-1', 'all']);
     }
     select('Pattern strings', '2');
     select('Two-string group', '2-1');
@@ -105,7 +105,16 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
         panel.querySelectorAll('button').find(node=>node.textContent==='Next').fire('click');
     }
     assert.deepEqual([...seen].sort(),[2,3]);
+    // Shell is a persistent general preference, even when chosen on a triad.
+    select('Voicing','shell');
+    for (const type of ['maj','min']) {
+        state.chordType=type;refresh();
+        assert.equal(panel.querySelectorAll('select').find(n=>n['aria-label']==='Voicing').value,'shell');
+        assert.deepEqual([...new Set(shape.positions.map(p=>p.label))].sort(),type==='maj'?['1','3','5']:['1','5','b3']);
+    }
     state.chordType='maj7';refresh();
+    assert.deepEqual([...new Set(shape.positions.map(p=>p.label))].sort(),['1','3','7']);
+    select('Voicing','full');
     assert.equal(shape.positions.length,4);
     select('Inversion','3');
     assert.equal(shape.bass.label,'7');

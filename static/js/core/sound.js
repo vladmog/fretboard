@@ -33,6 +33,17 @@ let errorSynth = null;
 let filter = null;
 let reverb = null;
 let limiter = null;
+let playbackRequest = 0;
+
+// Audio startup may stay pending until a later user gesture. Do not replay
+// stale selections alongside the chord the user actually tapped to unlock it.
+async function preparePlayback() {
+    const request = ++playbackRequest;
+    await Tone.start();
+    if (request !== playbackRequest) return false;
+    ensureSynth();
+    return true;
+}
 
 /**
  * Lazy-initialize the effect chain and PolySynth on first use.
@@ -150,8 +161,7 @@ function assignOctaves(noteNames, startOctave) {
 async function playChord(noteNames, startOctave) {
     if (!noteNames || noteNames.length === 0) return;
 
-    await Tone.start();
-    ensureSynth();
+    if (!await preparePlayback()) return;
 
     const hasOctaves = noteNames.some(n => /\d/.test(n));
     let notesWithOctaves;
@@ -184,8 +194,7 @@ async function playNote(noteName, octave, duration) {
     if (octave === undefined) octave = 4;
     if (duration === undefined) duration = params.noteDuration;
 
-    await Tone.start();
-    ensureSynth();
+    if (!await preparePlayback()) return;
 
     const index = MusicTheory.getNoteIndex(noteName);
     const sharpName = MusicTheory.CHROMATIC_NOTES[index];
@@ -202,8 +211,7 @@ async function playNote(noteName, octave, duration) {
 async function playInterval(rootName, targetName, semitone, rootOctave) {
     if (rootOctave === undefined) rootOctave = 3;
 
-    await Tone.start();
-    ensureSynth();
+    if (!await preparePlayback()) return;
 
     const rootIndex = MusicTheory.getNoteIndex(rootName);
     const targetIndex = MusicTheory.getNoteIndex(targetName);
@@ -229,8 +237,7 @@ async function playInterval(rootName, targetName, semitone, rootOctave) {
 async function playArpeggio(noteNames) {
     if (!noteNames || noteNames.length === 0) return;
 
-    await Tone.start();
-    ensureSynth();
+    if (!await preparePlayback()) return;
 
     const notesWithOctaves = assignOctaves(noteNames);
     const now = Tone.now();
@@ -244,8 +251,7 @@ async function playArpeggio(noteNames) {
  * a tritone apart, dry (no reverb) so it reads as a signal, not music.
  */
 async function playError() {
-    await Tone.start();
-    ensureSynth();
+    if (!await preparePlayback()) return;
     if (!errorSynth) {
         errorSynth = new Tone.Synth({
             oscillator: { type: 'square' },

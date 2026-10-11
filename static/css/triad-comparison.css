@@ -64,3 +64,12 @@
 @media (orientation: portrait) and (min-width: 601px) and (max-width: 1024px) {
     #comparison-boards.comparison-five-rows { grid-auto-rows: calc((100% - 32px) / 5); }
 }
+
+.comparison-card .comparison-chord-play {
+    display: inline; font: inherit; letter-spacing: inherit; color: inherit;
+    background: transparent; border: 0; border-radius: 0; padding: 3px 2px;
+    min-width: 0; min-height: 0; cursor: pointer; text-align: left;
+}
+.comparison-card .comparison-chord-play:hover { text-decoration: underline; }
+.comparison-card .comparison-chord-play:focus-visible { outline: 1px solid currentColor; outline-offset: 2px; }
+.comparison-card .comparison-chord-play:disabled { cursor: default; opacity: .5; }

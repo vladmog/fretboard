@@ -1,3 +1,4 @@
+import { initSoundSettings } from './app/sound-settings.js';
 import { initDisclosureMotion } from './app/disclosure-motion.js';
 import { initSongs } from './app/songs-ui.js';
 import { preserveLegacyFavorites } from './app/catalog-migration.js';
@@ -62,6 +63,7 @@ async function init() {
     renderChordList();
     renderScaleChords();
     initEventListeners({ onInstrumentChange: rebuildFretboard });
+    initSoundSettings();
     initTriadComparison();
     await initSongs();
     initChordKey(() => { renderChordList(); updateDisplay(); });

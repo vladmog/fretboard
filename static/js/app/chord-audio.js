@@ -1,4 +1,4 @@
-import * as Sound from '../core/sound.js';
+import * as Sound from './instrument-sound.js';
 import { voicingNotes } from '../core/voicing-audio.js';
 import { getChordVoicings } from '../core/chord-voicings.js';
 import { getShellIntervals } from '../core/shell-voicings.js';

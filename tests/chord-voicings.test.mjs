@@ -51,7 +51,7 @@ test('mixed comparisons retain third inversion for sevenths and visibly fall bac
     assert.ok(triad.shapes.length);assert.match(triad.notice,/inversion unavailable/);
     assert.deepEqual([...new Set(triad.shapes.map(s=>s.inversion))].sort(),[0,1,2]);
     const shell=getComparisonVoicings(Theory.buildChord('F','maj'),undefined,undefined,{...preferences,voicing:'shell',stringSet:'6-4-3-2'});
-    assert.ok(shell.shapes.length);assert.match(shell.notice,/No shell/);assert.match(shell.notice,/string group unavailable/);
+    assert.ok(shell.shapes.length);assert.doesNotMatch(shell.notice,/No shell/);assert.match(shell.notice,/string group unavailable/);
     assert.equal(preferences.inversion,'3');
 });
 
@@ -90,4 +90,17 @@ test('nonadjacent two-string shells include a compact C minor seventh root posit
     assert.ok(result.shapes.every(s=>s.strings==='6-4'&&s.inversion===0&&s.high-s.low<=3));
     const major=getChordVoicings(Theory.buildChord('C','maj7'),undefined,undefined,{voicing:'shell',stringCount:2});
     assert.equal(major.filter(s=>s.inversion===0).length,0,'major seventh root position still requires a wider span');
+});
+
+test('general shell preference silently uses full triads and shells for extended chords',()=>{
+    const preferences={voicing:'shell',stringCount:3,inversion:'all',stringSet:'all'};
+    for(const type of ['maj','min','maj7','min7','9']) {
+        const chord=Theory.buildChord('C',type);
+        const result=getComparisonVoicings(chord,undefined,undefined,preferences);
+        const shell=getShellIntervals(type);
+        const expected=shell.length?shell:chord.intervals;
+        assert.ok(result.shapes.length,type);
+        assert.equal(result.notice,'',type);
+        for(const shape of result.shapes) assert.deepEqual(shape.positions.map(p=>p.label).sort(),[...expected].sort());
+    }
 });

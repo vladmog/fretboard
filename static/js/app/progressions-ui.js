@@ -10,7 +10,7 @@ import { preserveScrollPosition } from './scroll-position.js';
 
 import * as MusicTheory from '../core/music-theory.js';
 import * as ChordProgressions from '../core/progressions.js';
-import * as Sound from '../core/sound.js';
+import * as Sound from './instrument-sound.js';
 import { getProgressionKey, saveChordList, saveUserProgressions, state } from './state.js';
 import { displayChord, updateDisplay, updateInfoPanel } from './display.js';
 import { renderChordList } from './chord-list.js';

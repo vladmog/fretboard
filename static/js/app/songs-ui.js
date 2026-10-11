@@ -3,7 +3,7 @@ import { voicingNotes } from '../core/voicing-audio.js';
 import { readUserSongs } from '../core/user-songs.js';
 /** Browse curated song analyses and import sections into the persistent chord list. */
 import * as MusicTheory from '../core/music-theory.js';
-import * as Sound from '../core/sound.js';
+import * as Sound from './instrument-sound.js';
 import { buildSongSection, loadSongs } from '../core/songs.js';
 import { state, saveChordList } from './state.js';
 import { renderChordList } from './chord-list.js';

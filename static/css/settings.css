@@ -36,3 +36,15 @@
         [popover]:popover-open { opacity: 0; transform: translateY(10px); }
     }
 }
+
+#sound-settings { margin-top: 1rem; border-top: 1px solid #ccc; padding-top: .75rem; }
+#sound-settings summary { cursor: pointer; font-size: .875rem; }
+#sound-settings label { display: flex; justify-content: space-between; gap: .5rem; font-size: .75rem; margin-top: .65rem; }
+#sound-settings select { min-width: 0; max-width: 60%; }
+#sound-settings input[type="range"] { width: 100%; min-height: 28px; accent-color: #333; }
+#sound-settings output { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sound-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; }
+.sound-actions button { padding: .45rem; font-size: .75rem; }
+#sound-copy-fallback { width: 100%; height: 8rem; margin-top: .5rem; }
+/* An expanded sound editor needs the available viewport, not the short-menu anchor. */
+#app-settings:has(#sound-settings[open]) { bottom: .75rem; max-height: calc(100dvh - 2rem); }

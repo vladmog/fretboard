@@ -5,7 +5,7 @@ import { preserveScrollPosition } from './scroll-position.js';
  */
 
 import * as MusicTheory from '../core/music-theory.js';
-import * as Sound from '../core/sound.js';
+import * as Sound from './instrument-sound.js';
 import * as RotationToggle from './rotation-toggle.js';
 import { getInstrumentMidiBases, getInstrumentTuning, state } from './state.js';
 import { displayChord, displayScale, updateDisplay, updateInfoPanel, updateRelToggleVisibility } from './display.js';

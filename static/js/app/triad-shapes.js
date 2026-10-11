@@ -1,5 +1,5 @@
 import { shapePreferences } from '../core/song-shape.js';
-import * as Sound from '../core/sound.js';
+import * as Sound from './instrument-sound.js';
 import { voicingNotes } from '../core/voicing-audio.js';
 import { getMarkerColor } from './marker-colors.js';
 /** Full-chord and shell inversion explorer inside Chords mode. */
@@ -88,7 +88,7 @@ export function renderTriadControls(chord, refresh) {
     if (stringSet !== 'all' && !sets.includes(stringSet)) stringSet = 'all';
     const filters = element('div', null, 'triad-filters');
     panel.appendChild(filters);
-    if (supportsShell) selectControl(filters, 'Voicing', activeVoicing, [['full', 'Full chord'], ['shell', 'Shell voicing']], value => { voicing = value; stringSet = 'all'; inversion = 'all'; });
+    selectControl(filters, 'Voicing', voicing, [['full', 'Full chord'], ['shell', 'Shell voicing']], value => { voicing = value; stringSet = 'all'; inversion = 'all'; });
     const triadPatterns = activeVoicing === 'full' && ['maj', 'min', 'dim'].includes(chord.type);
     if (triadPatterns || activeVoicing === 'shell') selectControl(filters, 'Pattern strings', String(stringCount), [['3', 'Three strings'], ['2', 'Two strings'], ['both', 'Two and three strings']], value => { stringCount = value === 'both' ? 'both' : Number(value); stringSet = 'all'; });
     selectControl(filters, !triadPatterns || stringCount === 'both' ? 'String group' : (stringCount === 2 ? 'Two-string group' : 'Three-string group'), stringSet, [['all', triadPatterns ? 'Any adjacent group' : 'Any string group'], ...sets.map(s => [s, `Strings ${s}`])], value => { stringSet = value; });

@@ -9,7 +9,7 @@ import { restoreProgressionKey } from './chord-key.js';
 
 import * as MusicTheory from '../core/music-theory.js';
 import * as ChordProgressions from '../core/progressions.js';
-import * as Sound from '../core/sound.js';
+import * as Sound from './instrument-sound.js';
 import { getProgressionKey, getResolvedFavorites, isFindMode, saveInstrument, saveFavorites, state } from './state.js';
 import { updateDisplay, updateRelToggleVisibility } from './display.js';
 import { addChordToList, clearChordList, renderChordList, renderScaleChords } from './chord-list.js';

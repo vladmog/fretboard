@@ -58,7 +58,7 @@ export function getComparisonVoicings(chord, tuning, midiBases, preferences) {
     const notices=[];
     let voicing=preferences.voicing ?? 'full';
     if(voicing==='shell' && !getShellIntervals(chord.type).length) {
-        voicing='full'; notices.push('No shell for this chord; full chord shown');
+        voicing='full';
     }
     const all=getChordVoicings(chord,tuning,midiBases,{...preferences,voicing});
     let inversion=preferences.inversion;

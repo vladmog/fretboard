@@ -12,7 +12,7 @@ import { preserveScrollPosition } from './scroll-position.js';
 
 import { annotateChordButton } from './harmony-guide.js';
 import * as MusicTheory from '../core/music-theory.js';
-import * as Sound from '../core/sound.js';
+import * as Sound from './instrument-sound.js';
 import { saveChordList, state } from './state.js';
 import { updateDisplay } from './display.js';
 import { relocateAddButton } from './controls.js';

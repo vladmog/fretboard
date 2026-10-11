@@ -1,5 +1,6 @@
-import { shapePreferences } from '../core/song-shape.js';
-import * as Sound from '../core/sound.js';
+import { renderChordList } from './chord-list.js';
+import { shapePreferences, songShape } from '../core/song-shape.js';
+import * as Sound from './instrument-sound.js';
 import { voicingNotes } from '../core/voicing-audio.js';
 import { getMarkerColor } from './marker-colors.js';
 import { bindTouchTap } from '../core/touch-tap.js';
@@ -9,7 +10,7 @@ import { bindFretboardGestures } from './fretboard-gestures.js';
 import * as Theory from '../core/music-theory.js';
 import { createFretboard } from '../core/fretboard.js';
 import { getComparisonVoicings, inversionName } from '../core/chord-voicings.js';
-import { state, getInstrumentTuning, getInstrumentMidiBases } from './state.js';
+import { state, getInstrumentTuning, getInstrumentMidiBases, saveChordList } from './state.js';
 import { applyCurrentRotation, toggleRotation } from './rotation-toggle.js';
 import { getTriadPreferences } from './triad-shapes.js';
 
@@ -58,18 +59,40 @@ function renderBoards() {
     entries.forEach((item, order) => {
         const chord = Theory.buildChord(item.root, item.type);
         const card = element('section', 'comparison-card');
-        card.appendChild(element('h3', '', `${item.progressionDegree ? `${item.progressionDegree} ·` : `${order + 1}.`} ${chord.symbol}`));
+        const heading = element('h3', '');
+        heading.appendChild(element('span', '', `${item.progressionDegree ? `${item.progressionDegree} ·` : `${order + 1}.`} `));
+        const play = element('button', 'comparison-chord-play', chord.symbol);
+        play.type = 'button';
+        play.setAttribute('aria-label', `Play ${chord.symbol}`);
+        play.title = 'Play chord (uses the Sound setting)';
+        heading.appendChild(play);
+        card.appendChild(heading);
         container.appendChild(card);
-        const boardPreferences = shapePreferences(item, state.instrument) || preferences;
+        const restored = shapePreferences(item, state.instrument);
+        // Saved positions choose the starting shape; they must not narrow the
+        // browsing range to that shape's inversion and strings on reopening.
+        const boardPreferences = restored
+            ? {...restored, ...item.filters, enabled: true}
+            : preferences;
         let shapes = [], notice = '';
         if (boardPreferences.enabled) {
             ({shapes, notice} = getComparisonVoicings(chord, getInstrumentTuning(), getInstrumentMidiBases(), boardPreferences));
             if (!shapes.length) {
+                play.disabled = true;
+                play.title = 'No matching shape to play';
                 card.appendChild(element('p', 'comparison-empty', 'No compact chord shape matches these filters and instrument.'));
                 return;
             }
-            item.shapeIndex = Math.min(item.shapeIndex ?? boardPreferences.index, shapes.length - 1);
+            const saved = songShape(item, state.instrument);
+            const signature = shape => shape.positions.map(p => `${p.string}:${p.fret}`).sort().join('|');
+            const savedIndex = saved ? shapes.findIndex(shape => signature(shape) === signature(saved)) : -1;
+            item.shapeIndex = Math.min(item.shapeIndex ?? (savedIndex >= 0 ? savedIndex : boardPreferences.index), shapes.length - 1);
         }
+        play.addEventListener('click', () => {
+            if (!state.soundEnabled) return;
+            const shape = shapes[item.shapeIndex];
+            Sound.playChord(shape ? voicingNotes(shape, state.instrument) : chord.notes);
+        });
         const caption = element('p', 'comparison-caption');
         card.appendChild(caption);
         const host = element('div', 'comparison-fretboard');
@@ -106,6 +129,19 @@ function renderBoards() {
         if (shapes.length > 1) {
             bindFretboardGestures(host, vertical, direction => {
                 item.shapeIndex = (item.shapeIndex + direction + shapes.length) % shapes.length;
+                const shape = shapes[item.shapeIndex];
+                // Keep the comparison's browsing filters stable while saving the
+                // exact selection to its original list entry (including repeats).
+                if (state.chordList.includes(item.sourceChord)) {
+                    item.sourceChord.savedShape = {...structuredClone(shape), instrument: state.instrument};
+                    item.sourceChord.filters = {
+                        ...boardPreferences, enabled: true,
+                        voicing: shape.positions.length < chord.intervals.length ? 'shell' : 'full',
+                        index: item.shapeIndex
+                    };
+                    saveChordList();
+                    renderChordList();
+                }
                 draw();
                 if (state.soundEnabled) Sound.playChord(voicingNotes(shapes[item.shapeIndex],state.instrument));
                 applyCurrentRotation();
@@ -123,7 +159,7 @@ export function initTriadComparison() {
     const back = document.getElementById('comparison-back');
     if (!dialog || !button || !back) return;
     button.addEventListener('click', () => {
-        entries = state.chordList.map(chord => ({ ...chord }));
+        entries = state.chordList.map(chord => ({ ...chord, sourceChord: chord }));
         preferences = getTriadPreferences();
         showNoteNames = state.showNoteNames;
         scaleRelative = false;
