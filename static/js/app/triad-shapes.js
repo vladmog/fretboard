@@ -97,5 +97,5 @@ export function renderTriadControls(chord, refresh) {
 }
 
 export function getTriadPreferences() {
-    return { stringSet, inversion, index };
+    return { enabled, stringSet, inversion, index };
 }

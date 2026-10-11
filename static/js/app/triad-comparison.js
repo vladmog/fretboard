@@ -16,7 +16,7 @@ export function updateComparisonButton() {
     if (!button) return;
     button.hidden = state.mode !== 'chord';
     button.disabled = state.chordList.length === 0;
-    button.title = button.disabled ? 'Add chords to your chord list first' : 'Compare saved chords using the current triad settings';
+    button.title = button.disabled ? 'Add chords to your chord list first' : 'Compare saved chords using the current chord display settings';
 }
 
 function element(tag, className, text) {
@@ -29,6 +29,7 @@ function element(tag, className, text) {
 function renderBoards() {
     const container = document.getElementById('comparison-boards');
     const scroll = container.scrollTop;
+    const scrollLeft = container.scrollLeft;
     const vertical = window.matchMedia('(orientation: portrait) and (max-width: 600px)').matches;
     container.replaceChildren();
     entries.forEach((item, order) => {
@@ -36,31 +37,45 @@ function renderBoards() {
         const card = element('section', 'comparison-card');
         card.appendChild(element('h3', '', `${order + 1}. ${chord.symbol}`));
         container.appendChild(card);
-        const shapes = getTriadShapes(chord, getInstrumentTuning(), getInstrumentMidiBases())
-            .filter(shape => (preferences.stringSet === 'all' || shape.strings === preferences.stringSet)
-                && (preferences.inversion === 'all' || shape.inversion === Number(preferences.inversion)));
-        if (!shapes.length) {
-            card.appendChild(element('p', 'comparison-empty', ['maj', 'min', 'dim'].includes(item.type)
-                ? 'No triad shape matches the selected filters.'
-                : 'Triad inversions are available for major, minor, and diminished chords.'));
-            return;
+        let shape = null;
+        if (preferences.enabled && ['maj', 'min', 'dim'].includes(item.type)) {
+            const shapes = getTriadShapes(chord, getInstrumentTuning(), getInstrumentMidiBases())
+                .filter(shape => (preferences.stringSet === 'all' || shape.strings === preferences.stringSet)
+                    && (preferences.inversion === 'all' || shape.inversion === Number(preferences.inversion)));
+            if (!shapes.length) {
+                card.appendChild(element('p', 'comparison-empty', 'No triad shape matches the selected filters.'));
+                return;
+            }
+            shape = shapes[Math.min(preferences.index, shapes.length - 1)];
         }
-        const shape = shapes[Math.min(preferences.index, shapes.length - 1)];
-        card.appendChild(element('p', 'comparison-caption', `${guide.inversions[shape.inversion]} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`));
+        const description = shape
+            ? `${guide.inversions[shape.inversion]} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`
+            : 'All chord notes';
+        card.appendChild(element('p', 'comparison-caption', description));
         const host = element('div', 'comparison-fretboard');
         card.appendChild(host);
-        const board = createFretboard(host, { tuning: getInstrumentTuning(), frets: 15, vertical, stringSpacing: 48, markerScale: 1.35 });
+        const tuning = getInstrumentTuning();
+        // Spread horizontal frets across the row without stretching note circles.
+        const boardHeight = (tuning.length - 1) * 48 + 100;
+        const fretSpacing = vertical ? 70 : Math.max(70, (host.clientWidth / Math.max(1, host.clientHeight) * boardHeight - 100) / 15);
+        const board = createFretboard(host, { tuning, frets: 15, vertical, stringSpacing: 48, markerScale: 1.35, fretSpacing });
         host.querySelector('svg').setAttribute('role', 'img');
-        host.querySelector('svg').setAttribute('aria-label', `${chord.symbol}, ${guide.inversions[shape.inversion]}, strings ${shape.strings}`);
-        for (const position of shape.positions) {
+        host.querySelector('svg').setAttribute('aria-label', `${chord.symbol}, ${description}`);
+        const positions = shape ? shape.positions
+            : Theory.getNotesOnFretboard(chord.noteToInterval, 15, chord.root, tuning);
+        for (const position of positions) {
+            const colors = Theory.getIntervalColor(position.label);
+            const isRoot = position.label === '1';
             board.setMarker(position.string, position.fret, {
-                color: guide.triadColors[chord.intervals.indexOf(position.label)],
-                borderColor: '#222', textColor: '#000',
+                color: shape ? guide.triadColors[chord.intervals.indexOf(position.label)] : (isRoot ? '#000' : colors.fill),
+                borderColor: shape ? '#222' : (isRoot ? '#000' : colors.border),
+                textColor: shape ? '#000' : (isRoot ? '#fff' : colors.text),
                 text: state.showNoteNames ? chord.noteSpelling[position.noteIndex] : position.label
             });
         }
     });
     container.scrollTop = scroll;
+    container.scrollLeft = scrollLeft;
 }
 
 export function initTriadComparison() {
@@ -75,6 +90,7 @@ export function initTriadComparison() {
         dialog.showModal();
         renderBoards();
         document.getElementById('comparison-boards').scrollTop = 0;
+        document.getElementById('comparison-boards').scrollLeft = 0;
         back.focus({ preventScroll: true });
     });
     back.addEventListener('click', () => dialog.close());

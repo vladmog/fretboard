@@ -135,7 +135,7 @@ export function createFretboard(container, config = {}) {
 
     // Dimensions
     const stringSpacing = config.stringSpacing ?? 35;
-    const fretSpacing = 70;
+    const fretSpacing = config.fretSpacing ?? 70;
     const padding = 50;
     const nutWidth = 8;
     const totalLength = frets * fretSpacing;
