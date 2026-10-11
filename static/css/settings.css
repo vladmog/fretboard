@@ -22,3 +22,17 @@
 
 #fretboard-panel .app-settings-button .settings-icon { width: 22px; height: 22px; flex: none; }
 
+
+/* Animate native popovers in both directions, including Escape/outside dismissal. */
+@media (prefers-reduced-motion: no-preference) {
+    [popover] {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 180ms ease, transform 280ms cubic-bezier(.22,1,.36,1),
+                    display 280ms allow-discrete, overlay 280ms allow-discrete;
+    }
+    [popover]:popover-open { opacity: 1; transform: translateY(0); }
+    @starting-style {
+        [popover]:popover-open { opacity: 0; transform: translateY(10px); }
+    }
+}

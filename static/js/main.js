@@ -1,3 +1,4 @@
+import { initDisclosureMotion } from './app/disclosure-motion.js';
 import { initSongs } from './app/songs-ui.js';
 import { preserveLegacyFavorites } from './app/catalog-migration.js';
 import { initChordKey } from './app/chord-key.js';
@@ -91,6 +92,8 @@ async function init() {
 
     // Initial display
     updateDisplay();
+
+    initDisclosureMotion();
 
     // Handle resize
     window.addEventListener('resize', () => {
