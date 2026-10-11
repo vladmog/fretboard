@@ -1,0 +1,148 @@
+/* Style Mind translation: exposed structure, typographic hierarchy, deliberate density.
+   Musical notation keeps its semantic palette; the interface is ink and paper. */
+:root {
+    --paper: #f5f4ef;
+    --ink: #191919;
+    --rule: #aaa99f;
+    --quiet: #66665f;
+}
+html, body { background: var(--paper); color: var(--ink); }
+body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spacing: -.015em; }
+.app-container { gap: 0; }
+#controls-panel, #fretboard-panel { background: transparent; border: 0; }
+#fretboard-panel { border-bottom: 1px solid var(--ink); }
+#controls-panel { gap: 0; padding: 0; }
+#controls-panel .mode-section { background: transparent; border: 0; border-radius: 0; padding: 16px 20px 12px 0; }
+.controls-scroll-area > .control-group { padding: 16px 20px; border-left: 1px solid var(--rule); }
+#info-panel { background: transparent; border: 0; border-left: 1px solid var(--rule); padding: 16px 0 12px 20px; }
+.mode-section .control-workspace { color: var(--ink); gap: 12px 10px; }
+.mode-section .mode-picker { padding-bottom: 0; }
+#controls-panel .mode-section .mode-picker > label,
+#controls-panel .mode-section .control-group > label,
+#controls-panel .mode-section .triad-filters > label,
+.chord-list-header { color: var(--quiet); font-size: 11px; font-weight: 400; line-height: 1.3; letter-spacing: .025em; text-transform: none; }
+.mode-picker > label::before { content: '01 / '; }
+.chord-list-header::before { content: '02 / '; }
+#info-panel .info-content::before { content: '03 / Reference'; display: block; font-size: 11px; color: var(--quiet); margin-bottom: 8px; letter-spacing: .025em; }
+#controls-panel .mode-section select,
+#controls-panel .mode-section input[type="text"] {
+    min-height: 32px; padding: 5px 22px 5px 0 !important;
+    background-color: transparent; color: var(--ink);
+    border: 0; border-bottom: 1px solid var(--rule); border-radius: 0;
+    font: 15px/1.25 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+    background-position: right 3px center;
+}
+#controls-panel .mode-section #mode-select { font-weight: 500 !important; letter-spacing: 0; }
+#controls-panel .mode-section .btn,
+#controls-panel .mode-section .prog-nav-btn,
+#controls-panel .mode-section .radio-label,
+#controls-panel .mode-section .toggle-text,
+.btn, .comparison-switches button, #comparison-back {
+    border-radius: 0; box-shadow: none; font-family: inherit; letter-spacing: 0;
+    font-size: 12px; text-transform: none; min-height: 30px;
+}
+#controls-panel .mode-section .btn { border: 1px solid var(--ink); background: transparent; color: var(--ink); }
+#controls-panel .mode-section .btn-add { background: var(--ink); color: var(--paper); }
+#controls-panel .mode-section .radio-label { border-color: var(--rule); }
+#controls-panel .mode-section .radio-label.checked { background: var(--ink); color: var(--paper); }
+/* Keep focus rings inside scrollable panels instead of clipping at their edges. */
+#controls-panel .mode-section :is(button,select,input,summary):focus-visible,
+#controls-panel .mode-section :is(.radio-label,.interval-check):has(input:focus-visible),
+.comparison-switches button:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+#controls-panel .mode-section #chord-key { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; }
+#controls-panel .mode-section #chord-key[hidden] { display: none; }
+#chord-key > label[for="chord-reference-key"] { grid-column: 1; grid-row: 1; }
+#chord-key > label[for="chord-reference-scale"] { grid-column: 2; grid-row: 1; }
+#chord-reference-key { grid-column: 1; grid-row: 2; }
+#chord-reference-scale { grid-column: 2; grid-row: 2; }
+#chord-key .chord-scale-toggle { grid-column: 1 / -1; padding-top: 8px; }
+#controls-panel .mode-section #triad-shapes { border-top: 1px solid var(--ink); padding-top: 8px; gap: 8px; }
+#controls-panel .mode-section .triad-toggle { color: var(--ink); font-size: 14px; }
+.mode-section .triad-preview { border-color: var(--rule); }
+.mode-section .triad-preview summary { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+#triad-shapes svg { background: transparent; }
+.triad-caption { color: var(--quiet); }
+.scale-chords-list { border: 0; padding: 0; }
+.mode-section .scale-chords-list { gap: 0 12px; }
+#controls-panel .mode-section .scale-chord-item { border-radius: 0; border-bottom: 1px solid var(--rule); min-height: 32px; padding: 5px 0; }
+.mode-section .scale-chord-item .numeral { min-width: 30px; font-size: 15px; font-weight: 400; }
+.mode-section .scale-chord-item .chord-name { font-size: 15px; }
+.function-badge { border: 0; background: transparent; font-size: 10px; color: var(--quiet); }
+.scale-chord-item.selected { background: var(--ink); color: var(--paper); }
+.scale-chord-item.selected .function-badge { color: var(--paper); }
+.chord-list { border: 0; border-top: 1px solid var(--ink); background: transparent; min-height: 100px; }
+.chord-list-item { border-bottom: 1px solid var(--rule); padding: 6px 0; font-size: 15px; line-height: 1.2; letter-spacing: 0; }
+.chord-list-item.selected { background: var(--ink); color: var(--paper); padding-inline: 8px; }
+.chord-list:empty::after { color: var(--quiet); font-size: 12px; text-transform: none; letter-spacing: 0; text-align: left; padding: 12px 0; }
+.chord-list-actions .btn { border: 0; border-top: 1px solid var(--rule); text-align: left; padding-inline: 0; background: transparent; color: var(--ink); }
+#info-panel .info-title { font-size: clamp(22px, 2.5vw, 36px); font-weight: 400; line-height: 1.05; letter-spacing: -.055em; text-transform: none; border: 0; padding: 0 0 12px; margin: 0; }
+#info-panel .info-grid-cell { border-color: var(--rule); font-size: 13px; font-weight: 400; }
+#info-panel .info-grid-description { color: var(--quiet); font-size: 12px; letter-spacing: 0; }
+#app-settings { background: var(--paper); border: 1px solid var(--ink); box-shadow: none; }
+.settings-heading { border-bottom: 1px solid var(--rule); padding-bottom: 8px; }
+#triad-comparison { background: var(--paper); gap: 0; }
+.comparison-header { border-bottom: 1px solid var(--ink); padding-bottom: 8px; margin-bottom: 8px; }
+.comparison-header h2 { font-size: 24px; font-weight: 400; letter-spacing: -.05em; }
+.comparison-switches button { background: transparent; color: var(--ink); border-color: var(--rule); }
+.comparison-switches button[aria-checked="true"] { background: var(--ink); color: var(--paper); }
+.comparison-card { border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; background: transparent; padding-inline: 0; }
+.comparison-card h3 { font-size: 20px; font-weight: 400; letter-spacing: -.04em; }
+.comparison-caption { color: var(--quiet); }
+.find-result-item { border-radius: 0; box-shadow: none; }
+#games-panel { background: var(--paper); color: var(--ink); }
+#games-panel button, #games-panel select, #games-panel input { border-radius: 0; font-family: inherit; box-shadow: none; }
+@media (hover: hover) {
+    #controls-panel .mode-section .btn:hover { background: var(--ink); color: var(--paper); }
+    .chord-list-item:not(.selected):hover, .scale-chord-item:not(.selected):hover { background: #e7e6de; color: var(--ink); }
+}
+@media (min-width: 769px) {
+    .app-container { padding: max(16px, calc(env(safe-area-inset-top) + var(--ios-pwa-top-clearance))) max(20px, env(safe-area-inset-right)) var(--app-bottom-clearance-wide) max(20px, env(safe-area-inset-left)); }
+    #controls-panel { padding: 0; }
+}
+@media (max-width: 768px) and (orientation: portrait) {
+    .app-container { padding-left: 8px; padding-right: 0; padding-bottom: 0; gap: 0; grid-template-columns: calc(50% - 8px) minmax(0, 1fr); }
+    #fretboard-panel { border-bottom: 0; border-right: 1px solid var(--rule); }
+    #controls-panel .mode-section { padding: 8px max(8px, env(safe-area-inset-right)) 12px 8px; margin: 0 !important; border-bottom: 1px solid var(--ink); }
+    .controls-scroll-area { background: #eeede7; }
+    .controls-scroll-area > .control-group { border-left: 0; padding: 12px max(8px, env(safe-area-inset-right)) 0 8px; }
+    #info-panel { border-left: 0; border-top: 1px solid var(--ink); padding: 8px max(8px, env(safe-area-inset-right)) var(--app-bottom-clearance-mobile) 8px; }
+    #info-panel .info-content::before { margin-bottom: 4px; font-size: 10px; }
+    #info-panel .info-title { font-size: 19px; padding-bottom: 6px; }
+    #controls-panel .mode-section select { font-size: 14px !important; }
+    #controls-panel .mode-section #chord-key { grid-template-columns: 1fr; }
+    #chord-key > label[for="chord-reference-scale"] { grid-column: 1; grid-row: 3; margin-top: 6px; }
+    #chord-reference-scale { grid-column: 1; grid-row: 4; }
+    .chord-list-item { font-size: 14px; }
+    .mode-section .control-workspace { gap: 8px; }
+    .comparison-header h2 { font-size: 20px; }
+}
+@media (orientation: landscape) and (max-height: 600px) {
+    .app-container { padding: 6px max(10px,env(safe-area-inset-right)) 0 max(10px,env(safe-area-inset-left)); gap: 0; grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+    #controls-panel { display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); padding: 0 !important; gap: 0; }
+    .controls-scroll-area { display: contents; }
+    #controls-panel > *, .controls-scroll-area > * { min-width: 0; min-height: 0; }
+    #controls-panel .mode-section { padding: 6px 10px 6px 0; margin: 0 !important; }
+    .controls-scroll-area > .control-group { padding: 6px 10px; }
+    #controls-panel #info-panel { padding: 6px 0 6px 10px; }
+    #info-panel .info-content::before { display: none; }
+    #info-panel .info-title { font-size: 18px; padding-bottom: 3px; }
+    #info-panel .info-content { flex: 0 0 auto; }
+    #info-panel .info-grid-cell { font-size: 11px; padding: 0; }
+    #info-panel .chromatic-circle { position: relative; flex: 1 1 0; min-height: 0; margin-top: 2px; }
+    #info-panel .chromatic-circle svg { position: absolute; width: 100%; height: 100%; inset: 0; }
+    #controls-panel .mode-section select { min-height: 26px; font-size: 12px !important; }
+    .mode-section .control-workspace { gap: 5px 8px; }
+    .comparison-header h2 { font-size: 19px; }
+}
+
+@container workspace (min-width: 340px) {
+    .mode-section .control-workspace { grid-template-columns: minmax(140px, 1.15fr) minmax(58px, .5fr) minmax(120px, 1fr); }
+}
+
+/* Mobile panel tones separate the scrolling controls from the reference area. */
+@media (max-width: 768px) and (orientation: portrait),
+       (max-width: 1100px) and (max-height: 600px) and (orientation: landscape) {
+    #controls-panel .mode-section { background: var(--paper); }
+    .controls-scroll-area > .control-group { background: #eeede7; }
+    #info-panel { background: #e6e5de; }
+}
