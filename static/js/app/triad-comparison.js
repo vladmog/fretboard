@@ -136,7 +136,7 @@ export function initTriadComparison() {
         scaleRelative = !scaleRelative; syncComparisonSwitches(); renderBoards();
     });
     back.addEventListener('click', () => dialog.close());
-    document.getElementById('comparison-boards').addEventListener('click', event => {
+    document.getElementById('comparison-boards').addEventListener('touchend', event => {
         if (event.target.closest('.comparison-fretboard')) toggleRotation(event);
     });
     dialog.addEventListener('close', () => {

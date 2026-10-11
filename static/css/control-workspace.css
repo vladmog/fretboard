@@ -72,6 +72,9 @@
 .mode-section .triad-preview summary { min-height: 28px; padding-block: 5px; color: #405a78; }
 .mode-section .triad-preview { border-top: 1px solid #d8dde4; }
 .mode-section .scale-chords-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 2px 4px; }
+@media (min-width: 1025px) {
+    .mode-section .scale-chords-list { grid-template-columns: minmax(0, 1fr); }
+}
 .mode-section .progression-chords-list { grid-template-columns: minmax(0, 1fr); }
 .mode-section .scale-chord-item { min-height: 26px; min-width: 0; gap: 6px; padding: 2px 6px; border-radius: 4px; }
 .mode-section .scale-chord-item .numeral { width: auto; flex: 0 0 auto; letter-spacing: 0; }

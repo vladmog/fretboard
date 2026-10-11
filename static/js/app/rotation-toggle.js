@@ -25,6 +25,7 @@ function rotateMarkerText(angle) {
  * Toggle rotation between 0 and 90 degrees
  */
 function toggleRotation(event) {
+    if (event?.type !== 'touchend') return;
     if (event?.target.closest('button')) return;
     if (['f.chord', 'f.scale'].includes(state.mode)) return;
     currentRotation = currentRotation === 0 ? 90 : 0;
@@ -39,7 +40,7 @@ function applyCurrentRotation() {
 }
 
 /**
- * Initialize click listener on fretboard
+ * Initialize touch listener on fretboard
  */
 function init() {
     const fretboard = document.getElementById('fretboard-panel');
