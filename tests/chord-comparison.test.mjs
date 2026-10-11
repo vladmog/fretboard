@@ -15,7 +15,7 @@ for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${
     const container = new Element();
     const boards = [];
     const context = vm.createContext({
-        Theory, getTriadShapes, state: { showNoteNames: false },
+        applyCurrentRotation() {}, Theory, getTriadShapes, state: { showNoteNames: false },
         guide: JSON.parse(readFileSync(new URL('../static/data/harmony-guide.json', import.meta.url))),
         getInstrumentTuning: () => Theory.STANDARD_TUNING,
         getInstrumentMidiBases: () => undefined,

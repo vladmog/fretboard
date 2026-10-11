@@ -4,6 +4,7 @@ import { createFretboard } from '../core/fretboard.js';
 import { getTriadShapes } from '../core/triads.js';
 import { state, getInstrumentTuning, getInstrumentMidiBases } from './state.js';
 import { guide } from './harmony-guide.js';
+import { applyCurrentRotation, toggleRotation } from './rotation-toggle.js';
 import { getTriadPreferences } from './triad-shapes.js';
 
 let entries = [];
@@ -74,6 +75,7 @@ function renderBoards() {
             });
         }
     });
+    applyCurrentRotation();
     container.scrollTop = scroll;
     container.scrollLeft = scrollLeft;
 }
@@ -94,6 +96,9 @@ export function initTriadComparison() {
         back.focus({ preventScroll: true });
     });
     back.addEventListener('click', () => dialog.close());
+    document.getElementById('comparison-boards').addEventListener('click', event => {
+        if (event.target.closest('.comparison-fretboard')) toggleRotation(event);
+    });
     dialog.addEventListener('close', () => {
         document.getElementById('comparison-boards').replaceChildren();
         entries = [];

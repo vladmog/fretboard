@@ -56,4 +56,4 @@ if (document.readyState === 'loading') {
 }
 
 // Public API
-export { applyCurrentRotation };
+export { applyCurrentRotation, toggleRotation };
