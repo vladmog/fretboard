@@ -34,6 +34,7 @@ export const state = {
     findResults: [],        // Find mode: results from MusicTheory.findChords()
     findSelectedIndex: -1,  // Find mode: index in findResults, -1 = user markers view
     activeScaleChord: null, // Scale mode: previewed chord { root, type, symbol } or null
+    songPreview: null,
     progressionIndex: 0,   // Prog mode: flat index into all progressions
     favoriteProgressions: [],    // Prog mode: array of "categoryName|numerals" keys
     browsingFavorites: false,    // Prog mode: currently in favorites section

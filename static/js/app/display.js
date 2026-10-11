@@ -1,3 +1,4 @@
+import { getMarkerColor } from './marker-colors.js';
 import { getProgressionScale } from './progression-context.js';
 import { syncMainFretboardGestures } from './main-fretboard-gestures.js';
 import { preserveScrollPosition } from './scroll-position.js';
@@ -86,12 +87,12 @@ export function displayScale(scale) {
 
     const originalRootIndex = MusicTheory.getNoteIndex(scale.root);
     for (const pos of positions) {
-        const colors = MusicTheory.getIntervalColor(pos.label);
+        const colors = getMarkerColor(pos.label);
         const isRoot = state.showRelative ? (pos.noteIndex === originalRootIndex) : (pos.label === '1');
         state.fretboard.setMarker(pos.string, pos.fret, {
             color: colors.fill,
             borderColor: colors.border,
-            rainbowBorder: isRoot,
+            rainbowBorder: false,
             text: getMarkerLabel(pos, displayScale.noteSpelling),
             textColor: colors.text
         });
@@ -175,13 +176,13 @@ function displayScaleChord(chord, scale, parentRoot) {
     const chordRootIndex = MusicTheory.getNoteIndex(chord.root);
     const scaleRootIndex = MusicTheory.getNoteIndex(scale.root);
     for (const pos of positions) {
-        const colors = MusicTheory.getIntervalColor(chord.noteToInterval[pos.noteIndex]);
+        const colors = getMarkerColor(chord.noteToInterval[pos.noteIndex]);
         let fillColor = colors.fill;
         let textColor = colors.text;
         let borderColor = colors.border;
         let borderWidth = 2;
         if (pos.noteIndex === chordRootIndex) {
-            borderColor = '#000000';
+            borderColor = '#FF0000';
             borderWidth = 3.5;
             fillColor = '#000';
             textColor = '#fff';
@@ -194,7 +195,7 @@ function displayScaleChord(chord, scale, parentRoot) {
             color: fillColor,
             borderColor: borderColor,
             borderWidth: borderWidth,
-            rainbowBorder: isScaleRoot,
+            rainbowBorder: isScaleRoot && pos.noteIndex !== chordRootIndex,
             text: getMarkerLabel(pos, labelSpelling),
             textColor: textColor
         });
@@ -285,7 +286,7 @@ function displayIntervals(root) {
     for (const pos of positions) {
         const isRoot = pos.label === '1';
         if (!isRoot && !state.intervalFilter.has(pos.label)) continue;
-        const colors = MusicTheory.getIntervalColor(pos.label);
+        const colors = getMarkerColor(pos.label);
         const showMarker = state.intervalFilter.has(pos.label);
         if (isRoot) {
             state.fretboard.setMarker(pos.string, pos.fret, {
@@ -294,7 +295,7 @@ function displayIntervals(root) {
                 borderWidth: 3.5,
                 text: showMarker ? getMarkerLabel(pos, noteSpelling) : '',
                 textColor: colors.text,
-                rainbowBorder: true
+                rainbowBorder: false
             });
         } else {
             state.fretboard.setMarker(pos.string, pos.fret, {
@@ -387,11 +388,11 @@ function displayCaged(root, shapeName) {
             const borderColor = shapeBorderColors[shape];
 
             for (const pos of positions) {
-                const colors = MusicTheory.getIntervalColor(pos.label);
+                const colors = getMarkerColor(pos.label);
                 const isRoot = pos.label === '1';
                 state.fretboard.setMarker(pos.string, pos.fret, {
                     color: isRoot ? '#000' : MusicTheory.lightenColor(borderColor),
-                    borderColor: borderColor,
+                    borderColor: isRoot ? colors.border : borderColor,
                     text: getMarkerLabel(pos, chord.noteSpelling),
                     textColor: isRoot ? '#fff' : colors.text
                 });
@@ -401,7 +402,7 @@ function displayCaged(root, shapeName) {
         const positions = MusicTheory.getCagedPositions(root, shapeName, state.chordType);
 
         for (const pos of positions) {
-            const colors = MusicTheory.getIntervalColor(pos.label);
+            const colors = getMarkerColor(pos.label);
             const isRoot = pos.label === '1';
             state.fretboard.setMarker(pos.string, pos.fret, {
                 color: isRoot ? '#000' : colors.fill,
@@ -450,12 +451,12 @@ function displayMode(parentRoot, modeName) {
     const parentRootIndex = MusicTheory.getNoteIndex(parentRoot);
 
     for (const pos of positions) {
-        const colors = MusicTheory.getIntervalColor(pos.label);
+        const colors = getMarkerColor(pos.label);
         const isParentRoot = pos.noteIndex === parentRootIndex;
         state.fretboard.setMarker(pos.string, pos.fret, {
             color: colors.fill,
             borderColor: colors.border,
-            rainbowBorder: isParentRoot,
+            rainbowBorder: isParentRoot && pos.label !== '1',
             text: getMarkerLabel(pos, scale.noteSpelling),
             textColor: colors.text
         });
@@ -539,14 +540,14 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
             circle.setAttribute('stroke', '#000');
             circle.setAttribute('stroke-width', '2');
         } else if (isActive) {
-            const colors = MusicTheory.getIntervalColor(colorInterval);
+            const colors = getMarkerColor(colorInterval);
             const isRoot = colorInterval === '1';
             circle.setAttribute('fill', (isRoot && (!useScaleDegrees || colorIntervals)) ? '#000' : colors.fill);
             circle.setAttribute('stroke', colors.border);
             circle.setAttribute('stroke-width', '2');
         } else if (highlightedNotes && highlightedNotes.has(i)) {
             const hlInterval = SEMITONE_LABELS[(i - rootIndex + 12) % 12];
-            const hlColors = MusicTheory.getIntervalColor(hlInterval);
+            const hlColors = getMarkerColor(hlInterval);
             const hlIsRoot = hlInterval === '1';
             circle.setAttribute('fill', (hlIsRoot && !useScaleDegrees) ? '#000' : hlColors.fill);
             circle.setAttribute('stroke', hlColors.border);
@@ -557,7 +558,7 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
             circle.setAttribute('stroke-width', '1.5');
         }
 
-        if (i === rainbowNoteIndex) {
+        if (i === rainbowNoteIndex && colorInterval !== '1') {
             circle.classList.add('rainbow-border');
         }
 
@@ -575,12 +576,12 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
         if (isPlainMarker) {
             text.setAttribute('fill', '#fff');
         } else if (isActive) {
-            const colors = MusicTheory.getIntervalColor(colorInterval);
+            const colors = getMarkerColor(colorInterval);
             const isRoot = colorInterval === '1';
             text.setAttribute('fill', (isRoot && (!useScaleDegrees || colorIntervals)) ? '#fff' : colors.text);
         } else if (highlightedNotes && highlightedNotes.has(i)) {
             const hlInterval = SEMITONE_LABELS[(i - rootIndex + 12) % 12];
-            const hlColors = MusicTheory.getIntervalColor(hlInterval);
+            const hlColors = getMarkerColor(hlInterval);
             const hlIsRoot = hlInterval === '1';
             text.setAttribute('fill', (hlIsRoot && !useScaleDegrees) ? '#fff' : hlColors.text);
         } else {
@@ -693,6 +694,9 @@ function updateDisplayContent() {
             const chord = MusicTheory.buildChord(item.root, item.type);
             displayChord(chord);
         }
+    } else if (state.mode === 'song') {
+        if (state.songPreview) displayChord(MusicTheory.buildChord(state.songPreview.root, state.songPreview.type));
+        else { state.fretboard?.clearMarkers(); updateInfoPanel({ title: 'Songs', notes: ['Choose a song section to explore.'] }); }
     } else if (isFindMode(state.mode)) {
         if (state.findSelectedIndex < 0) {
             displayFindMarkers();

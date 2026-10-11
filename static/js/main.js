@@ -1,3 +1,4 @@
+import { initSongs } from './app/songs-ui.js';
 import { preserveLegacyFavorites } from './app/catalog-migration.js';
 import { initChordKey } from './app/chord-key.js';
 import { initTriadComparison } from './app/triad-comparison.js';
@@ -61,6 +62,7 @@ async function init() {
     renderScaleChords();
     initEventListeners({ onInstrumentChange: rebuildFretboard });
     initTriadComparison();
+    await initSongs();
     initChordKey(() => { renderChordList(); updateDisplay(); });
 
     // Color-code interval filter checkboxes

@@ -1,3 +1,4 @@
+import { getMarkerColor } from '../static/js/app/marker-colors.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -10,7 +11,7 @@ test('scale-degree toggle changes chord labels without changing chord colors', (
     const renderer=source.slice(start,source.indexOf('\n/**',start));
     let markers=[];
     const state={mode:'scale',showScaleDegrees:false,showNoteNames:false,fretboard:{clearMarkers(){markers=[];},setMarker(string,fret,options){markers.push({string,fret,...options});}}};
-    const context=vm.createContext({state,MusicTheory,RotationToggle:{applyCurrentRotation(){}},updateInfoPanel(){},
+    const context=vm.createContext({getMarkerColor,state,MusicTheory,RotationToggle:{applyCurrentRotation(){}},updateInfoPanel(){},
         getNotesOnActiveFretboard:MusicTheory.getNotesOnFretboard,
         getMarkerLabel:pos=>pos.label});
     vm.runInContext(renderer,context);
@@ -34,7 +35,7 @@ test('chromatic circle retains chord fills and borders when scale-relative label
     const source=readFileSync(new URL('../static/js/app/display.js',import.meta.url),'utf8');
     const start=source.indexOf('function renderChromaticCircle(');
     const svg={children:[],set innerHTML(_){this.children=[];},appendChild(n){this.children.push(n);}};
-    const context=vm.createContext({MusicTheory,state:{root:'C'},document:{getElementById:()=>svg,createElementNS:(_,tag)=>({tag,attrs:{},classList:{add(){}},setAttribute(k,v){this.attrs[k]=v;}})}});
+    const context=vm.createContext({getMarkerColor,MusicTheory,state:{root:'C'},document:{getElementById:()=>svg,createElementNS:(_,tag)=>({tag,attrs:{},classList:{add(){}},setAttribute(k,v){this.attrs[k]=v;}})}});
     vm.runInContext(source.slice(start,source.indexOf('\n/**',start)),context);
     const chord=MusicTheory.buildChord('F','maj'),scale=MusicTheory.buildScale('C','major');
     const labels=Object.fromEntries(Object.keys(chord.noteToInterval).map(n=>[n,scale.noteToDegree[n]]));

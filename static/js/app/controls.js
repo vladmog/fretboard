@@ -273,6 +273,7 @@ export function setMode(mode) {
     }
 
     state.mode = mode;
+    document.getElementById('song-browser').hidden = mode !== 'song';
     syncChordKey();
     updateComparisonButton();
     state.selectedChordIndex = -1; // Deselect list item when changing mode
@@ -284,7 +285,7 @@ export function setMode(mode) {
     // Show/hide type selector based on mode (hide for interval and find)
     const typeGroup = document.querySelector('.control-group:has(#type-select)');
     if (typeGroup) {
-        typeGroup.style.display = (mode === 'interval' || isFindMode(mode)) ? 'none' : 'block';
+        typeGroup.style.display = (mode === 'interval' || mode === 'song' || isFindMode(mode)) ? 'none' : 'block';
     }
 
     // When entering CAGED mode, ensure chordType is a valid CAGED type
@@ -316,7 +317,7 @@ export function setMode(mode) {
     // Show/hide root note selector (hide in find mode)
     const rootGroup = document.querySelector('.control-group:has(#root-note)');
     if (rootGroup) {
-        rootGroup.style.display = isFindMode(mode) ? 'none' : 'block';
+        rootGroup.style.display = (isFindMode(mode) || mode === 'song') ? 'none' : 'block';
     }
 
     const rootSelect = document.getElementById('root-note');

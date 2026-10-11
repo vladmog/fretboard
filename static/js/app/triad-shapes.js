@@ -1,3 +1,4 @@
+import { getMarkerColor } from './marker-colors.js';
 /** Full-chord and shell inversion explorer inside Chords mode. */
 import { getChordVoicings, getVoicingIntervals, inversionName } from '../core/chord-voicings.js';
 import { getShellIntervals } from '../core/shell-voicings.js';
@@ -55,8 +56,8 @@ function diagram(shape, chord) {
     shape.positions.forEach(p => {
         const y = 38 + strings.indexOf(p.string) * 30;
         const x = 30 + (p.fret - start + 0.5) * step;
-        add('circle', { cx: x, cy: y, r: 12, fill: Theory.getIntervalColor(p.label).fill, stroke: Theory.getIntervalColor(p.label).border });
-        add('text', { x, y: y + 4, 'text-anchor': 'middle', 'font-size': 12 }, state.showNoteNames ? chord.noteSpelling[p.noteIndex] : p.label);
+        add('circle', { cx: x, cy: y, r: 12, fill: getMarkerColor(p.label).fill, stroke: getMarkerColor(p.label).border });
+        add('text', { x, y: y + 4, 'text-anchor': 'middle', 'font-size': 12, fill: getMarkerColor(p.label).text }, state.showNoteNames ? chord.noteSpelling[p.noteIndex] : p.label);
     });
     return svg;
 }

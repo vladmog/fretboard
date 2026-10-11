@@ -1,3 +1,4 @@
+import { getMarkerColor } from '../static/js/app/marker-colors.js';
 import { getComparisonVoicings, getChordVoicings, getVoicingIntervals, inversionName } from '../static/js/core/chord-voicings.js';
 import { getShellIntervals } from '../static/js/core/shell-voicings.js';
 import { test } from 'node:test';
@@ -18,7 +19,7 @@ for (const stringCount of [2,3,'both']) for (const enabled of [false, true]) tes
     const container = new Element();
     const boards = [];
     const gestures = [];
-    const context = vm.createContext({
+    const context = vm.createContext({getMarkerColor,
         getChordScaleContext, drawChordScaleBackground, bindFretboardGestures: (_, __, advance) => gestures.push(advance), applyCurrentRotation() {}, Theory, getTriadShapes, getComparisonVoicings, getChordVoicings, inversionName, getShellIntervals, state: { showNoteNames: false },
         guide: JSON.parse(readFileSync(new URL('../static/data/harmony-guide.json', import.meta.url))),
         getInstrumentTuning: () => Theory.STANDARD_TUNING,

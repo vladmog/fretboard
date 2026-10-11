@@ -1,3 +1,4 @@
+import { getMarkerColor } from './marker-colors.js';
 import { getChordScaleContext, drawChordScaleBackground } from './chord-scale-context.js';
 import * as MusicTheory from '../core/music-theory.js';
 import * as RotationToggle from './rotation-toggle.js';
@@ -20,7 +21,7 @@ export function renderChordFretboard(chord, refresh) {
     const context = getChordScaleContext(chord, state.chordReferenceKey, state.mode === 'chord' && state.chordScaleDegrees, state.chordReferenceScale);
     drawChordScaleBackground(state.fretboard, context, positions, getInstrumentTuning(), state.showNoteNames);
     for (const pos of positions) {
-        const colors = MusicTheory.getIntervalColor(pos.label);
+        const colors = getMarkerColor(pos.label);
         state.fretboard.setMarker(pos.string, pos.fret, {
             color: colors.fill,
             borderColor: colors.border,

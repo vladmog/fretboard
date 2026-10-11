@@ -1,3 +1,4 @@
+import { getMarkerColor } from './marker-colors.js';
 import { bindTouchTap } from '../core/touch-tap.js';
 import { getChordScaleContext, drawChordScaleBackground } from './chord-scale-context.js';
 import { bindFretboardGestures } from './fretboard-gestures.js';
@@ -87,7 +88,7 @@ function renderBoards() {
             const context = getChordScaleContext(chord, item.referenceKey, scaleRelative, item.referenceScale);
             drawChordScaleBackground(board, context, positions, tuning, showNoteNames);
             for (const position of positions) {
-                const colors = Theory.getIntervalColor(position.label);
+                const colors = getMarkerColor(position.label);
                 board.setMarker(position.string, position.fret, {
                     color: colors.fill,
                     borderColor: colors.border,

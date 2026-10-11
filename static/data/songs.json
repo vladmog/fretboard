@@ -1,0 +1,573 @@
+[
+  {
+    "id": "the-smiths-this-night-has-opened-my-eyes",
+    "title": "This Night Has Opened My Eyes",
+    "artist": "The Smiths",
+    "version": "Standard tuning \u00b7 No capo",
+    "referenceKey": "B",
+    "referenceScale": "natural_minor",
+    "analysisStatus": "Community transcription cross-checked for key; not independently transcribed from audio",
+    "notes": "B minor reference. Source-based harmonic outline of the standard-tuning, no-capo guitar transcription. Chord labels summarize the harmony; passing tones, exact guitar grips and rhythm are not reproduced. Roman numerals use major-relative accidentals. Section names are practice labels; the pre-chorus is also called a refrain in some analyses.",
+    "sources": [
+      {
+        "title": "Cifra Club \u2014 no-capo guitar transcription",
+        "url": "https://www.cifraclub.com/the-smiths/this-night-has-opened-my-eyes/kgtmkm.html"
+      },
+      {
+        "title": "Hooktheory \u2014 B minor key analysis",
+        "url": "https://api.hooktheory.com/theorytab/view/the-smiths/this-night-has-opened-my-eyes"
+      }
+    ],
+    "sections": [
+      {
+        "name": "Verse",
+        "notes": "Two passes through the verse pattern.",
+        "chords": [
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "F#",
+            "type": "min7",
+            "degree": "v7"
+          },
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "F#",
+            "type": "min7",
+            "degree": "v7"
+          },
+          {
+            "root": "G",
+            "type": "maj7",
+            "degree": "bVImaj7"
+          },
+          {
+            "root": "D",
+            "type": "maj7",
+            "degree": "bIIImaj7"
+          },
+          {
+            "root": "G",
+            "type": "maj7",
+            "degree": "bVImaj7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "F#",
+            "type": "min7",
+            "degree": "v7"
+          },
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "F#",
+            "type": "min7",
+            "degree": "v7"
+          },
+          {
+            "root": "G",
+            "type": "maj7",
+            "degree": "bVImaj7"
+          },
+          {
+            "root": "D",
+            "type": "maj7",
+            "degree": "bIIImaj7"
+          },
+          {
+            "root": "G",
+            "type": "maj7",
+            "degree": "bVImaj7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          }
+        ]
+      },
+      {
+        "name": "Pre-chorus / refrain",
+        "notes": "Sustained and repeated harmonies retained from the source.",
+        "chords": [
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "B",
+            "type": "min7",
+            "degree": "i7"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "B",
+            "type": "min7",
+            "degree": "i7"
+          },
+          {
+            "root": "B",
+            "type": "min7",
+            "degree": "i7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          }
+        ]
+      },
+      {
+        "name": "Chorus",
+        "notes": "Two passes, followed by the lead-out.",
+        "chords": [
+          {
+            "root": "G",
+            "type": "maj7",
+            "degree": "bVImaj7"
+          },
+          {
+            "root": "D",
+            "type": "maj7",
+            "degree": "bIIImaj7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "G",
+            "type": "maj",
+            "degree": "bVI"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "G",
+            "type": "maj7",
+            "degree": "bVImaj7"
+          },
+          {
+            "root": "D",
+            "type": "maj7",
+            "degree": "bIIImaj7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "G",
+            "type": "maj",
+            "degree": "bVI"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          }
+        ]
+      },
+      {
+        "name": "Chorus lead-out",
+        "notes": "Closing phrase before the return.",
+        "chords": [
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "D",
+            "type": "maj",
+            "degree": "bIII"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          }
+        ]
+      },
+      {
+        "name": "Outro cycle",
+        "notes": "Repeat this chorus-and-lead-out cycle for the ending.",
+        "chords": [
+          {
+            "root": "G",
+            "type": "maj7",
+            "degree": "bVImaj7"
+          },
+          {
+            "root": "D",
+            "type": "maj7",
+            "degree": "bIIImaj7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "G",
+            "type": "maj",
+            "degree": "bVI"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "G",
+            "type": "maj7",
+            "degree": "bVImaj7"
+          },
+          {
+            "root": "D",
+            "type": "maj7",
+            "degree": "bIIImaj7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "G",
+            "type": "maj",
+            "degree": "bVI"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "E",
+            "type": "min7",
+            "degree": "iv7"
+          },
+          {
+            "root": "D",
+            "type": "maj",
+            "degree": "bIII"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "khruangbin-august-10",
+    "title": "August 10",
+    "artist": "Khruangbin",
+    "version": "Bass-focused harmony study \u00b7 Standard tuning",
+    "referenceKey": "B",
+    "referenceScale": "natural_minor",
+    "analysisStatus": "Provisional source-based harmonic outline",
+    "notes": "B minor is a working reference supported by the recurring B-centered bass riff. The chord sections are accompaniment context for bass practice, not a bass transcription or an exact rhythmic score. The chorus harmony remains provisional because the guitar source has conflicting labels and fingering. Roman numerals use major-relative accidentals.",
+    "sources": [
+      {
+        "title": "Bass transcription \u2014 recurring riffs and section changes",
+        "url": "https://www.chords-and-tabs.net/song/name/khruangbin-august-10-2"
+      },
+      {
+        "title": "Community guitar transcription \u2014 chord sections and tuning",
+        "url": "https://www.chords-and-tabs.net/song/name/khruangbin-august-10"
+      },
+      {
+        "title": "Songparts \u2014 estimated B-minor reference",
+        "url": "https://songparts.com/songs/khruangbin/august-10"
+      }
+    ],
+    "sections": [
+      {
+        "name": "Verse",
+        "notes": "Two passes through the written chord pattern; repeated chord entries retained.",
+        "chords": [
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "G",
+            "type": "maj",
+            "degree": "bVI"
+          },
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "G",
+            "type": "maj",
+            "degree": "bVI"
+          },
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "B",
+            "type": "min",
+            "degree": "i"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          }
+        ]
+      },
+      {
+        "name": "Chorus \u2014 provisional",
+        "notes": "Uses the chart\u2019s chord headings. Its opening tab grip conflicts with the D label, so this section needs checking against the recording before treating it as definitive.",
+        "chords": [
+          {
+            "root": "D",
+            "type": "maj",
+            "degree": "bIII"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "E",
+            "type": "min",
+            "degree": "iv"
+          },
+          {
+            "root": "D",
+            "type": "maj",
+            "degree": "bIII"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "D",
+            "type": "maj",
+            "degree": "bIII"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "E",
+            "type": "min",
+            "degree": "iv"
+          },
+          {
+            "root": "D",
+            "type": "maj",
+            "degree": "bIII"
+          },
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "F#",
+            "type": "min",
+            "degree": "v"
+          }
+        ]
+      },
+      {
+        "name": "Bridge",
+        "notes": "Chord framework only; connecting melodic figures are omitted.",
+        "chords": [
+          {
+            "root": "A",
+            "type": "maj",
+            "degree": "bVII"
+          },
+          {
+            "root": "G",
+            "type": "maj",
+            "degree": "bVI"
+          },
+          {
+            "root": "F#",
+            "type": "min",
+            "degree": "v"
+          },
+          {
+            "root": "D",
+            "type": "maj7",
+            "degree": "bIIImaj7"
+          }
+        ]
+      }
+    ],
+    "bassStudy": {
+      "referenceNotes": [
+        "B",
+        "D",
+        "E",
+        "F#",
+        "A"
+      ],
+      "notes": "The bass transcription centers its recurring intro/chorus/outro riff on B and uses B-minor-pentatonic tones (B, D, E, F#, A). The later vocal section starts from A and uses A, E, F#, and D. These are bass-line observations, not proof that every bass note is a new chord root. Guitar and bass sources use different section names; the importable sections below retain the guitar chart\u2019s labels and remain a provisional harmonic map."
+    }
+  }
+]

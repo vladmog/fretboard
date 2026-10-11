@@ -1,3 +1,4 @@
+import { getMarkerColor } from '../static/js/app/marker-colors.js';
 import { getChordVoicings, getVoicingIntervals, inversionName } from '../static/js/core/chord-voicings.js';
 import { getShellIntervals } from '../static/js/core/shell-voicings.js';
 import assert from 'node:assert/strict';
@@ -26,7 +27,7 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
     const state = { mode: 'chord', instrument, root: 'E', chordType: 'min', showNoteNames: false };
     const tuning = instrument === 'bass' ? Theory.BASS_TUNING : Theory.STANDARD_TUNING;
     const bases = instrument === 'bass' ? Theory.BASS_STRING_MIDI_BASES : undefined;
-    const context = vm.createContext({
+    const context = vm.createContext({getMarkerColor,
         state, getTriadShapes, getChordVoicings, getVoicingIntervals, inversionName, getShellIntervals, Theory,
         getInstrumentTuning: () => tuning, getInstrumentMidiBases: () => bases,
         guide: JSON.parse(readFileSync(new URL('../static/data/harmony-guide.json', import.meta.url))),
