@@ -167,12 +167,10 @@ export const Games = (function() {
         if (backBtn) {
             backBtn.addEventListener('click', () => {
                 setAwaitingAdvance(false);
-                const modeRadio = document.querySelector(
-                    `input[name="mode"][value="${gameState.previousMode}"]`
-                );
-                if (modeRadio) {
-                    modeRadio.checked = true;
-                    modeRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                const modeSelect = document.getElementById('mode-select');
+                if (modeSelect) {
+                    modeSelect.value = gameState.previousMode;
+                    modeSelect.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             });
         }

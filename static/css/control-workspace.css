@@ -1,0 +1,122 @@
+/* Control workspace: one layout owner, sized to the panel rather than the device. */
+#controls-panel .mode-section {
+    container: workspace / inline-size;
+    display: block;
+    min-width: 0;
+    min-height: 0;
+    padding: 8px;
+    margin: 0;
+    border: 1px solid #c6ccd3;
+    border-radius: 8px;
+    background: #f7f8fa;
+    overflow: auto;
+}
+.mode-section .control-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    align-content: start;
+    color: #202630;
+    letter-spacing: 0;
+}
+#controls-panel .mode-section .mode-controls { display: contents; }
+.mode-section .mode-picker { grid-column: 1 / -1; min-width: 0; }
+#controls-panel .mode-section .mode-controls > * { grid-column: 1 / -1; grid-row: auto; min-width: 0; }
+#controls-panel .mode-section #root-group { grid-column: 1; grid-row: 2; }
+#controls-panel .mode-section #type-group { grid-column: 2; grid-row: 2; }
+#controls-panel .mode-section .control-group { margin: 0; }
+.mode-section .mode-picker > label,
+#controls-panel .mode-section .control-group > label,
+#controls-panel .mode-section .triad-filters > label {
+    display: block;
+    margin: 0 0 3px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.25;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #4c5663;
+}
+#controls-panel .mode-section select,
+#controls-panel .mode-section input[type="text"] {
+    width: 100%; min-width: 0; min-height: 34px;
+    padding: 5px 7px !important;
+    font: 14px/1.25 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+    letter-spacing: 0; color: #202630; background-color: #fff;
+    border: 1px solid #b9c1cb; border-radius: 5px;
+}
+#controls-panel .mode-section .btn,
+#controls-panel .mode-section .prog-nav-btn,
+#controls-panel .mode-section .radio-label,
+#controls-panel .mode-section .toggle-text {
+    min-height: 32px; min-width: 28px; padding: 5px 8px;
+    font-size: 12px; line-height: 1.25; letter-spacing: 0;
+    text-transform: none; border-radius: 5px;
+}
+.mode-section :is(button, select, input, summary):focus-visible,
+.mode-section .radio-label:has(input:focus-visible) { outline: 2px solid #2867c7; outline-offset: 2px; }
+#controls-panel .mode-section #type-group { display: grid !important; grid-template-columns: minmax(0, 1fr) auto; align-content: start; gap: 0 4px; }
+#controls-panel .mode-section #type-group > label { grid-column: 1 / -1; }
+#controls-panel .mode-section #type-group[style*="display: none"] { display: none !important; }
+#controls-panel .mode-section #type-group .btn { max-width: none; width: auto; margin: 0; }
+#controls-panel .mode-section #scale-chord-builder { grid-column: 1 / -1; grid-row: auto; }
+.mode-section .radio-group { flex-wrap: wrap; gap: 4px; overflow: visible; }
+.mode-section .radio-label { flex: 1 0 auto; margin: 0; border-width: 1px; }
+#controls-panel .mode-section #triad-shapes { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+#controls-panel .mode-section #triad-shapes .triad-toggle { display: flex; gap: 6px; align-items: center; min-height: 28px; margin: 0; color: #202630; }
+#controls-panel .mode-section .triad-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+#controls-panel .mode-section .triad-filters > label { margin: 0; }
+.mode-section .triad-filters select { margin-top: 3px !important; }
+#controls-panel .mode-section .triad-navigation { grid-column: 1 / -1; gap: 6px; }
+#controls-panel .mode-section .triad-caption { grid-column: 1 / -1; font-size: 12px; line-height: 1.3; }
+.mode-section .triad-preview summary { min-height: 28px; padding-block: 5px; color: #405a78; }
+.mode-section .triad-preview { border-top: 1px solid #d8dde4; }
+.mode-section .scale-chords-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 2px 4px; }
+.mode-section .progression-chords-list { grid-template-columns: minmax(0, 1fr); }
+.mode-section .scale-chord-item { min-height: 26px; min-width: 0; gap: 6px; padding: 2px 6px; border-radius: 4px; }
+.mode-section .scale-chord-item .numeral { width: auto; flex: 0 0 auto; letter-spacing: 0; }
+.mode-section .scale-chord-item .chord-name { flex: 0 0 auto; white-space: nowrap; overflow-wrap: normal; font-size: 12px; }
+.mode-section .interval-checkboxes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.mode-section .interval-check { min-width: 0; min-height: 32px; justify-content: center; }
+.mode-section .interval-check span { display: grid; place-items: center; width: 100%; min-width: 0; min-height: 32px; padding: 3px 2px; white-space: nowrap; }
+.mode-section .interval-check:has(input:focus-visible) { outline: 2px solid #2867c7; outline-offset: 2px; }
+#controls-panel .mode-section .interval-filter-actions .btn { flex: 0 0 auto; width: auto; min-width: max-content; white-space: nowrap; }
+@container workspace (min-width: 332px) {
+    .mode-section .interval-checkboxes { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+}
+.mode-section .find-results-list { max-height: none; }
+.mode-section .prog-builder-row { flex-wrap: wrap; }
+@container workspace (min-width: 340px) {
+    .mode-section .control-workspace { grid-template-columns: minmax(110px, 1fr) minmax(64px, .6fr) minmax(125px, 1.4fr); gap: 6px 8px; }
+    .mode-section .mode-picker { grid-column: 1; }
+    #controls-panel .mode-section #root-group { grid-column: 2; grid-row: 1; }
+    #controls-panel .mode-section #type-group { grid-column: 3; grid-row: 1; }
+    #controls-panel .mode-section .triad-navigation { grid-column: 1; }
+    #controls-panel .mode-section .triad-filters > .triad-caption { grid-column: 2; align-self: center; }
+}
+@container workspace (max-width: 230px) {
+    #controls-panel .mode-section .triad-filters { grid-template-columns: minmax(0, 1fr); }
+    #controls-panel .mode-section #root-group,
+    #controls-panel .mode-section #type-group { grid-column: 1 / -1; }
+    #controls-panel .mode-section #type-group { grid-row: 3; }
+}
+/* Short viewports keep the frequently used shape navigation in view. */
+@media (max-height: 500px) and (orientation: landscape) {
+    #controls-panel .mode-section { padding: 5px; }
+    .mode-section .control-workspace { gap: 4px 6px; }
+    #controls-panel .mode-section select { min-height: 28px; padding-block: 3px !important; font-size: 13px !important; }
+    #controls-panel .mode-section .btn { min-height: 28px; padding-block: 3px; }
+    #controls-panel .mode-section #triad-shapes { gap: 3px; }
+    #controls-panel .mode-section #triad-shapes .triad-toggle { min-height: 24px; }
+    #controls-panel .mode-section .triad-filters { gap: 3px 6px; }
+}
+#controls-panel .mode-section #triad-shapes svg { max-width: 12rem; margin-inline: auto; }
+
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 500px) and (max-width: 1100px) {
+    #controls-panel .mode-section :is(.btn, .prog-nav-btn, .radio-label, .toggle-text) {
+        min-height: 26px; min-width: 26px; padding: 2px 6px; font-size: 11px;
+    }
+    .mode-section .scale-chord-item { min-height: 24px; padding: 1px 5px; }
+    .mode-section .interval-check, .mode-section .interval-check span { min-height: 28px; }
+    .mode-section .interval-check span { padding: 2px; }
+}

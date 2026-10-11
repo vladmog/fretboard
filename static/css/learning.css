@@ -18,37 +18,15 @@
 .triad-caption { font-size: 0.75rem; line-height: 1.5; letter-spacing: 0; margin: 0; overflow-wrap: anywhere; }
 .triad-preview { min-width: 0; }
 #triad-shapes svg { display: block; width: 100%; height: auto; margin: 0 0 0.5rem; background: #f7f7f7; }
-@media (min-width: 1025px) {
-    .mode-controls:has(#triad-shapes input) #type-group { grid-column: 2; grid-row: 1; }
-}
+
 @media (max-width: 600px) {
     #triad-shapes { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 768px) {
     .scale-chord-item.has-function .numeral { width: 2rem; }
 }
-@media (min-width: 1025px) {
-    .mode-controls:has(#triad-shapes input) #type-group {
-        display: grid !important; /* Mode switching sets an inline display value. */
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 0.25rem 0.5rem;
-        align-items: stretch;
-    }
-    .mode-controls:has(#triad-shapes input) #type-group > label { grid-column: 1 / -1; }
-    .mode-controls:has(#triad-shapes input) #type-group .btn { margin: 0; padding: 0.5rem; white-space: normal; max-width: 6rem; }
-    .triad-filters > label { grid-template-columns: 5.5rem minmax(0, 1fr); align-items: center; }
-    #triad-shapes svg { max-width: 11rem; margin-inline: auto; }
-}
-@media (min-width: 1025px) {
-    .mode-section:has(#triad-shapes input) {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        align-content: start;
-        column-gap: 1rem;
-    }
-    .mode-section:has(#triad-shapes input) > .mode-toggle,
-    .mode-section:has(#triad-shapes input) > .mode-controls { grid-column: 1 / -1; }
-}
+
+
 .triad-preview summary { cursor: pointer; font-size: 0.75rem; margin-bottom: 0.375rem; }
 @media (pointer: coarse) and (max-width: 1100px) {
     .mode-panel-title { display: none; }
@@ -86,9 +64,6 @@
     #info-panel .info-grid-description { font-size: 0.625rem; line-height: 1.2; margin-top: 0.125rem; }
     #info-panel .chromatic-circle { position: relative; flex: 1 1 0; min-height: 0; margin-top: 0.125rem; }
     #info-panel .chromatic-circle svg { position: absolute; width: 100%; height: 100%; inset: 0; }
-    .mode-section:has(#triad-shapes input) #type-group { display: grid !important; grid-template-columns: minmax(0, 1fr) auto; gap: 0.25rem; }
-    .mode-section:has(#triad-shapes input) #type-group > label { grid-column: 1 / -1; }
-    .mode-section:has(#triad-shapes input) #type-group .btn { max-width: 5rem; padding: 0.25rem; margin: 0; white-space: normal; }
     #triad-shapes .triad-navigation { grid-column: 1; }
     #triad-shapes .triad-filters > .triad-caption { grid-column: 2; align-self: center; }
 }

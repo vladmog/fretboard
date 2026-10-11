@@ -1,3 +1,4 @@
+import { preserveScrollPosition } from './scroll-position.js';
 /**
  * Chord List
  * The persistent chord list panel and the scale-chords button strip.
@@ -14,6 +15,9 @@ import { relocateAddButton } from './controls.js';
  * Render the chord list UI
  */
 export function renderChordList() {
+    return preserveScrollPosition(document.getElementById('chord-list-items'), renderChordListContent);
+}
+function renderChordListContent() {
     const listEl = document.getElementById('chord-list-items');
     if (!listEl) return;
 
@@ -110,6 +114,9 @@ export function clearChordList() {
  * Render scale chord builder
  */
 export function renderScaleChords() {
+    return preserveScrollPosition(document.getElementById('scale-chords'), renderScaleChordsContent);
+}
+function renderScaleChordsContent() {
     const container = document.getElementById('scale-chords');
     if (!container) return;
 

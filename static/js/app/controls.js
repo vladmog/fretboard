@@ -222,7 +222,9 @@ export function relocateAddButton(mode) {
     }
 
     // Update button text for prog mode
-    btn.textContent = mode === 'prog' ? 'Add Chord to Chord List' : 'Add to Chord List';
+    btn.textContent = mode === 'prog' ? 'Add chord to list' : '+ Add';
+    btn.setAttribute('aria-label', 'Add to chord list');
+    btn.title = 'Add to chord list';
 
     if (target) {
         target.appendChild(btn);

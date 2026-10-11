@@ -1,3 +1,4 @@
+import { preserveScrollPosition } from './scroll-position.js';
 /**
  * Progression Mode UI
  * Prog sub-modes (play/create/edit): the roman-numeral builder,
@@ -110,6 +111,9 @@ export function renderProgSubModeUI() {
     }
 }
 export function renderBuilderRows() {
+    return preserveScrollPosition(document.getElementById('prog-builder-rows'), renderBuilderRowsContent);
+}
+function renderBuilderRowsContent() {
     const container = document.getElementById('prog-builder-rows');
     if (!container) return;
     container.innerHTML = '';
@@ -483,6 +487,9 @@ export function addProgressionToChordList() {
  * Render progression chords for prog mode
  */
 export function renderProgressionChords() {
+    return preserveScrollPosition(document.getElementById('scale-chords'), renderProgressionChordsContent);
+}
+function renderProgressionChordsContent() {
     const container = document.getElementById('scale-chords');
     if (!container) return;
 
@@ -513,7 +520,7 @@ export function renderProgressionChords() {
 
     container.innerHTML = '';
     const chordsRow = document.createElement('div');
-    chordsRow.className = 'scale-chords-list';
+    chordsRow.className = 'scale-chords-list progression-chords-list';
 
     const keyRootIndex = MusicTheory.getNoteIndex(state.root);
 

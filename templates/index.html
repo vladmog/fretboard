@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dev-panel.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/learning.css') }}?v=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/control-workspace.css') }}?v=2">
 </head>
 <body>
     <div class="app-container">
@@ -24,46 +25,20 @@
             <div class="controls-scroll-area">
             <!-- Mode Section: groups mode toggle with dependent controls -->
             <div class="mode-section">
-                <div class="mode-panel-title">Fretboard</div>
-                <div class="mode-toggle">
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="mode" value="scale" checked>
-                            Scale
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="mode" value="chord">
-                            Chord
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="mode" value="interval">
-                            Interval
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="mode" value="caged">
-                            CAGED
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="mode" value="modes">
-                            Modes
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="mode" value="prog">
-                            Prog
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="mode" value="f.chord">
-                            f.chord
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="mode" value="f.scale">
-                            f.scale
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="mode" value="games">
-                            Games
-                        </label>
-                    </div>
+                <div class="control-workspace">
+                <div class="mode-picker">
+                    <label for="mode-select">Explore</label>
+                    <select id="mode-select">
+                        <option value="scale">Scales</option>
+                        <option value="chord">Chords</option>
+                        <option value="interval">Intervals</option>
+                        <option value="caged">CAGED shapes</option>
+                        <option value="modes">Modes</option>
+                        <option value="prog">Progressions</option>
+                        <option value="f.chord">Find chord</option>
+                        <option value="f.scale">Find scale</option>
+                        <option value="games">Games</option>
+                    </select>
                 </div>
                 <div class="mode-controls">
                     <div id="root-group" class="control-group">
@@ -246,6 +221,8 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
             </div>
 
             <div class="control-group">

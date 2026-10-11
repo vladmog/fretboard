@@ -1,3 +1,4 @@
+import { preserveScrollPosition } from './scroll-position.js';
 /**
  * Find Mode (f.chord / f.scale)
  * Tap-the-fretboard note entry and matching chord/scale results.
@@ -107,6 +108,9 @@ export function displayFindMarkers() {
  * Render find results list UI
  */
 export function renderFindResults() {
+    return preserveScrollPosition(document.getElementById('find-results-list'), renderFindResultsContent);
+}
+function renderFindResultsContent() {
     const listEl = document.getElementById('find-results-list');
     if (!listEl) return;
 
@@ -219,6 +223,9 @@ export function clearFindMarkers() {
  * Uses the selected find result scale to populate diatonic chords
  */
 export function renderFindScaleChords() {
+    return preserveScrollPosition(document.getElementById('scale-chords'), renderFindScaleChordsContent);
+}
+function renderFindScaleChordsContent() {
     const builderSection = document.getElementById('scale-chord-builder');
     const container = document.getElementById('scale-chords');
     if (!builderSection || !container) return;

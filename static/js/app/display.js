@@ -1,3 +1,4 @@
+import { preserveScrollPosition } from './scroll-position.js';
 /**
  * Display Rendering
  * All fretboard/info-panel renderers and the updateDisplay() hub that
@@ -700,6 +701,9 @@ export function updateInfoPanel(info) {
  * Update display based on current state
  */
 export function updateDisplay() {
+    return preserveScrollPosition(document.getElementById('triad-shapes'), updateDisplayContent);
+}
+function updateDisplayContent() {
     const triadPanel = document.getElementById('triad-shapes');
     if (triadPanel) triadPanel.style.display = 'none';
     if (state.selectedChordIndex >= 0 && state.selectedChordIndex < state.chordList.length) {

@@ -18,7 +18,8 @@ import { setMode, updateTypeDropdown } from './controls.js';
  * Initialize event listeners
  */
 export function initEventListeners({ onInstrumentChange } = {}) {
-    const cagedRadio = document.querySelector('input[name="mode"][value="caged"]');
+    const modeSelect = document.getElementById('mode-select');
+    const cagedRadio = modeSelect.querySelector('option[value="caged"]');
     const syncCagedAvailability = () => {
         if (!cagedRadio) return;
         const disabled = state.instrument === 'bass';
@@ -40,11 +41,8 @@ export function initEventListeners({ onInstrumentChange } = {}) {
             syncCagedAvailability();
 
             if (state.instrument === 'bass' && state.mode === 'caged') {
-                const scaleRadio = document.querySelector('input[name="mode"][value="scale"]');
-                if (scaleRadio) {
-                    scaleRadio.checked = true;
-                    scaleRadio.dispatchEvent(new Event('change', { bubbles: true }));
-                }
+                modeSelect.value = 'scale';
+                modeSelect.dispatchEvent(new Event('change', { bubbles: true }));
             }
 
             onInstrumentChange?.();
@@ -52,13 +50,9 @@ export function initEventListeners({ onInstrumentChange } = {}) {
     });
     syncCagedAvailability();
 
-    // Mode toggle (scale/chord)
-    const modeRadios = document.querySelectorAll('input[name="mode"]');
-    modeRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            setMode(e.target.value);
-        });
-    });
+    // One native picker exposes every mode at every panel width.
+    modeSelect.value = state.mode;
+    modeSelect.addEventListener('change', e => setMode(e.target.value));
 
     // Root note selector
     const rootSelect = document.getElementById('root-note');

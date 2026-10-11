@@ -63,7 +63,8 @@ export function renderTriadControls(chord, refresh) {
     if (key !== previousKey) { index = 0; previousKey = key; }
     const title = element('label', null, 'triad-toggle');
     const checkbox = element('input'); checkbox.type = 'checkbox'; checkbox.checked = enabled;
-    checkbox.addEventListener('change', () => { enabled = checkbox.checked; index = 0; refresh(); });
+    // Toggling changes the view, not the selected filters or voicing.
+    checkbox.addEventListener('change', () => { enabled = checkbox.checked; refresh(); });
     title.append(checkbox, document.createTextNode('Triad inversions')); panel.appendChild(title);
     if (!enabled) return null;
     const all = getTriadShapes(chord, getInstrumentTuning(), getInstrumentMidiBases());
