@@ -1,3 +1,4 @@
+import { getChordScaleContext, drawChordScaleBackground } from './chord-scale-context.js';
 import { bindFretboardGestures } from './fretboard-gestures.js';
 /** Independent chord comparisons; the main workspace stays intact. */
 import * as Theory from '../core/music-theory.js';
@@ -65,11 +66,13 @@ function renderBoards() {
             const description = shape
                 ? `${item.shapeIndex + 1}/${shapes.length} · ${guide.inversions[shape.inversion]} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`
                 : 'All chord notes';
-            caption.textContent = `${item.referenceKey ? `Key ${item.referenceKey}` : 'Key not set'} · ${description}`;
+            caption.textContent = `${item.referenceKey ? `Key ${item.referenceKey} ${Theory.SCALES[item.referenceScale]?.name || '(scale not set)'}` : 'Key not set'} · ${description}`;
             host.querySelector('svg').setAttribute('aria-label', `${chord.symbol}, ${description}`);
             board.clearMarkers();
             const positions = shape ? shape.positions
                 : Theory.getNotesOnFretboard(chord.noteToInterval, 15, chord.root, tuning);
+            const context = getChordScaleContext(chord, item.referenceKey, state.chordScaleDegrees, item.referenceScale);
+            drawChordScaleBackground(board, context, positions, tuning, state.showNoteNames);
             for (const position of positions) {
                 const colors = Theory.getIntervalColor(position.label);
                 const isRoot = position.label === '1';
@@ -77,7 +80,7 @@ function renderBoards() {
                     color: shape ? guide.triadColors[chord.intervals.indexOf(position.label)] : (isRoot ? '#000' : colors.fill),
                     borderColor: shape ? '#222' : (isRoot ? '#000' : colors.border),
                     textColor: shape ? '#000' : (isRoot ? '#fff' : colors.text),
-                    text: state.showNoteNames ? chord.noteSpelling[position.noteIndex] : position.label
+                    text: state.showNoteNames ? chord.noteSpelling[position.noteIndex] : (context?.noteToDegree[position.noteIndex] ?? position.label)
                 });
             }
         };

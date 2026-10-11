@@ -1,3 +1,4 @@
+import { getChordScaleContext, drawChordScaleBackground } from './chord-scale-context.js';
 import * as MusicTheory from '../core/music-theory.js';
 import * as RotationToggle from './rotation-toggle.js';
 import { state, getInstrumentTuning } from './state.js';
@@ -16,13 +17,15 @@ export function renderChordFretboard(chord, refresh) {
         chord.root, getInstrumentTuning()
     );
 
+    const context = getChordScaleContext(chord, state.chordReferenceKey, state.mode === 'chord' && state.chordScaleDegrees, state.chordReferenceScale);
+    drawChordScaleBackground(state.fretboard, context, positions, getInstrumentTuning(), state.showNoteNames);
     for (const pos of positions) {
         const colors = MusicTheory.getIntervalColor(pos.label);
         const isRoot = pos.label === '1';
         state.fretboard.setMarker(pos.string, pos.fret, {
             color: triad ? guide.triadColors[chord.intervals.indexOf(pos.label)] : (isRoot ? '#000' : colors.fill),
             borderColor: triad ? '#222' : colors.border,
-            text: state.showNoteNames ? chord.noteSpelling[pos.noteIndex] || MusicTheory.getNoteName(pos.noteIndex, false) : pos.label,
+            text: state.showNoteNames ? chord.noteSpelling[pos.noteIndex] || MusicTheory.getNoteName(pos.noteIndex, false) : (context?.noteToDegree[pos.noteIndex] ?? pos.label),
             textColor: triad ? '#000' : (isRoot ? '#fff' : colors.text)
         });
     }
@@ -33,7 +36,9 @@ export function renderChordFretboard(chord, refresh) {
     return {
         title: triad?.bass ? `${chord.symbol} · ${guide.inversions[triad.inversion]}` : chord.symbol,
         notes: chord.notes,
-        intervals: chord.intervals,
-        noteToInterval: chord.noteToInterval
+        intervals: context ? Object.keys(chord.noteToInterval).map(Number).sort((a,b) =>
+            (a - MusicTheory.getNoteIndex(chord.root) + 12) % 12 - (b - MusicTheory.getNoteIndex(chord.root) + 12) % 12
+        ).map(note => context.noteToDegree[note]) : chord.intervals,
+        noteToInterval: context?.noteToDegree ?? chord.noteToInterval
     };
 }

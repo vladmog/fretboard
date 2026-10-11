@@ -39,7 +39,7 @@ test('progression selection and deselection keep a scrolled control panel in pla
     const context = vm.createContext({
         preserveScrollPosition, state,
         document: { getElementById: id => id === 'scale-chords' ? container : null, createElement: () => new Element() },
-        MusicTheory: { getNoteIndex: () => 0 },
+        MusicTheory: { SCALES: {}, getNoteIndex: () => 0 },
         ChordProgressions: {
             flatIndexToCategory: () => ({ categoryIndex: 0, progressionIndex: 0 }),
             buildProgressionChords: () => chords,

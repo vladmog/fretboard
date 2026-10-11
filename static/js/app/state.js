@@ -16,6 +16,9 @@ export const state = {
     root: 'C',
     scaleType: 'major',
     chordType: 'maj',
+    chordScaleDegrees: false,
+    chordReferenceScale: null,
+    builderReferenceScale: 'major',
     chordReferenceKey: null, // Key context, distinct from the chord root
     modeType: 'ionian',    // Selected mode in 'modes' mode
     cagedShape: 'all',      // 'all', 'C', 'A', 'G', 'E', or 'D'
@@ -74,7 +77,9 @@ export function loadChordList() {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
             // Additive migration: old entries have no recoverable key context.
-            state.chordList = JSON.parse(saved).map(item => ({ referenceKey: null, ...item }));
+            state.chordList = JSON.parse(saved).map(item => ({ referenceKey: null, referenceScale: null, ...item }));
+            const scales = new Set(state.chordList.map(item => item.referenceScale));
+            state.chordReferenceScale = scales.size === 1 ? [...scales][0] : null;
             const keys = new Set(state.chordList.map(item => item.referenceKey));
             state.chordReferenceKey = keys.size === 1 ? [...keys][0] : null;
         }
@@ -99,9 +104,13 @@ export function getProgressionKey(flatIndex) {
     if (!cat) return null;
     const prog = cat.progressions[progressionIndex];
     if (!prog) return null;
-    return cat.name + '|' + prog.numerals;
+    return prog.id || cat.name + '|' + prog.numerals;
 }
 function favKeyToFlatIndex(key) {
+    let index = 0;
+    for (const cat of ChordProgressions.PROGRESSION_CATEGORIES) {
+        for (const prog of cat.progressions) { if (prog.id === key) return index; index++; }
+    }
     const sep = key.indexOf('|');
     if (sep < 0) return -1;
     const catName = key.substring(0, sep);
@@ -136,7 +145,7 @@ export function saveFavorites() {
 export function loadUserProgressions() {
     try {
         const saved = localStorage.getItem(USER_PROGRESSIONS_STORAGE_KEY);
-        if (saved) state.userProgressions = JSON.parse(saved).map(prog => ({ referenceKey: null, ...prog }));
+        if (saved) state.userProgressions = JSON.parse(saved).map(prog => ({ referenceKey: null, referenceScale: null, ...prog }));
     } catch (e) {
         state.userProgressions = [];
     }

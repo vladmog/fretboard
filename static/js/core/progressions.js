@@ -2,14 +2,14 @@
  * Chord Progressions Module
  * Data and parsing for Roman numeral chord progressions
  *
- * Data source: chord_progressions.md → static/data/progressions.json
+ * Data source: static/data/progressions.json (explicit scale-bound catalog)
  */
 
 import * as MusicTheory from './music-theory.js';
 
-// Progression data: 16 categories, ~162 progressions, loaded from
+// Progression data: mood-based, scale-bound entries loaded from
 // static/data/progressions.json.
-// Each category: { name, progressions: [{ numerals, description, chords }] }
+// Each entry includes a stable id, referenceScale, and major-relative numeralBasis.
 // Top-level await: the module graph (and therefore app init) waits for the
 // data, so consumers always see it fully populated. On failure the app still
 // loads; prog mode is just empty.
@@ -193,7 +193,8 @@ function buildProgressionChords(categoryIndex, progressionIndex, key) {
                 root: parsed.root,
                 type: parsed.type,
                 symbol: symbol,
-                numeral: parsed.numeral
+                numeral: parsed.numeral,
+                referenceScale: progression.referenceScale
             });
         }
     }

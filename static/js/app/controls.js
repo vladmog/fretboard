@@ -110,7 +110,7 @@ export function updateTypeDropdown() {
                 const prog = cat.progressions[progressionIndex];
                 const option = document.createElement('option');
                 option.value = 'fav-' + flatIdx;
-                option.textContent = prog.numerals;
+                option.textContent = prog.numerals + ` · ${MusicTheory.SCALES[prog.referenceScale]?.name || 'Scale not set'}`;
                 if (state.browsingFavorites && flatIdx === state.progressionIndex) {
                     option.selected = true;
                 }
@@ -126,7 +126,7 @@ export function updateTypeDropdown() {
             state.userProgressions.forEach(prog => {
                 const option = document.createElement('option');
                 option.value = 'user-' + prog.id;
-                option.textContent = prog.numerals + (prog.referenceKey ? ` · Key ${prog.referenceKey}` : '');
+                option.textContent = prog.numerals + (prog.referenceKey ? ` · ${prog.referenceKey}` : '') + ` · ${MusicTheory.SCALES[prog.referenceScale]?.name || 'Scale not set'}`;
                 if (state._selectedUserProgId === prog.id) {
                     option.selected = true;
                 }
@@ -146,7 +146,7 @@ export function updateTypeDropdown() {
                 const prog = cat.progressions[pi];
                 const option = document.createElement('option');
                 option.value = flatIdx;
-                option.textContent = prog.numerals;
+                option.textContent = prog.numerals + ` · ${MusicTheory.SCALES[prog.referenceScale]?.name || 'Scale not set'}`;
                 if (!state.browsingFavorites && flatIdx === state.progressionIndex) {
                     option.selected = true;
                 }

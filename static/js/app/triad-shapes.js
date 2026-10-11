@@ -7,7 +7,6 @@ let enabled = false;
 let stringSet = 'all';
 let inversion = 'all';
 let index = 0;
-let previousKey = '';
 
 function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -59,8 +58,6 @@ export function renderTriadControls(chord, refresh) {
     const panel = document.getElementById('triad-shapes');
     if (!panel || state.mode !== 'chord' || !['maj', 'min', 'dim'].includes(chord.type)) return null;
     panel.style.display = 'grid'; panel.replaceChildren();
-    const key = `${chord.root}|${chord.type}|${state.instrument}`;
-    if (key !== previousKey) { index = 0; previousKey = key; }
     const title = element('label', null, 'triad-toggle');
     const checkbox = element('input'); checkbox.type = 'checkbox'; checkbox.checked = enabled;
     // Toggling changes the view, not the selected filters or voicing.

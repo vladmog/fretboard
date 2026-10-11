@@ -1,3 +1,4 @@
+import { preserveLegacyFavorites } from './app/catalog-migration.js';
 import { initChordKey } from './app/chord-key.js';
 import { initTriadComparison } from './app/triad-comparison.js';
 /**
@@ -26,11 +27,12 @@ if (window.navigator.standalone === true) {
 /**
  * Initialize the application
  */
-function init() {
+async function init() {
     // Load persisted data
     loadChordList();
     loadFavorites();
     loadUserProgressions();
+    await preserveLegacyFavorites();
 
     // Initialize fretboard
     const container = document.getElementById('fretboard-panel');

@@ -7,10 +7,24 @@ export function syncChordKey() {
     if (panel) panel.hidden = state.mode !== 'chord';
     const select = document.getElementById('chord-reference-key');
     if (select) select.value = state.chordReferenceKey || '';
+    const toggle = document.getElementById('chord-scale-degrees');
+    if (toggle) {
+        toggle.checked = state.chordScaleDegrees;
+        toggle.disabled = !state.chordReferenceKey || !state.chordReferenceScale;
+    }
+    const scaleSelect = document.getElementById('chord-reference-scale');
+    if (scaleSelect) scaleSelect.value = state.chordReferenceScale || '';
+    const hint = document.getElementById('chord-scale-hint');
+    if (hint) hint.textContent = state.chordReferenceKey && state.chordReferenceScale
+        ? `${state.chordReferenceKey} ${Theory.SCALES[state.chordReferenceScale]?.name} · Colors follow the chord`
+        : 'Set a reference key and scale to show scale degrees';
 
 }
 
 export function restoreProgressionKey(progression) {
+    state.builderReferenceScale = progression?.referenceScale || null;
+    const scaleSelect = document.getElementById('prog-reference-scale');
+    if (scaleSelect) scaleSelect.value = state.builderReferenceScale || '';
     if (!progression?.referenceKey) return;
     state.root = progression.referenceKey;
     const root = document.getElementById('root-note');
@@ -18,6 +32,22 @@ export function restoreProgressionKey(progression) {
 }
 
 export function initChordKey(refresh) {
+    for (const [id, field] of [['chord-reference-scale', 'chordReferenceScale'], ['prog-reference-scale', 'builderReferenceScale']]) {
+        const select = document.getElementById(id);
+        for (const [type, scale] of Object.entries(Theory.SCALES).filter(([, scale]) => scale.intervals.length === 7)) {
+            const option = document.createElement('option');
+            option.value = type; option.textContent = scale.name; select.appendChild(option);
+        }
+        select.value = state[field] || '';
+        select.addEventListener('change', () => {
+            state[field] = select.value || null;
+            if (field === 'chordReferenceScale') {
+                const item = state.chordList[state.selectedChordIndex];
+                if (item) { item.referenceScale = state[field]; saveChordList(); }
+            }
+            refresh();
+        });
+    }
     const select = document.getElementById('chord-reference-key');
     for (const name of Theory.CHROMATIC_NOTES) {
         const option = document.createElement('option');
@@ -37,6 +67,10 @@ export function initChordKey(refresh) {
             item.referenceKey = state.chordReferenceKey;
             saveChordList();
         }
+        refresh();
+    });
+    document.getElementById('chord-scale-degrees').addEventListener('change', event => {
+        state.chordScaleDegrees = event.target.checked;
         refresh();
     });
     syncChordKey();

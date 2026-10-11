@@ -84,6 +84,10 @@
                     <div id="chord-key" class="control-group" hidden>
                         <label for="chord-reference-key">Reference key</label>
                         <select id="chord-reference-key"><option value="">Not set</option></select>
+                        <label for="chord-reference-scale">Reference scale</label>
+                        <select id="chord-reference-scale"><option value="">Not set</option></select>
+                        <label class="chord-scale-toggle"><input type="checkbox" id="chord-scale-degrees"> Scale-relative degrees</label>
+                        <small id="chord-scale-hint">Set a reference key to show scale degrees</small>
                     </div>
                     <button id="compare-chords" class="btn" type="button" hidden>Compare chords</button>
                     <div id="triad-shapes" class="control-group" style="display: none;"></div>
@@ -209,6 +213,8 @@
 
                     <div id="prog-builder" class="control-group" style="display: none;">
                         <label>Build Progression</label>
+                        <label for="prog-reference-scale">Reference scale</label>
+                        <select id="prog-reference-scale" required><option value="">Not set</option></select>
                         <div id="prog-builder-rows"></div>
                         <div class="prog-builder-actions">
                             <button id="prog-builder-add-row" class="btn btn-sm">+</button>

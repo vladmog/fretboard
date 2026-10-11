@@ -1,3 +1,4 @@
+import { getProgressionScale } from './progression-context.js';
 import { restoreProgressionKey } from './chord-key.js';
 import { preserveScrollPosition } from './scroll-position.js';
 /**
@@ -236,6 +237,10 @@ function updateBuilderReadout(rowEl, idx) {
 }
 export function saveProgression() {
     if (state.builderRows.length === 0) return;
+    if (!state.builderReferenceScale) {
+        document.getElementById('prog-reference-scale')?.reportValidity();
+        return;
+    }
 
     const chords = state.builderRows.map(buildTokenFromRow);
     const numerals = chords.join(' \u2013 ');
@@ -249,6 +254,7 @@ export function saveProgression() {
             prog.description = description;
             prog.chords = chords;
             prog.referenceKey = state.root;
+            prog.referenceScale = state.builderReferenceScale;
             state._selectedUserProgId = prog.id;
         }
     } else {
@@ -257,6 +263,7 @@ export function saveProgression() {
         state.userProgressions.push({
             id: state._selectedUserProgId,
             referenceKey: state.root,
+            referenceScale: state.builderReferenceScale,
             numerals: numerals,
             description: description,
             chords: chords
@@ -483,9 +490,10 @@ export function addProgressionToChordList() {
         chords = ChordProgressions.buildProgressionChords(categoryIndex, progressionIndex, state.root);
     }
     state.chordReferenceKey = state.root;
+    state.chordReferenceScale = getProgressionScale();
     chords.forEach(chord => {
         const built = MusicTheory.buildChord(chord.root, chord.type);
-        state.chordList.push({ root: chord.root, type: chord.type, symbol: built.symbol, referenceKey: state.root });
+        state.chordList.push({ root: chord.root, type: chord.type, symbol: built.symbol, referenceKey: state.root, referenceScale: getProgressionScale() });
     });
     saveChordList();
     renderChordList();
@@ -526,6 +534,9 @@ function renderProgressionChordsContent() {
     }
 
     container.innerHTML = '';
+    const contextLabel = document.createElement('p');
+    contextLabel.className = 'triad-caption';
+    contextLabel.textContent = `${state.root} · ${MusicTheory.SCALES[progression?.referenceScale]?.name || 'Reference scale not set'}`;
     const chordsRow = document.createElement('div');
     chordsRow.className = 'scale-chords-list progression-chords-list';
 
@@ -562,6 +573,7 @@ function renderProgressionChordsContent() {
     });
 
     container.appendChild(chordsRow);
+    container.appendChild(contextLabel);
     relocateAddButton(state.mode);
 
     // Update info panel based on selection state

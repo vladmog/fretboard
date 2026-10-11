@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import * as Theory from '../static/js/core/music-theory.js';
+import { getChordScaleContext, drawChordScaleBackground } from '../static/js/app/chord-scale-context.js';
 import { getTriadShapes } from '../static/js/core/triads.js';
 
 for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${enabled}`, () => {
@@ -16,7 +17,7 @@ for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${
     const boards = [];
     const gestures = [];
     const context = vm.createContext({
-        bindFretboardGestures: (_, __, advance) => gestures.push(advance), applyCurrentRotation() {}, Theory, getTriadShapes, state: { showNoteNames: false },
+        getChordScaleContext, drawChordScaleBackground, bindFretboardGestures: (_, __, advance) => gestures.push(advance), applyCurrentRotation() {}, Theory, getTriadShapes, state: { showNoteNames: false },
         guide: JSON.parse(readFileSync(new URL('../static/data/harmony-guide.json', import.meta.url))),
         getInstrumentTuning: () => Theory.STANDARD_TUNING,
         getInstrumentMidiBases: () => undefined,

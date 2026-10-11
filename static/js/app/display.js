@@ -1,3 +1,4 @@
+import { getProgressionScale } from './progression-context.js';
 import { syncMainFretboardGestures } from './main-fretboard-gestures.js';
 import { preserveScrollPosition } from './scroll-position.js';
 /**
@@ -742,12 +743,13 @@ function updateDisplayContent() {
             displayScale(scale);
         }
     } else if (state.mode === 'prog') {
-        const scale = MusicTheory.buildScale(state.root, 'major');
+        const referenceScale = getProgressionScale();
+        const scale = referenceScale ? MusicTheory.buildScale(state.root, referenceScale) : null;
         if (state.activeScaleChord) {
             const chord = MusicTheory.buildChord(state.activeScaleChord.root, state.activeScaleChord.type);
-            displayScaleChord(chord, scale);
+            if (scale) displayScaleChord(chord, scale); else displayChord(chord);
         } else {
-            displayScale(scale);
+            if (scale) displayScale(scale); else state.fretboard?.clearMarkers();
             // Restore progression info panel (displayScale overwrites it)
             if (state._selectedUserProgId) {
                 const userProg = state.userProgressions.find(p => p.id === state._selectedUserProgId);

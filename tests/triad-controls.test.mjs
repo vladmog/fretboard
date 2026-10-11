@@ -67,4 +67,18 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
         assert.equal(state.root, 'C');
         assert.equal(state.chordType, 'maj');
     }
+    select('Inversion', 'all');
+    panel.querySelectorAll('button').find(node => node.textContent === 'Next').fire('click');
+    // Chord changes retain the ordinal selection, clamped to the new result count.
+    for (const [root, type] of [['G', 'maj'], ['A', 'min'], ['B', 'dim'], ['C', 'maj']]) {
+        const priorIndex = context.getTriadPreferences().index;
+        state.root = root; state.chordType = type; refresh();
+        const matches = getTriadShapes(Theory.buildChord(root, type), tuning, bases)
+            .filter(s => s.strings === '3-2-1');
+        assert.ok(matches.length);
+        const expected = Math.min(priorIndex, matches.length - 1);
+        assert.equal(context.getTriadPreferences().index, expected, `${root} ${type} must preserve shape index`);
+        assert.equal(JSON.stringify(shape), JSON.stringify(matches[expected]));
+        assert.deepEqual(panel.querySelectorAll('select').map(node => node.value), ['3-2-1', 'all']);
+    }
 });
