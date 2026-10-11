@@ -1,3 +1,4 @@
+import { positionCircle } from './circle-order.js';
 import { getMarkerColor } from './marker-colors.js';
 import { getProgressionScale } from './progression-context.js';
 import { syncMainFretboardGestures } from './main-fretboard-gestures.js';
@@ -501,6 +502,8 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
             const a1 = (from * 30 - 90) * Math.PI / 180;
             const a2 = (to * 30 - 90) * Math.PI / 180;
             const line = document.createElementNS(ns, 'line');
+            line.dataset.orbitFrom = from;
+            line.dataset.orbitTo = to;
             line.setAttribute('x1', cx + lineRadius * Math.cos(a1));
             line.setAttribute('y1', cy + lineRadius * Math.sin(a1));
             line.setAttribute('x2', cx + lineRadius * Math.cos(a2));
@@ -515,6 +518,8 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
         const dotRadius = (1.5 * 5) / 2; // diameter = 5x line thickness
         const dotDist = lineRadius - dotRadius;
         const dot = document.createElementNS(ns, 'circle');
+        dot.dataset.orbitNote = rootIndex;
+        dot.dataset.orbitRadius = dotDist;
         dot.setAttribute('cx', cx + dotDist * Math.cos(rootAngle));
         dot.setAttribute('cy', cy + dotDist * Math.sin(rootAngle));
         dot.setAttribute('r', dotRadius);
@@ -532,6 +537,8 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
         const isPlainMarker = isPlainMode && plainMarkerNotes.has(i);
 
         const circle = document.createElementNS(ns, 'circle');
+        circle.dataset.orbitNote = i;
+        circle.dataset.orbitRadius = radius;
         circle.setAttribute('cx', x);
         circle.setAttribute('cy', y);
         circle.setAttribute('r', noteRadius);
@@ -566,6 +573,8 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
         svg.appendChild(circle);
 
         const text = document.createElementNS(ns, 'text');
+        text.dataset.orbitNote = i;
+        text.dataset.orbitRadius = radius;
         text.setAttribute('x', x);
         text.setAttribute('y', y);
         text.setAttribute('text-anchor', 'middle');
@@ -598,6 +607,8 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
             const lx = cx + ilRadius * Math.cos(angle);
             const ly = cy + ilRadius * Math.sin(angle);
             const label = document.createElementNS(ns, 'text');
+            label.dataset.orbitNote = i;
+            label.dataset.orbitRadius = ilRadius;
             label.setAttribute('x', lx);
             label.setAttribute('y', ly);
             label.setAttribute('text-anchor', 'middle');
@@ -611,6 +622,7 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
             svg.appendChild(label);
         }
     }
+    positionCircle(svg);
 }
 /**
  * Update the info panel with current selection details

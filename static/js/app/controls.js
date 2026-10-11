@@ -1,3 +1,4 @@
+import { showFifthsMode, hideFifthsMode } from './fifths-mode.js';
 import { saveFindSession, restoreFindSession } from '../core/find-session.js';
 import { initSongCreator } from './song-creator.js';
 import { syncChordKey } from './chord-key.js';
@@ -247,6 +248,15 @@ export function relocateAddButton(mode) {
  * @param {string} mode - 'scale', 'chord', 'interval', or 'caged'
  */
 export function setMode(mode) {
+    if (mode === 'fifths') {
+        const previous = state.mode;
+        showFifthsMode(() => {
+            hideFifthsMode();
+            document.getElementById('mode-select').value = previous;
+        });
+        return;
+    }
+    hideFifthsMode();
     // Handle games mode transition
     if (mode === 'games') {
         Games.setPreviousMode(state.mode);
