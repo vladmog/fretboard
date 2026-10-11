@@ -346,7 +346,7 @@
     "id": "khruangbin-august-10",
     "title": "August 10",
     "artist": "Khruangbin",
-    "version": "Bass-focused harmony study",
+    "version": "",
     "referenceKey": "B",
     "referenceScale": "natural_minor",
     "analysisStatus": "Provisional source-based harmonic outline",
@@ -560,16 +560,6 @@
         ]
       }
     ],
-    "bassStudy": {
-      "referenceNotes": [
-        "B",
-        "D",
-        "E",
-        "F#",
-        "A"
-      ],
-      "notes": "The bass transcription centers its recurring intro/chorus/outro riff on B and uses B-minor-pentatonic tones (B, D, E, F#, A). The later vocal section starts from A and uses A, E, F#, and D. These are bass-line observations, not proof that every bass note is a new chord root. Guitar and bass sources use different section names; the importable sections below retain the guitar chart\u2019s labels and remain a provisional harmonic map."
-    },
     "tuning": "standard"
   }
 ]
