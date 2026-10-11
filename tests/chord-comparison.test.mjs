@@ -14,8 +14,9 @@ for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${
     }
     const container = new Element();
     const boards = [];
+    const gestures = [];
     const context = vm.createContext({
-        applyCurrentRotation() {}, Theory, getTriadShapes, state: { showNoteNames: false },
+        bindFretboardGestures: (_, __, advance) => gestures.push(advance), applyCurrentRotation() {}, Theory, getTriadShapes, state: { showNoteNames: false },
         guide: JSON.parse(readFileSync(new URL('../static/data/harmony-guide.json', import.meta.url))),
         getInstrumentTuning: () => Theory.STANDARD_TUNING,
         getInstrumentMidiBases: () => undefined,
@@ -23,7 +24,7 @@ for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${
         document: { getElementById: () => container, createElement: () => new Element() },
         createFretboard: () => {
             const positions = []; boards.push(positions);
-            return { setMarker: (string, fret) => positions.push([string, fret]) };
+            return { clearMarkers: () => { positions.length = 0; }, setMarker: (string, fret) => positions.push([string, fret]) };
         }
     });
     const source = readFileSync(new URL('../static/js/app/triad-comparison.js', import.meta.url), 'utf8')
@@ -39,4 +40,17 @@ for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${
             : Theory.getNotesOnFretboard(chord.noteToInterval, 15, root);
         assert.deepEqual(boards[index], expected.map(p => [p.string, p.fret]));
     }
+    if (enabled) {
+        vm.runInContext("preferences.inversion = 'all'; renderBoards();", context);
+        const first = boards.at(-3), second = boards.at(-2);
+        const originalFirst = JSON.stringify(first), originalSecond = JSON.stringify(second);
+        gestures.at(-2)(1);
+        assert.notEqual(JSON.stringify(first), originalFirst);
+        assert.equal(JSON.stringify(second), originalSecond, 'other chord must not change');
+        assert.equal(vm.runInContext('preferences.index', context), 0, 'shared settings stay intact');
+        const changedFirst = JSON.stringify(first);
+        context.renderBoards();
+        assert.equal(JSON.stringify(boards.at(-3)), changedFirst, 'selection survives orientation rerender');
+    }
+
 });
