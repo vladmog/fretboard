@@ -40,19 +40,16 @@ function renderChordListContent() {
 
         for (const [className, text] of [
             ['saved-chord-name', item.symbol],
+            ['saved-inversion-marker', item.savedShape ? '◆' : ''],
             ['saved-chord-degree', item.progressionDegree || ''],
             ['saved-chord-context', item.referenceKey ? `${item.referenceKey} ${MusicTheory.SCALES[item.referenceScale]?.name || '(scale not set)'}` : '']
         ]) {
             const cell = document.createElement('span');
             cell.className = className;
             cell.textContent = text;
-            if (className === 'saved-chord-name' && item.savedShape) {
-                const mark = document.createElement('sup');
-                mark.className = 'saved-inversion-marker';
-                mark.textContent = '◆';
-                mark.title = 'Saved inversion';
-                mark.setAttribute('aria-label', 'Saved inversion');
-                cell.appendChild(mark);
+            if (className === 'saved-inversion-marker' && item.savedShape) {
+                cell.title = 'Saved inversion';
+                cell.setAttribute('aria-label', 'Saved inversion');
             }
             li.appendChild(cell);
         }
