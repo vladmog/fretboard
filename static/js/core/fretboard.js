@@ -407,6 +407,17 @@ export function createFretboard(container, config = {}) {
     return {
         isVertical,
         positionAt,
+        showTapMarker: (string, fret) => {
+            const selector = `.marker[data-string="${string}"][data-fret="${fret}"]`;
+            let marker = markerGroup.querySelector(selector);
+            if (marker && !marker.dataset.temporary) return;
+            if (!marker) {
+                marker = setMarker(fretboardConfig, string, fret, { color: '#ddd', borderColor: '#777' });
+                marker.dataset.temporary = 'true';
+            }
+            clearTimeout(marker.tapRemovalTimer);
+            marker.tapRemovalTimer = setTimeout(() => marker.remove(), 280);
+        },
         setMarker: (string, fret, options) => setMarker(fretboardConfig, string, fret, options),
         clearMarkers: () => clearMarkers(fretboardConfig),
         addShape: (points, options) => addShape(fretboardConfig, points, options),
@@ -460,7 +471,7 @@ function setMarker(config, string, fret, options = {}) {
     const { x, y } = getMarkerPosition(config, string, fret);
 
     // Create marker group
-    const group = createSVGElement('g', { class: 'marker', 'data-pitch-class': getNoteAt(config.numStrings-string, fret, config.tuning) });
+    const group = createSVGElement('g', { class: 'marker', 'data-string': string, 'data-fret': fret, 'data-pitch-class': getNoteAt(config.numStrings-string, fret, config.tuning) });
 
     // Create circle with border
     const circleStyle = { ...styles.marker, r: styles.marker.r * config.markerScale, fill: color };
@@ -492,6 +503,7 @@ function setMarker(config, string, fret, options = {}) {
     }
 
     markerGroup.appendChild(group);
+    return group;
 }
 
 /**

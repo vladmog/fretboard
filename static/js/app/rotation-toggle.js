@@ -6,6 +6,7 @@
 import { bindTouchTap } from '../core/touch-tap.js';
 import { state } from './state.js';
 import * as Sound from '../core/sound.js';
+import { pulsePluck } from './pluck-visual.js';
 import { voicingNotes } from '../core/voicing-audio.js';
 const comparisonBoards = new WeakMap();
 export function registerTapBoard(host, board) { comparisonBoards.set(host, board); }
@@ -40,7 +41,14 @@ function toggleRotation(event) {
         const board = comparisonHost ? comparisonBoards.get(comparisonHost) : state.fretboard;
         if (!touch || !board?.positionAt) return;
         const position = board.positionAt(touch.clientX, touch.clientY);
-        if (position) Sound.playChord(voicingNotes({positions:[position]}, state.instrument));
+        if (position) {
+            const host = comparisonHost || document.getElementById('fretboard-panel');
+            Sound.playChord(voicingNotes({positions:[position]}, state.instrument), undefined, note => {
+                if (!host?.isConnected || (comparisonHost ? comparisonBoards.get(host) : state.fretboard) !== board) return;
+                board.showTapMarker(position.string, position.fret);
+                pulsePluck(note, host, position);
+            });
+        }
         return;
     }
     currentRotation = currentRotation === 0 ? 90 : 0;
