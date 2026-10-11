@@ -190,3 +190,11 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spaci
 #song-creator .btn { margin: 4px 4px 4px 0; white-space: nowrap; width: auto; }
 #song-creator svg { width: 100%; max-height: 170px; }
 .song-creator-chords { display: flex; flex-wrap: wrap; gap: 4px; }
+/* Chord labels size their buttons; wrap whole buttons rather than squeezing text. */
+#song-creator .song-creator-chords .btn {
+    flex: 0 0 auto;
+    min-width: max-content;
+    margin: 0;
+    padding-inline: 10px;
+    white-space: nowrap;
+}

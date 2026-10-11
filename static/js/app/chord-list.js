@@ -71,10 +71,10 @@ export function addChordToList(root, type) {
         root,
         type,
         symbol: chord.symbol,
-        progressionDegree: state.mode === 'prog' && state.activeScaleChord?.root === root
+        progressionDegree: ['prog', 'scale', 'modes', 'f.scale'].includes(state.mode) && state.activeScaleChord?.root === root
             && state.activeScaleChord?.type === type ? formatProgressionDegree(state.activeScaleChord.numeral, type) : null,
-        referenceScale: state.mode === 'prog' ? getProgressionScale() : (state.mode === 'chord' ? state.chordReferenceScale : null),
-        referenceKey: state.mode === 'prog' ? state.root : (state.mode === 'chord' ? state.chordReferenceKey : null)
+        referenceScale: ['scale', 'modes', 'f.scale'].includes(state.mode) && state.activeScaleChord?.root === root && state.activeScaleChord?.type === type ? state.activeScaleChord.referenceScale : state.mode === 'prog' ? getProgressionScale() : (state.mode === 'chord' ? state.chordReferenceScale : null),
+        referenceKey: ['scale', 'modes', 'f.scale'].includes(state.mode) && state.activeScaleChord?.root === root && state.activeScaleChord?.type === type ? state.activeScaleChord.referenceKey : state.mode === 'prog' ? state.root : (state.mode === 'chord' ? state.chordReferenceKey : null)
     });
     saveChordList();
     renderChordList();
@@ -191,7 +191,7 @@ function renderScaleChordsContent() {
                 // Deactivate — return to scale view
                 state.activeScaleChord = null;
             } else {
-                state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol };
+                state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol, numeral: chord.numeral, referenceKey: chordRoot, referenceScale: chordScaleType };
                 if (state.soundEnabled) {
                     const builtChord = MusicTheory.buildChord(chord.root, chord.type);
                     const scaleRootIndex = MusicTheory.getNoteIndex(chordRoot);

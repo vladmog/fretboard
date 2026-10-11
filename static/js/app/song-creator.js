@@ -1,5 +1,6 @@
 import { preserveScrollPosition } from './scroll-position.js';
 /** Local song editor; shares the chord explorer's voicing generator and diagram. */
+import * as Sound from '../core/sound.js';
 import * as Theory from '../core/music-theory.js';
 import { getShellIntervals } from '../core/shell-voicings.js';
 import { getChordVoicings, inversionName } from '../core/chord-voicings.js';
@@ -42,7 +43,11 @@ function renderCreator() {
     field('Section key', section.referenceKey || '', v => section.referenceKey = v || null, [['','Not assigned'],...notes]);
     field('Section scale', section.referenceScale || '', v => section.referenceScale = v || null, [['','Not assigned'],...Object.entries(Theory.SCALES).map(([k,v])=>[k,v.name])]);
     const list = node('div'); list.className='song-creator-chords'; host.append(list);
-    section.chords.forEach((c,i) => act(`${i+1}. ${Theory.buildChord(c.root,c.type).symbol}`, () => {chordIndex=i; initSongCreator();},list));
+    section.chords.forEach((c,i) => act(`${i+1}. ${Theory.buildChord(c.root,c.type).symbol}`, () => {
+        chordIndex=i;
+        if (state.soundEnabled) Sound.playChord(Theory.buildChord(c.root,c.type).notes);
+        initSongCreator();
+    },list));
     act('Add chord', () => { section.chords.push({root:'C',type:'maj'}); chordIndex=section.chords.length-1; initSongCreator(); });
     const importButton = act('Add chord list to section', () => {
         const start = section.chords.length;
@@ -59,6 +64,13 @@ function renderCreator() {
         field('Chord type',entry.type,v=>changeChord('type',v),Object.entries(Theory.CHORD_TYPES).map(([k,v])=>[k,v.name]));
         act('Remove chord',()=>{section.chords.splice(chordIndex,1);chordIndex=Math.max(0,chordIndex-1);initSongCreator();});
         for (const [label,delta] of [['Move earlier',-1],['Move later',1]]) act(label,()=>{ const j=chordIndex+delta; if(j<0||j>=section.chords.length)return; [section.chords[j],section.chords[chordIndex]]=[entry,section.chords[j]]; chordIndex=j;initSongCreator(); });
+        entry.useShape ??= Boolean(entry.savedShape);
+        field('Chord display', entry.useShape ? 'shape' : 'whole', value => {
+            entry.useShape = value === 'shape';
+            if (!entry.useShape) delete entry.savedShape;
+            initSongCreator();
+        }, [['whole', 'Whole chord'], ['shape', 'Specific shape']]);
+        if (entry.useShape) {
         const f = entry.filters ||= {voicing:'full',stringCount:'3',stringSet:'all',inversion:'all',index:0};
         const update = (k,v) => {f[k]=v;f.index=0;delete entry.savedShape;initSongCreator();};
         if (getShellIntervals(entry.type).length) field('Voicing',f.voicing,v=>update('voicing',v),[['full','Full chord'],['shell','Shell voicing']]);
@@ -79,11 +91,13 @@ function renderCreator() {
             entry.savedShape={...structuredClone(shape),instrument:entry.instrument};
             host.append(node('p',`${f.index+1} / ${shapes.length} · ${inversionName(chord,shape.inversion)} · ${entry.instrument}`),diagram(shape,chord));
         } else {delete entry.savedShape;host.append(node('p','No shape for these filters. Choose another voicing or string group.'));}
+        }
         state.songPreview={...entry,referenceKey:section.referenceKey,referenceScale:section.referenceScale};
         if(state.mode==='creator')updateDisplay();
     }
     act('Save song',async()=>{try{
-        if(draft.sections.some(s=>!s.chords.length||s.chords.some(c=>!c.savedShape)))throw new Error('Every section needs chords, and every chord needs a selected shape.');
+        if(draft.sections.some(s=>!s.chords.length))throw new Error('Every section needs at least one chord.');
+        if(draft.sections.some(s=>s.chords.some(c=>c.useShape && !c.savedShape)))throw new Error('Choose an available shape or switch Chord display to Whole chord.');
         saveUserSong(draft);await initSongs();state.songPreview = entry ? {...entry} : null; if(state.mode==='creator')updateDisplay();status.textContent='Saved. Available in Songs.';
     }catch(error){status.textContent=error.message;}});
     act('Delete saved song',async()=>{if(confirm('Delete this saved song?')){try{deleteUserSong(draft.id);fresh();await initSongs();initSongCreator();}catch(error){status.textContent=error.message;}}});

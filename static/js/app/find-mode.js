@@ -263,7 +263,7 @@ function renderFindScaleChordsContent() {
             if (state.activeScaleChord && state.activeScaleChord.root === chord.root && state.activeScaleChord.type === chord.type) {
                 state.activeScaleChord = null;
             } else {
-                state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol };
+                state.activeScaleChord = { root: chord.root, type: chord.type, symbol: chord.symbol, numeral: chord.numeral, referenceKey: chordRoot, referenceScale: chordScaleType };
                 if (state.soundEnabled) {
                     const builtChord = MusicTheory.buildChord(chord.root, chord.type);
                     Sound.playChord(builtChord.notes);

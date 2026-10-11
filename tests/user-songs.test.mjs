@@ -30,3 +30,11 @@ test('chord-list import retains order and repeats without overriding section key
  assert.ok(result.every(c=>c.referenceKey==='F'));
  imported[0].root='D';assert.equal(chords[0].root,'C');
 });
+
+test('whole chords and optional exact shapes coexist in saved songs', () => {
+ const data=new Map();const storage={getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)};
+ const song={id:'optional',title:'Optional shapes',artist:'Me',sections:[{name:'Verse',chords:[{root:'C',type:'maj'},{root:'G',type:'7'}]}]};
+ saveUserSong(song,storage);
+ const saved=readUserSongs(storage)[0];
+ assert.ok(buildSongSection(saved,saved.sections[0]).every(c=>!c.savedShape));
+});
