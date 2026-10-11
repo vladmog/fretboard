@@ -56,7 +56,7 @@ function renderBoards() {
         container.appendChild(card);
         let shapes = [];
         if (preferences.enabled && ['maj', 'min', 'dim'].includes(item.type)) {
-            shapes = getTriadShapes(chord, getInstrumentTuning(), getInstrumentMidiBases())
+            shapes = getTriadShapes(chord, getInstrumentTuning(), getInstrumentMidiBases(), 15, preferences.stringCount ?? 3)
                 .filter(shape => (preferences.stringSet === 'all' || shape.strings === preferences.stringSet)
                     && (preferences.inversion === 'all' || shape.inversion === Number(preferences.inversion)));
             if (!shapes.length) {

@@ -63,7 +63,7 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
         toggle(true);
         assert.equal(JSON.stringify(shape), selected);
         assert.equal(panel.querySelectorAll('p')[0].textContent, caption);
-        assert.deepEqual(panel.querySelectorAll('select').map(node => node.value), ['3-2-1', inversion]);
+        assert.deepEqual(panel.querySelectorAll('select').map(node => node.value), ['3', '3-2-1', inversion]);
         assert.equal(state.root, 'C');
         assert.equal(state.chordType, 'maj');
     }
@@ -79,6 +79,28 @@ for (const instrument of ['guitar', 'bass']) test(`${instrument}: triad toggle r
         const expected = Math.min(priorIndex, matches.length - 1);
         assert.equal(context.getTriadPreferences().index, expected, `${root} ${type} must preserve shape index`);
         assert.equal(JSON.stringify(shape), JSON.stringify(matches[expected]));
-        assert.deepEqual(panel.querySelectorAll('select').map(node => node.value), ['3-2-1', 'all']);
+        assert.deepEqual(panel.querySelectorAll('select').map(node => node.value), ['3', '3-2-1', 'all']);
     }
+    select('Pattern strings', '2');
+    select('Two-string group', '2-1');
+    assert.equal(new Set(shape.positions.map(p=>p.string)).size,2);
+    const diagram = panel.querySelectorAll('svg')[0];
+    const circles = diagram.querySelectorAll('circle');
+    assert.equal(circles.length,3);
+    assert.equal(new Set(circles.map(c=>c.cy)).size,2, 'two notes share one diagram string');
+    const twoStringShape = JSON.stringify(shape);
+    toggle(false);toggle(true);
+    assert.equal(JSON.stringify(shape),twoStringShape);
+    assert.equal(context.getTriadPreferences().stringCount,2);
+
+    select('Pattern strings', 'both');
+    assert.equal(context.getTriadPreferences().stringCount,'both');
+    const seen = new Set();
+    const total = getTriadShapes(Theory.buildChord(state.root,state.chordType),tuning,bases,15,'both').length;
+    for(let i=0;i<total;i++) {
+        seen.add(new Set(shape.positions.map(p=>p.string)).size);
+        panel.querySelectorAll('button').find(node=>node.textContent==='Next').fire('click');
+    }
+    assert.deepEqual([...seen].sort(),[2,3]);
+
 });

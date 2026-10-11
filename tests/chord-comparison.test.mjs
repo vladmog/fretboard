@@ -6,7 +6,7 @@ import * as Theory from '../static/js/core/music-theory.js';
 import { getChordScaleContext, drawChordScaleBackground } from '../static/js/app/chord-scale-context.js';
 import { getTriadShapes } from '../static/js/core/triads.js';
 
-for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${enabled}`, () => {
+for (const stringCount of [2,3,'both']) for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${enabled}, strings: ${stringCount}`, () => {
     class Element {
         constructor() { this.children = []; this.scrollTop = 0; this.clientWidth = 800; this.clientHeight = 150; }
         appendChild(node) { this.children.push(node); }
@@ -32,12 +32,12 @@ for (const enabled of [false, true]) test(`comparison follows triad checkbox: ${
         .replace(/^import .*;\n/gm, '').replaceAll('export function', 'function');
     vm.runInContext(source, context);
     vm.runInContext(`entries = [{root:'C',type:'maj'}, {root:'A',type:'min'}, {root:'G',type:'maj7'}];
-        preferences = {enabled:${enabled},stringSet:'3-2-1',inversion:'1',index:0}; renderBoards();`, context);
+        preferences = {enabled:${enabled},stringCount:${JSON.stringify(stringCount)},stringSet:'${stringCount===2?'2-1':'3-2-1'}',inversion:'1',index:0}; renderBoards();`, context);
     assert.equal(boards.length, 3);
     for (const [index, [root, type]] of [['C', 'maj'], ['A', 'min'], ['G', 'maj7']].entries()) {
         const chord = Theory.buildChord(root, type);
         const expected = enabled && type !== 'maj7'
-            ? getTriadShapes(chord).filter(shape => shape.strings === '3-2-1' && shape.inversion === 1)[0].positions
+            ? getTriadShapes(chord, undefined, undefined, 15, stringCount).filter(shape => shape.strings === (stringCount===2?'2-1':'3-2-1') && shape.inversion === 1)[0].positions
             : Theory.getNotesOnFretboard(chord.noteToInterval, 15, root);
         assert.deepEqual(boards[index], expected.map(p => [p.string, p.fret]));
     }

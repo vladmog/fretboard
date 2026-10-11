@@ -5,6 +5,7 @@ import { state, getInstrumentTuning, getInstrumentMidiBases } from './state.js';
 
 let enabled = false;
 let stringSet = 'all';
+let stringCount = 3;
 let inversion = 'all';
 let index = 0;
 
@@ -42,10 +43,14 @@ function diagram(shape, chord) {
     const step = 176 / count;
     for (let col = 0; col <= count; col++) add('line', { x1: 30 + col * step, x2: 30 + col * step, y1: 24, y2: 112, stroke: '#bbb' });
     for (let col = 0; col < count; col++) add('text', { x: 30 + (col + 0.5) * step, y: 16, 'text-anchor': 'middle', 'font-size': 11 }, start + col);
-    [...shape.positions].reverse().forEach((p, row) => {
+    const strings = [...new Set(shape.positions.map(p => p.string))].sort((a,b) => a-b);
+    strings.forEach((string, row) => {
         const y = 38 + row * 30;
         add('line', { x1: 30, x2: 206, y1: y, y2: y, stroke: '#333' });
-        add('text', { x: 14, y: y + 4, 'text-anchor': 'middle', 'font-size': 11 }, p.string);
+        add('text', { x: 14, y: y + 4, 'text-anchor': 'middle', 'font-size': 11 }, string);
+    });
+    shape.positions.forEach(p => {
+        const y = 38 + strings.indexOf(p.string) * 30;
         const x = 30 + (p.fret - start + 0.5) * step;
         add('circle', { cx: x, cy: y, r: 12, fill: guide.triadColors[chord.intervals.indexOf(p.label)], stroke: '#222' });
         add('text', { x, y: y + 4, 'text-anchor': 'middle', 'font-size': 12 }, state.showNoteNames ? chord.noteSpelling[p.noteIndex] : p.label);
@@ -64,12 +69,13 @@ export function renderTriadControls(chord, refresh) {
     checkbox.addEventListener('change', () => { enabled = checkbox.checked; refresh(); });
     title.append(checkbox, document.createTextNode('Triad inversions')); panel.appendChild(title);
     if (!enabled) return null;
-    const all = getTriadShapes(chord, getInstrumentTuning(), getInstrumentMidiBases());
+    const all = getTriadShapes(chord, getInstrumentTuning(), getInstrumentMidiBases(), 15, stringCount);
     const sets = [...new Set(all.map(s => s.strings))].sort().reverse();
     if (stringSet !== 'all' && !sets.includes(stringSet)) stringSet = 'all';
     const filters = element('div', null, 'triad-filters');
     panel.appendChild(filters);
-    selectControl(filters, 'Three-string group', stringSet, [['all', 'Any adjacent group'], ...sets.map(s => [s, `Strings ${s}`])], value => { stringSet = value; });
+    selectControl(filters, 'Pattern strings', String(stringCount), [['3', 'Three strings'], ['2', 'Two strings'], ['both', 'Two and three strings']], value => { stringCount = value === 'both' ? 'both' : Number(value); stringSet = 'all'; });
+    selectControl(filters, stringCount === 'both' ? 'String group' : (stringCount === 2 ? 'Two-string group' : 'Three-string group'), stringSet, [['all', 'Any adjacent group'], ...sets.map(s => [s, `Strings ${s}`])], value => { stringSet = value; });
     selectControl(filters, 'Inversion', inversion, [['all', 'All inversions'], ...guide.inversions.map((v, i) => [String(i), v])], value => { inversion = value; });
     // Refresh after the individual selector has updated its filter.
     panel.querySelectorAll('select').forEach(select => select.addEventListener('change', refresh));
@@ -88,11 +94,11 @@ export function renderTriadControls(chord, refresh) {
     preview.open = !window.matchMedia('(pointer: coarse) and (max-width: 1100px)').matches;
     preview.appendChild(element('summary', 'Shape diagram'));
     preview.append(diagram(shape, chord), element('p', `Bass ${chord.noteSpelling[shape.bass.noteIndex]} · Strings ${shape.strings} · Frets ${shape.positions.map(p => p.fret).join('–')}`, 'triad-caption'));
-    preview.title = 'Red: root; green: third; blue: fifth. High string at top; fret numbers above; 0 is open.';
+    preview.title = (new Set(shape.positions.map(p => p.string)).size === 2 ? 'Play the two notes on the same string successively. ' : '') + 'Red: root; green: third; blue: fifth. High string at top; fret numbers above; 0 is open.';
     panel.appendChild(preview);
     return shape;
 }
 
 export function getTriadPreferences() {
-    return { enabled, stringSet, inversion, index };
+    return { enabled, stringSet, inversion, index, stringCount };
 }
