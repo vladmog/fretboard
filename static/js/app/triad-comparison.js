@@ -1,3 +1,4 @@
+import { shapePreferences } from '../core/song-shape.js';
 import * as Sound from '../core/sound.js';
 import { voicingNotes } from '../core/voicing-audio.js';
 import { getMarkerColor } from './marker-colors.js';
@@ -59,14 +60,15 @@ function renderBoards() {
         const card = element('section', 'comparison-card');
         card.appendChild(element('h3', '', `${item.progressionDegree ? `${item.progressionDegree} ·` : `${order + 1}.`} ${chord.symbol}`));
         container.appendChild(card);
+        const boardPreferences = shapePreferences(item, state.instrument) || preferences;
         let shapes = [], notice = '';
-        if (preferences.enabled) {
-            ({shapes, notice} = getComparisonVoicings(chord, getInstrumentTuning(), getInstrumentMidiBases(), preferences));
+        if (boardPreferences.enabled) {
+            ({shapes, notice} = getComparisonVoicings(chord, getInstrumentTuning(), getInstrumentMidiBases(), boardPreferences));
             if (!shapes.length) {
                 card.appendChild(element('p', 'comparison-empty', 'No compact chord shape matches these filters and instrument.'));
                 return;
             }
-            item.shapeIndex = Math.min(item.shapeIndex ?? preferences.index, shapes.length - 1);
+            item.shapeIndex = Math.min(item.shapeIndex ?? boardPreferences.index, shapes.length - 1);
         }
         const caption = element('p', 'comparison-caption');
         card.appendChild(caption);

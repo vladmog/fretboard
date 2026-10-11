@@ -1,3 +1,4 @@
+import { shapePreferences } from '../core/song-shape.js';
 import * as Sound from '../core/sound.js';
 import { voicingNotes } from '../core/voicing-audio.js';
 import { getMarkerColor } from './marker-colors.js';
@@ -124,4 +125,13 @@ export function renderTriadControls(chord, refresh) {
 
 export function getTriadPreferences() {
     return { enabled, stringSet, inversion, index, stringCount, voicing };
+}
+
+export function getActiveShapeMetadata() {
+    return enabled && activeShape ? {savedShape: {...structuredClone(activeShape), instrument:state.instrument}, filters:getTriadPreferences()} : {};
+}
+export function restoreChordShape(entry) {
+    const p = shapePreferences(entry,state.instrument);
+    if (!p) return;
+    ({enabled,voicing,stringCount,stringSet,inversion,index} = p);
 }

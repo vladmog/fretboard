@@ -31,3 +31,16 @@ export function portableSong(song, savedWithInstrument) {
     }
     return result;
 }
+/** Resolve saved metadata to the explorer's filters and exact shape index. */
+export function shapePreferences(entry, instrument) {
+    const shape = songShape(entry, instrument);
+    if (!shape) return null;
+    const chord = Theory.buildChord(entry.root, entry.type);
+    const voicing = entry.filters?.voicing || (shape.positions.length < chord.intervals.length ? 'shell' : 'full');
+    const stringCount = entry.filters?.stringCount || new Set(shape.positions.map(p=>p.string)).size;
+    const all = getChordVoicings(chord, instrument === 'bass' ? Theory.BASS_TUNING : Theory.STANDARD_TUNING,
+        instrument === 'bass' ? Theory.BASS_STRING_MIDI_BASES : undefined, {voicing,stringCount:stringCount==='both'?'both':Number(stringCount)});
+    const filtered = all.filter(s=>s.strings===shape.strings && s.inversion===shape.inversion);
+    const signature = s=>s.positions.map(p=>`${p.string}:${p.fret}`).sort().join('|');
+    return {enabled:true,voicing,stringCount:stringCount==='both'?'both':Number(stringCount),stringSet:shape.strings,inversion:String(shape.inversion),index:Math.max(0,filtered.findIndex(s=>signature(s)===signature(shape)))};
+}

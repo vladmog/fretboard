@@ -198,3 +198,5 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spaci
     padding-inline: 10px;
     white-space: nowrap;
 }
+
+.saved-inversion-marker { font-size: 7px; margin-left: 3px; vertical-align: super; color: #666; }

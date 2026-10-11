@@ -18,6 +18,7 @@ export function deleteUserSong(id, storage = localStorage) {
 /** Import harmonic identity in order; the destination section supplies key context. */
 export function chordsForSongSection(chords) {
     return chords.map(chord => ({root: chord.root, type: chord.type,
-        ...(chord.savedShape ? {savedShape: structuredClone(chord.savedShape), instrument: chord.savedShape.instrument} : {})
+        ...(chord.savedShape ? {savedShape: structuredClone(chord.savedShape), useShape:true} : {}),
+        ...(chord.filters ? {filters:structuredClone(chord.filters)} : {})
     }));
 }

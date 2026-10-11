@@ -26,6 +26,7 @@ export function buildSongSection(song, section) {
         }
         return {
             root: chord.root, type: chord.type,
+            ...(chord.filters ? {filters: structuredClone(chord.filters)} : {}),
             ...(chord.savedShape ? { savedShape: structuredClone(chord.savedShape) } : {}),
             symbol: MusicTheory.buildChord(chord.root, chord.type).symbol,
             progressionDegree: referenceKey && chord.degree ? formatProgressionDegree(chord.degree, chord.type) : degreeForChord(chord.root, chord.type, referenceKey, referenceScale),

@@ -1,3 +1,4 @@
+import { shapePreferences } from '../static/js/core/song-shape.js';
 import { getMarkerColor } from '../static/js/app/marker-colors.js';
 import { getComparisonVoicings, getChordVoicings, getVoicingIntervals, inversionName } from '../static/js/core/chord-voicings.js';
 import { getShellIntervals } from '../static/js/core/shell-voicings.js';
@@ -19,7 +20,7 @@ for (const stringCount of [2,3,'both']) for (const enabled of [false, true]) tes
     const container = new Element();
     const boards = [];
     const gestures = [];
-    const context = vm.createContext({getMarkerColor,
+    const context = vm.createContext({shapePreferences, getMarkerColor,
         getChordScaleContext, drawChordScaleBackground, bindFretboardGestures: (_, __, advance) => gestures.push(advance), applyCurrentRotation() {}, Theory, getTriadShapes, getComparisonVoicings, getChordVoicings, inversionName, getShellIntervals, state: { showNoteNames: false },
         guide: JSON.parse(readFileSync(new URL('../static/data/harmony-guide.json', import.meta.url))),
         getInstrumentTuning: () => Theory.STANDARD_TUNING,

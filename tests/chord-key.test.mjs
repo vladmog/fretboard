@@ -81,7 +81,7 @@ test('saving and editing a custom progression records the current key', () => {
 
 test('adding a selected progression chord retains its exact numeral; ordinary chords have none', () => {
     const state = {mode:'prog',root:'A',chordList:[],activeScaleChord:{root:'F',type:'maj',numeral:'♭VI'}};
-    const context=vm.createContext({state,MusicTheory,formatProgressionDegree,getProgressionScale:()=> 'natural_minor',saveChordList(){}});
+    const context=vm.createContext({getActiveShapeMetadata:()=>({}),state,MusicTheory,formatProgressionDegree,getProgressionScale:()=> 'natural_minor',saveChordList(){}});
     vm.runInContext(source('chord-list'),context);
     vm.runInContext('renderChordList = () => {};',context);
     context.addChordToList('F','maj');

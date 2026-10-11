@@ -16,3 +16,19 @@ test('song shapes are portable and retain the exact original grip',()=>{
  assert.ok(songShape(entry,'guitar').positions.every(p=>T.getNoteAt(6-p.string,p.fret)===p.noteIndex));
  assert.equal(original.instrument,'bass');
 });
+test('song to chord list to creator preserves exact inversion and explorer selection',async()=>{
+ const {buildSongSection}=await import('../static/js/core/songs.js');
+ const {chordsForSongSection}=await import('../static/js/core/user-songs.js');
+ const {shapePreferences}=await import('../static/js/core/song-shape.js');
+ const chord=T.buildChord('C','maj');
+ const shape=getChordVoicings(chord,T.BASS_TUNING,T.BASS_STRING_MIDI_BASES,{stringCount:2}).find(s=>s.inversion===1);
+ const song=portableSong({id:'roundtrip',title:'Roundtrip',artist:'Me',sections:[{name:'Verse',chords:[{root:'C',type:'maj',savedShape:{...shape,instrument:'bass'},filters:{voicing:'full',stringCount:2}}]}]});
+ const list=JSON.parse(JSON.stringify(buildSongSection(song,song.sections[0])));
+ const imported=chordsForSongSection(list)[0];
+ assert.deepEqual(songShape(imported,'bass').positions,shape.positions);
+ assert.equal(imported.useShape,true);
+ const p=shapePreferences(list[0],'bass');
+ const candidates=getChordVoicings(chord,T.BASS_TUNING,T.BASS_STRING_MIDI_BASES,p).filter(s=>s.strings===p.stringSet&&s.inversion===Number(p.inversion));
+ assert.deepEqual(candidates[p.index].positions,shape.positions);
+ imported.filters.stringCount=3;assert.equal(list[0].filters.stringCount,2);
+});

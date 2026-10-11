@@ -1,3 +1,4 @@
+import { getActiveShapeMetadata, restoreChordShape } from './triad-shapes.js';
 import { playCurrentChord } from './chord-audio.js';
 import { formatProgressionDegree } from '../core/progression-degree.js';
 import { getProgressionScale } from './progression-context.js';
@@ -45,6 +46,14 @@ function renderChordListContent() {
             const cell = document.createElement('span');
             cell.className = className;
             cell.textContent = text;
+            if (className === 'saved-chord-name' && item.savedShape) {
+                const mark = document.createElement('sup');
+                mark.className = 'saved-inversion-marker';
+                mark.textContent = '◆';
+                mark.title = 'Saved inversion';
+                mark.setAttribute('aria-label', 'Saved inversion');
+                cell.appendChild(mark);
+            }
             li.appendChild(cell);
         }
 
@@ -72,6 +81,7 @@ export function addChordToList(root, type) {
         root,
         type,
         symbol: chord.symbol,
+        ...(state.mode === 'chord' ? getActiveShapeMetadata() : {}),
         progressionDegree: ['prog', 'scale', 'modes', 'f.scale'].includes(state.mode) && state.activeScaleChord?.root === root
             && state.activeScaleChord?.type === type ? formatProgressionDegree(state.activeScaleChord.numeral, type) : null,
         referenceScale: ['scale', 'modes', 'f.scale'].includes(state.mode) && state.activeScaleChord?.root === root && state.activeScaleChord?.type === type ? state.activeScaleChord.referenceScale : state.mode === 'prog' ? getProgressionScale() : (state.mode === 'chord' ? state.chordReferenceScale : null),
@@ -113,6 +123,7 @@ function selectChordFromList(index) {
         state.chordReferenceScale = state.chordList[index].referenceScale || null;
         if (state.mode === 'chord') {
             const item = state.chordList[index];
+            restoreChordShape(item);
             state.root = item.root;
             state.chordType = item.type;
             document.getElementById('root-note').value = item.root;
