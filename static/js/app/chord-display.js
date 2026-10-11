@@ -1,3 +1,4 @@
+import { songShape } from '../core/song-shape.js';
 import { getMarkerColor } from './marker-colors.js';
 import { getChordScaleContext, drawChordScaleBackground } from './chord-scale-context.js';
 import * as MusicTheory from '../core/music-theory.js';
@@ -12,7 +13,7 @@ export function renderChordFretboard(chord, refresh) {
     state.fretboard.clearMarkers();
 
     const saved = ['song', 'creator'].includes(state.mode) ? state.songPreview?.savedShape : null;
-    const triad = saved ? (saved.instrument === state.instrument ? saved : { positions: [] }) : renderTriadControls(chord, refresh);
+    const triad = saved ? (songShape(state.songPreview,state.instrument) || { positions: [] }) : renderTriadControls(chord, refresh);
     const positions = triad ? triad.positions : MusicTheory.getNotesOnFretboard(
         chord.noteToInterval,
         15,
@@ -35,7 +36,7 @@ export function renderChordFretboard(chord, refresh) {
     RotationToggle.applyCurrentRotation();
 
     return {
-        title: saved && saved.instrument !== state.instrument ? `Select ${saved.instrument} in Settings to view this shape` : triad?.bass ? `${chord.symbol} · ${inversionName(chord, triad.inversion)}` : chord.symbol,
+        title: saved && !triad?.positions.length ? `No matching ${state.instrument} shape for this inversion` : triad?.bass ? `${chord.symbol} · ${inversionName(chord, triad.inversion)}` : chord.symbol,
         notes: chord.notes,
         intervals: context ? Object.keys(chord.noteToInterval).map(Number).sort((a,b) =>
             (a - MusicTheory.getNoteIndex(chord.root) + 12) % 12 - (b - MusicTheory.getNoteIndex(chord.root) + 12) % 12

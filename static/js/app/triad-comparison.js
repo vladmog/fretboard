@@ -1,3 +1,5 @@
+import * as Sound from '../core/sound.js';
+import { voicingNotes } from '../core/voicing-audio.js';
 import { getMarkerColor } from './marker-colors.js';
 import { bindTouchTap } from '../core/touch-tap.js';
 import { getChordScaleContext, drawChordScaleBackground } from './chord-scale-context.js';
@@ -103,6 +105,7 @@ function renderBoards() {
             bindFretboardGestures(host, vertical, direction => {
                 item.shapeIndex = (item.shapeIndex + direction + shapes.length) % shapes.length;
                 draw();
+                if (state.soundEnabled) Sound.playChord(voicingNotes(shapes[item.shapeIndex],state.instrument));
                 applyCurrentRotation();
             });
         }

@@ -3,6 +3,9 @@ import { bindFretboardGestures } from './fretboard-gestures.js';
 import { state } from './state.js';
 const bound = new WeakSet();
 function navigation() {
+    if (state.mode === 'creator') {
+        return [...document.querySelectorAll('#song-creator .creator-shape-nav button')].filter(button => !button.disabled);
+    }
     if (state.mode !== 'chord') return [];
     const panel = document.getElementById('triad-shapes');
     if (!panel || panel.style.display === 'none') return [];

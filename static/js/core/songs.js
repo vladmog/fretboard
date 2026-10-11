@@ -1,6 +1,6 @@
 /** Song records are curated in static/data/songs.json as songs are analyzed. */
 import * as MusicTheory from './music-theory.js';
-import { formatProgressionDegree } from './progression-degree.js';
+import { formatProgressionDegree, degreeForChord } from './progression-degree.js';
 const validNote = note => typeof note === 'string' && /^[A-G](?:#{1,2}|b{1,2})?$/.test(note);
 
 export function buildSongSection(song, section) {
@@ -17,15 +17,18 @@ export function buildSongSection(song, section) {
             throw new Error('Invalid song chord.');
         }
         if (chord.savedShape) {
-            const shape = chord.savedShape;
-            const strings = shape.instrument === 'bass' ? 4 : 6;
-            if (!['bass', 'guitar'].includes(shape.instrument) || !Array.isArray(shape.positions) || !shape.positions.length || shape.positions.some(p => !Number.isInteger(p.string) || p.string < 1 || p.string > strings || !Number.isInteger(p.fret) || p.fret < 0 || p.fret > 15)) throw new Error('Invalid saved chord shape.');
+            const variants = chord.savedShape.variants || {[chord.savedShape.instrument]: chord.savedShape};
+            if (!Object.keys(variants).length) throw new Error('Invalid saved chord shape.');
+            for (const [instrument, shape] of Object.entries(variants)) {
+                const strings = instrument === 'bass' ? 4 : 6;
+                if (!['bass', 'guitar'].includes(instrument) || !Array.isArray(shape.positions) || !shape.positions.length || shape.positions.some(p => !Number.isInteger(p.string) || p.string < 1 || p.string > strings || !Number.isInteger(p.fret) || p.fret < 0 || p.fret > 15)) throw new Error('Invalid saved chord shape.');
+            }
         }
         return {
             root: chord.root, type: chord.type,
             ...(chord.savedShape ? { savedShape: structuredClone(chord.savedShape) } : {}),
             symbol: MusicTheory.buildChord(chord.root, chord.type).symbol,
-            progressionDegree: referenceKey && chord.degree ? formatProgressionDegree(chord.degree, chord.type) : null,
+            progressionDegree: referenceKey && chord.degree ? formatProgressionDegree(chord.degree, chord.type) : degreeForChord(chord.root, chord.type, referenceKey, referenceScale),
             referenceKey, referenceScale, songId: song.id, songSection: section.name
         };
     });

@@ -1,3 +1,4 @@
+import { playCurrentChord } from './chord-audio.js';
 import { formatProgressionDegree } from '../core/progression-degree.js';
 import { getProgressionScale } from './progression-context.js';
 import { syncChordKey } from './chord-key.js';
@@ -102,6 +103,7 @@ function removeChordFromList(index) {
  * @param {number} index - Index to select
  */
 function selectChordFromList(index) {
+    let chordToPlay = null;
     if (state.selectedChordIndex === index) {
         // Deselect if clicking same item
         state.selectedChordIndex = -1;
@@ -120,11 +122,12 @@ function selectChordFromList(index) {
         if (state.soundEnabled) {
             const item = state.chordList[index];
             const chord = MusicTheory.buildChord(item.root, item.type);
-            Sound.playChord(chord.notes);
+            chordToPlay = chord;
         }
     }
     renderChordList();
     updateDisplay();
+    if (chordToPlay) playCurrentChord(chordToPlay);
 }
 /**
  * Clear all chords from the list

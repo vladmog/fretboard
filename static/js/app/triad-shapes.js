@@ -1,3 +1,5 @@
+import * as Sound from '../core/sound.js';
+import { voicingNotes } from '../core/voicing-audio.js';
 import { getMarkerColor } from './marker-colors.js';
 /** Full-chord and shell inversion explorer inside Chords mode. */
 import { getChordVoicings, getVoicingIntervals, inversionName } from '../core/chord-voicings.js';
@@ -12,6 +14,7 @@ let stringCount = 3;
 let inversion = 'all';
 let index = 0;
 let previewOpen = null;
+let activeShape = null;
 
 function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -65,6 +68,7 @@ export function diagram(shape, chord) {
 
 // Returns a voicing only when the explorer is enabled; normal chord display stays intact.
 export function renderTriadControls(chord, refresh) {
+    activeShape = null;
     const panel = document.getElementById('triad-shapes');
     if (!panel || state.mode !== 'chord') return null;
     const previousPreview = panel.querySelectorAll('details')[0];
@@ -93,15 +97,19 @@ export function renderTriadControls(chord, refresh) {
     selectControl(filters, 'Inversion', inversion, [['all', 'All inversions'], ...inversions.map(i => [String(i), inversionName(chord, i)])], value => { inversion = value; });
     if (activeVoicing === 'shell') panel.appendChild(element('p', `Shell: ${tones.join(' · ')}. Omitted: ${chord.intervals.filter(t => !tones.includes(t)).join(', ')}.`, 'triad-caption'));
     // Refresh after the individual selector has updated its filter.
-    panel.querySelectorAll('select').forEach(select => select.addEventListener('change', refresh));
+    panel.querySelectorAll('select').forEach(select => select.addEventListener('change', () => {
+        refresh();
+        if (state.soundEnabled && activeShape) Sound.playChord(voicingNotes(activeShape, state.instrument));
+    }));
     const shapes = all.filter(s => (stringSet === 'all' || s.strings === stringSet) && (inversion === 'all' || s.inversion === Number(inversion)));
     if (!shapes.length) { panel.appendChild(element('p', 'No compact shape in frets 0–15 for these filters and instrument.')); return { positions: [] }; }
     index = Math.min(index, shapes.length - 1);
     const shape = shapes[index];
+    activeShape = shape;
     const nav = element('div', null, 'triad-navigation');
     for (const [text, direction] of [['Previous', -1], ['Next', 1]]) {
         const button = element('button', text, 'btn btn-sm'); button.type = 'button';
-        button.addEventListener('click', () => { index = (index + direction + shapes.length) % shapes.length; refresh(); });
+        button.addEventListener('click', () => { index = (index + direction + shapes.length) % shapes.length; refresh(); if (state.soundEnabled) Sound.playChord(voicingNotes(shapes[index], state.instrument)); });
         nav.appendChild(button);
     }
     filters.append(nav, element('p', `${index + 1} / ${shapes.length}`, 'triad-caption'));

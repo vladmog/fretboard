@@ -1,3 +1,5 @@
+import { initSongCreator } from './song-creator.js';
+import { playCurrentChord } from './chord-audio.js';
 import { restoreProgressionKey } from './chord-key.js';
 /**
  * Event Listeners
@@ -50,6 +52,7 @@ export function initEventListeners({ onInstrumentChange } = {}) {
             }
 
             onInstrumentChange?.();
+            if (state.mode === 'creator') initSongCreator();
         });
     });
     syncCagedAvailability();
@@ -78,7 +81,7 @@ export function initEventListeners({ onInstrumentChange } = {}) {
             updateDisplay();
             if (state.mode === 'chord' && state.soundEnabled) {
                 const chord = MusicTheory.buildChord(state.root, state.chordType);
-                Sound.playChord(chord.notes);
+                playCurrentChord(chord);
             }
         });
     }
@@ -122,7 +125,7 @@ export function initEventListeners({ onInstrumentChange } = {}) {
             updateDisplay();
             if ((state.mode === 'chord' || state.mode === 'caged') && state.soundEnabled) {
                 const chord = MusicTheory.buildChord(state.root, state.chordType);
-                Sound.playChord(chord.notes);
+                playCurrentChord(chord);
             }
         });
     }

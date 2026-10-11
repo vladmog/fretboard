@@ -1,3 +1,5 @@
+import { songShape } from '../core/song-shape.js';
+import { voicingNotes } from '../core/voicing-audio.js';
 import { readUserSongs } from '../core/user-songs.js';
 /** Browse curated song analyses and import sections into the persistent chord list. */
 import * as MusicTheory from '../core/music-theory.js';
@@ -22,8 +24,13 @@ export async function initSongs() {
     const container = document.getElementById('song-browser');
     if (!container) return;
     try {
-        const songs = [...await loadSongs(), ...readUserSongs()];
+        const warnings = [];
+        let catalog = [], saved = [];
+        try { catalog = await loadSongs(); } catch (error) { warnings.push(`Built-in songs unavailable: ${error.message}`); }
+        try { saved = readUserSongs(); } catch (error) { warnings.push(`Saved songs could not be read: ${error.message}. Stored data has not been changed.`); }
+        const songs = [...catalog, ...saved];
         container.replaceChildren();
+        warnings.forEach(message => container.append(element('p', message)));
         if (!songs.length) {
             container.append(element('p', 'No songs saved yet. Ask for a song analysis to add its key and progressions here.'));
             return;
@@ -72,7 +79,7 @@ export async function initSongs() {
                         if (state.soundEnabled) {
                             const built = MusicTheory.buildChord(chord.root, chord.type);
                             const octave = chord.referenceKey && MusicTheory.getNoteIndex(chord.root) < MusicTheory.getNoteIndex(chord.referenceKey) ? 4 : 3;
-                            Sound.playChord(built.notes, octave);
+                            Sound.playChord(chord.savedShape ? voicingNotes(songShape(chord,state.instrument),state.instrument) : built.notes, octave);
                         }
                         state.songPreview = chord;
                         state.selectedChordIndex = -1;

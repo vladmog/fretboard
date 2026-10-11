@@ -38,3 +38,10 @@ test('whole chords and optional exact shapes coexist in saved songs', () => {
  const saved=readUserSongs(storage)[0];
  assert.ok(buildSongSection(saved,saved.sections[0]).every(c=>!c.savedShape));
 });
+test('created song degrees follow section key changes without altering saved shapes',()=>{
+ const song={id:'context'};
+ const section={name:'Verse',referenceKey:'B',referenceScale:'natural_minor',chords:[{root:'B',type:'min'},{root:'F#',type:'min'},{root:'D',type:'maj7'}]};
+ assert.deepEqual(buildSongSection(song,section).map(c=>c.progressionDegree),['i','v','bIIImaj7']);
+ section.referenceKey='D';section.referenceScale='major';
+ assert.deepEqual(buildSongSection(song,section).map(c=>c.progressionDegree),['vi','iii','Imaj7']);
+});

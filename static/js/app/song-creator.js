@@ -1,3 +1,5 @@
+import { songShape, portableSong } from '../core/song-shape.js';
+import { voicingNotes } from '../core/voicing-audio.js';
 import { preserveScrollPosition } from './scroll-position.js';
 /** Local song editor; shares the chord explorer's voicing generator and diagram. */
 import * as Sound from '../core/sound.js';
@@ -45,7 +47,7 @@ function renderCreator() {
     const list = node('div'); list.className='song-creator-chords'; host.append(list);
     section.chords.forEach((c,i) => act(`${i+1}. ${Theory.buildChord(c.root,c.type).symbol}`, () => {
         chordIndex=i;
-        if (state.soundEnabled) Sound.playChord(Theory.buildChord(c.root,c.type).notes);
+        if (state.soundEnabled) Sound.playChord(c.savedShape ? voicingNotes(songShape(c,state.instrument),state.instrument) : Theory.buildChord(c.root,c.type).notes);
         initSongCreator();
     },list));
     act('Add chord', () => { section.chords.push({root:'C',type:'maj'}); chordIndex=section.chords.length-1; initSongCreator(); });
@@ -76,8 +78,12 @@ function renderCreator() {
         if (getShellIntervals(entry.type).length) field('Voicing',f.voicing,v=>update('voicing',v),[['full','Full chord'],['shell','Shell voicing']]);
         if (f.voicing === 'shell' || ['maj','min','dim'].includes(entry.type)) field('Pattern strings',f.stringCount,v=>update('stringCount',v),[['3','Three strings'],['2','Two strings'],['both','Two and three strings']]);
         if (!getShellIntervals(entry.type).length) f.voicing = 'full';
-        entry.instrument ||= entry.savedShape?.instrument || state.instrument;
-        field('Shape instrument', entry.instrument, v => { entry.instrument=v; delete entry.savedShape; f.index=0; initSongCreator(); }, [['guitar','Guitar'],['bass','Bass']]);
+        entry.instrument = state.instrument;
+        if (entry.savedShape && entry.savedShape.instrument !== state.instrument) {
+            const resolved = songShape(entry, state.instrument);
+            entry.savedShape = resolved ? {...resolved, instrument: state.instrument} : null;
+            f.stringSet = 'all';
+        }
         const chord = Theory.buildChord(entry.root,entry.type);
         const all = getChordVoicings(chord,entry.instrument === 'bass' ? Theory.BASS_TUNING : Theory.STANDARD_TUNING, entry.instrument === 'bass' ? Theory.BASS_STRING_MIDI_BASES : undefined,{voicing:f.voicing,stringCount:f.stringCount==='both'?'both':Number(f.stringCount)});
         const sets = [...new Set(all.map(s=>s.strings))];
@@ -86,7 +92,19 @@ function renderCreator() {
         const shapes=all.filter(s=>(f.stringSet==='all'||s.strings===f.stringSet)&&(f.inversion==='all'||s.inversion===Number(f.inversion)));
         f.index=Math.min(f.index,Math.max(0,shapes.length-1));
         const shape=entry.savedShape || shapes[f.index];
-        for(const [label,delta] of [['Previous shape',-1],['Next shape',1]]) act(label,()=>{if(!shapes.length)return;f.index=(f.index+delta+shapes.length)%shapes.length;delete entry.savedShape;initSongCreator();});
+        const nav = node('div'); nav.className = 'creator-shape-nav'; host.append(nav);
+        for (const [label,delta] of [['Previous shape',-1],['Next shape',1]]) {
+            const button = act(label, () => {
+                if (!shapes.length) return;
+                f.index = (f.index + delta + shapes.length) % shapes.length;
+                delete entry.savedShape;
+                initSongCreator();
+                if (state.soundEnabled && entry.savedShape && entry.instrument === state.instrument) {
+                    Sound.playChord(voicingNotes(entry.savedShape, state.instrument));
+                }
+            }, nav);
+            button.disabled = !shapes.length;
+        }
         if(shape){
             entry.savedShape={...structuredClone(shape),instrument:entry.instrument};
             host.append(node('p',`${f.index+1} / ${shapes.length} · ${inversionName(chord,shape.inversion)} · ${entry.instrument}`),diagram(shape,chord));
@@ -98,7 +116,8 @@ function renderCreator() {
     act('Save song',async()=>{try{
         if(draft.sections.some(s=>!s.chords.length))throw new Error('Every section needs at least one chord.');
         if(draft.sections.some(s=>s.chords.some(c=>c.useShape && !c.savedShape)))throw new Error('Choose an available shape or switch Chord display to Whole chord.');
-        saveUserSong(draft);await initSongs();state.songPreview = entry ? {...entry} : null; if(state.mode==='creator')updateDisplay();status.textContent='Saved. Available in Songs.';
+        const savedDraft = portableSong(draft, state.instrument);
+        saveUserSong(savedDraft); draft = savedDraft;await initSongs();state.songPreview = entry ? {...entry} : null; if(state.mode==='creator')updateDisplay();status.textContent='Saved. Available in Songs.';
     }catch(error){status.textContent=error.message;}});
     act('Delete saved song',async()=>{if(confirm('Delete this saved song?')){try{deleteUserSong(draft.id);fresh();await initSongs();initSongCreator();}catch(error){status.textContent=error.message;}}});
     host.append(status);
