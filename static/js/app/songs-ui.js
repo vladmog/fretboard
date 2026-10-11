@@ -44,13 +44,12 @@ export async function initSongs() {
             state.selectedChordIndex = -1;
             details.replaceChildren();
             if (song.version) details.append(element('p', song.version));
-            details.append(element('h3', song.title));
+            if (song.tuning && song.tuning !== 'standard') details.append(element('p', `Tuning: ${song.tuning}`));
             details.append(element('p', song.artist));
             details.append(element('p', contextLabel(song.referenceKey, song.referenceScale)));
             const analysis = element('details');
             analysis.append(element('summary', 'Analysis & sources'));
             if (song.notes) analysis.append(element('p', song.notes));
-            details.append(analysis);
             if (song.bassStudy) {
                 const bassStudy = element('details');
                 bassStudy.append(element('summary', 'Bass study'), element('p', song.bassStudy.notes));
@@ -106,6 +105,7 @@ export async function initSongs() {
                     analysis.append(link);
                 } catch { /* Ignore invalid source URLs. */ }
             }
+            details.append(analysis);
             if (state.mode === 'song') updateDisplay();
         };
         select.addEventListener('change', render);

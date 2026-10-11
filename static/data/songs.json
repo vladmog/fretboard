@@ -3,11 +3,11 @@
     "id": "the-smiths-this-night-has-opened-my-eyes",
     "title": "This Night Has Opened My Eyes",
     "artist": "The Smiths",
-    "version": "Standard tuning \u00b7 No capo",
+    "version": "",
     "referenceKey": "B",
     "referenceScale": "natural_minor",
     "analysisStatus": "Community transcription cross-checked for key; not independently transcribed from audio",
-    "notes": "B minor reference. Source-based harmonic outline of the standard-tuning, no-capo guitar transcription. Chord labels summarize the harmony; passing tones, exact guitar grips and rhythm are not reproduced. Roman numerals use major-relative accidentals. Section names are practice labels; the pre-chorus is also called a refrain in some analyses.",
+    "notes": "B minor reference. Source-based harmonic outline of the guitar transcription. Chord labels summarize the harmony; passing tones, exact guitar grips and rhythm are not reproduced. Roman numerals use major-relative accidentals. Section names are practice labels; the pre-chorus is also called a refrain in some analyses.",
     "sources": [
       {
         "title": "Cifra Club \u2014 no-capo guitar transcription",
@@ -339,13 +339,14 @@
           }
         ]
       }
-    ]
+    ],
+    "tuning": "standard"
   },
   {
     "id": "khruangbin-august-10",
     "title": "August 10",
     "artist": "Khruangbin",
-    "version": "Bass-focused harmony study \u00b7 Standard tuning",
+    "version": "Bass-focused harmony study",
     "referenceKey": "B",
     "referenceScale": "natural_minor",
     "analysisStatus": "Provisional source-based harmonic outline",
@@ -568,6 +569,7 @@
         "A"
       ],
       "notes": "The bass transcription centers its recurring intro/chorus/outro riff on B and uses B-minor-pentatonic tones (B, D, E, F#, A). The later vocal section starts from A and uses A, E, F#, and D. These are bass-line observations, not proof that every bass note is a new chord root. Guitar and bass sources use different section names; the importable sections below retain the guitar chart\u2019s labels and remain a provisional harmonic map."
-    }
+    },
+    "tuning": "standard"
   }
 ]
