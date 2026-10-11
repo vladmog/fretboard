@@ -29,3 +29,21 @@ test('scale-degree toggle changes chord labels without changing chord colors', (
         }
     }
 });
+
+test('chromatic circle retains chord fills and borders when scale-relative labels switch',()=>{
+    const source=readFileSync(new URL('../static/js/app/display.js',import.meta.url),'utf8');
+    const start=source.indexOf('function renderChromaticCircle(');
+    const svg={children:[],set innerHTML(_){this.children=[];},appendChild(n){this.children.push(n);}};
+    const context=vm.createContext({MusicTheory,state:{root:'C'},document:{getElementById:()=>svg,createElementNS:(_,tag)=>({tag,attrs:{},classList:{add(){}},setAttribute(k,v){this.attrs[k]=v;}})}});
+    vm.runInContext(source.slice(start,source.indexOf('\n/**',start)),context);
+    const chord=MusicTheory.buildChord('F','maj'),scale=MusicTheory.buildScale('C','major');
+    const labels=Object.fromEntries(Object.keys(chord.noteToInterval).map(n=>[n,scale.noteToDegree[n]]));
+    context.renderChromaticCircle(chord.noteToInterval,0,undefined,false,undefined,chord.noteToInterval);
+    const circles=svg.children.filter(n=>n.tag==='circle').map(n=>({...n.attrs}));
+    const text=svg.children.filter(n=>n.tag==='text').map(n=>n.textContent);
+    context.renderChromaticCircle(labels,0,undefined,true,undefined,chord.noteToInterval);
+    // The small root indicator can move; note marker colors must not.
+    const markerColors=nodes=>nodes.filter(n=>n.r===13).map(n=>[n.fill,n.stroke]);
+    assert.deepEqual(markerColors(svg.children.filter(n=>n.tag==='circle').map(n=>n.attrs)),markerColors(circles));
+    assert.notDeepEqual(svg.children.filter(n=>n.tag==='text').map(n=>n.textContent),text);
+});

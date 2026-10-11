@@ -1,5 +1,4 @@
 import { bindTouchTap } from '../core/touch-tap.js';
-import { guide } from './harmony-guide.js';
 import { getChordScaleContext, drawChordScaleBackground } from './chord-scale-context.js';
 import { bindFretboardGestures } from './fretboard-gestures.js';
 /** Independent chord comparisons; the main workspace stays intact. */
@@ -87,14 +86,12 @@ function renderBoards() {
                 : Theory.getNotesOnFretboard(chord.noteToInterval, 15, chord.root, tuning);
             const context = getChordScaleContext(chord, item.referenceKey, scaleRelative, item.referenceScale);
             drawChordScaleBackground(board, context, positions, tuning, showNoteNames);
-            const triadColors = shape && ['maj', 'min', 'dim'].includes(chord.type);
             for (const position of positions) {
                 const colors = Theory.getIntervalColor(position.label);
-                const isRoot = position.label === '1';
                 board.setMarker(position.string, position.fret, {
-                    color: triadColors ? guide.triadColors[chord.intervals.indexOf(position.label)] : (isRoot ? '#000' : colors.fill),
-                    borderColor: triadColors ? '#222' : (isRoot ? '#000' : colors.border),
-                    textColor: triadColors ? '#000' : (isRoot ? '#fff' : colors.text),
+                    color: colors.fill,
+                    borderColor: colors.border,
+                    textColor: colors.text,
                     text: showNoteNames ? chord.noteSpelling[position.noteIndex] : (context?.noteToDegree[position.noteIndex] ?? position.label)
                 });
             }

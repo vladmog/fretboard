@@ -242,6 +242,7 @@ function displayScaleChord(chord, scale, parentRoot) {
         notes: chord.notes,
         intervals: displayIntervals,
         noteToInterval: useScaleDegrees ? chordNoteToDegree : chord.noteToInterval,
+        colorIntervals: chord.noteToInterval,
         rainbowNoteIndex: MusicTheory.getNoteIndex(parentRoot || scale.root),
         useScaleDegrees: useScaleDegrees
     });
@@ -474,7 +475,7 @@ function displayMode(parentRoot, modeName) {
  * Render the chromatic circle SVG showing active notes with interval colors
  * @param {Object} noteToInterval - Map of semitone index (0-11) to interval name
  */
-function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNotes, useScaleDegrees, plainMarkerNotes) {
+function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNotes, useScaleDegrees, plainMarkerNotes, colorIntervals) {
     const svg = document.getElementById('chromatic-circle-svg');
     if (!svg) return;
 
@@ -524,6 +525,7 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
         const x = cx + radius * Math.cos(angle);
         const y = cy + radius * Math.sin(angle);
         const interval = noteToInterval[i];
+        const colorInterval = colorIntervals?.[i] ?? interval;
         const isActive = interval !== undefined;
         const isPlainMarker = isPlainMode && plainMarkerNotes.has(i);
 
@@ -537,9 +539,9 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
             circle.setAttribute('stroke', '#000');
             circle.setAttribute('stroke-width', '2');
         } else if (isActive) {
-            const colors = MusicTheory.getIntervalColor(interval);
-            const isRoot = interval === '1';
-            circle.setAttribute('fill', (isRoot && !useScaleDegrees) ? '#000' : colors.fill);
+            const colors = MusicTheory.getIntervalColor(colorInterval);
+            const isRoot = colorInterval === '1';
+            circle.setAttribute('fill', (isRoot && (!useScaleDegrees || colorIntervals)) ? '#000' : colors.fill);
             circle.setAttribute('stroke', colors.border);
             circle.setAttribute('stroke-width', '2');
         } else if (highlightedNotes && highlightedNotes.has(i)) {
@@ -573,9 +575,9 @@ function renderChromaticCircle(noteToInterval, rainbowNoteIndex, highlightedNote
         if (isPlainMarker) {
             text.setAttribute('fill', '#fff');
         } else if (isActive) {
-            const colors = MusicTheory.getIntervalColor(interval);
-            const isRoot = interval === '1';
-            text.setAttribute('fill', (isRoot && !useScaleDegrees) ? '#fff' : colors.text);
+            const colors = MusicTheory.getIntervalColor(colorInterval);
+            const isRoot = colorInterval === '1';
+            text.setAttribute('fill', (isRoot && (!useScaleDegrees || colorIntervals)) ? '#fff' : colors.text);
         } else if (highlightedNotes && highlightedNotes.has(i)) {
             const hlInterval = SEMITONE_LABELS[(i - rootIndex + 12) % 12];
             const hlColors = MusicTheory.getIntervalColor(hlInterval);
@@ -632,7 +634,7 @@ export function updateInfoPanel(info) {
         gridEl.style.gridTemplateColumns = '';
         gridEl.textContent = info.notes.join(' ');
         gridEl.className = 'info-grid info-grid-text';
-        renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex, info.highlightedNotes, info.useScaleDegrees, info.plainMarkerNotes);
+        renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex, info.highlightedNotes, info.useScaleDegrees, info.plainMarkerNotes, info.colorIntervals);
         return;
     }
 
@@ -664,7 +666,7 @@ export function updateInfoPanel(info) {
         gridEl.parentNode.appendChild(descEl);
     }
 
-    renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex, info.highlightedNotes, info.useScaleDegrees, info.plainMarkerNotes);
+    renderChromaticCircle(info.noteToInterval || {}, info.rainbowNoteIndex, info.highlightedNotes, info.useScaleDegrees, info.plainMarkerNotes, info.colorIntervals);
 }
 /**
  * Update display based on current state

@@ -1,5 +1,4 @@
 /** Full-chord and shell inversion explorer inside Chords mode. */
-import { guide } from './harmony-guide.js';
 import { getChordVoicings, getVoicingIntervals, inversionName } from '../core/chord-voicings.js';
 import { getShellIntervals } from '../core/shell-voicings.js';
 import * as Theory from '../core/music-theory.js';
@@ -56,7 +55,7 @@ function diagram(shape, chord) {
     shape.positions.forEach(p => {
         const y = 38 + strings.indexOf(p.string) * 30;
         const x = 30 + (p.fret - start + 0.5) * step;
-        add('circle', { cx: x, cy: y, r: 12, fill: ['maj', 'min', 'dim'].includes(chord.type) ? guide.triadColors[chord.intervals.indexOf(p.label)] : Theory.getIntervalColor(p.label).fill, stroke: Theory.getIntervalColor(p.label).border });
+        add('circle', { cx: x, cy: y, r: 12, fill: Theory.getIntervalColor(p.label).fill, stroke: Theory.getIntervalColor(p.label).border });
         add('text', { x, y: y + 4, 'text-anchor': 'middle', 'font-size': 12 }, state.showNoteNames ? chord.noteSpelling[p.noteIndex] : p.label);
     });
     return svg;
