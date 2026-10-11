@@ -1,3 +1,4 @@
+import { getNoteAt } from './music-theory.js';
 /**
  * Fretboard SVG Rendering Module
  * Renders an interactive guitar fretboard using raw SVG
@@ -453,7 +454,7 @@ function setMarker(config, string, fret, options = {}) {
     const { x, y } = getMarkerPosition(config, string, fret);
 
     // Create marker group
-    const group = createSVGElement('g', { class: 'marker' });
+    const group = createSVGElement('g', { class: 'marker', 'data-pitch-class': getNoteAt(config.numStrings-string, fret, config.tuning) });
 
     // Create circle with border
     const circleStyle = { ...styles.marker, r: styles.marker.r * config.markerScale, fill: color };

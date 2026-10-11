@@ -91,7 +91,7 @@ function renderBoards() {
         play.addEventListener('click', () => {
             if (!state.soundEnabled) return;
             const shape = shapes[item.shapeIndex];
-            Sound.playChord(shape ? voicingNotes(shape, state.instrument) : chord.notes);
+            Sound.playChord(shape ? voicingNotes(shape, state.instrument) : chord.notes, undefined, host);
         });
         const caption = element('p', 'comparison-caption');
         card.appendChild(caption);
@@ -143,7 +143,7 @@ function renderBoards() {
                     renderChordList();
                 }
                 draw();
-                if (state.soundEnabled) Sound.playChord(voicingNotes(shapes[item.shapeIndex],state.instrument));
+                if (state.soundEnabled) Sound.playChord(voicingNotes(shapes[item.shapeIndex],state.instrument), undefined, host);
                 applyCurrentRotation();
             });
         }

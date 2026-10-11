@@ -158,7 +158,7 @@ function assignOctaves(noteNames, startOctave) {
  * Play a chord given an array of note names
  * @param {string[]} noteNames - Note names from buildChord() (e.g. ['C', 'E', 'G'])
  */
-async function playChord(noteNames, startOctave) {
+async function playChord(noteNames, startOctave, onPluck) {
     if (!noteNames || noteNames.length === 0) return;
 
     if (!await preparePlayback()) return;
@@ -180,7 +180,9 @@ async function playChord(noteNames, startOctave) {
 
     const now = Tone.now();
     notesWithOctaves.forEach((note, i) => {
-        synth.triggerAttackRelease(note, params.noteDuration, now + i * params.strumDelay);
+        const time = now + i * params.strumDelay;
+        synth.triggerAttackRelease(note, params.noteDuration, time);
+        if (onPluck) Tone.Draw.schedule(() => onPluck(note), time);
     });
 }
 
