@@ -12,6 +12,7 @@ import NoteId from './note-id.js';
 import IntervalLocator from './interval-locator.js';
 import NoteLocator from './note-locator.js';
 import VoiceLeading from './voice-leading.js';
+import NearestNote from './nearest-note.js';
 import { gameState, isAwaitingAdvance, setAwaitingAdvance, markReady } from './session.js';
 import * as NoteKeyboard from './note-keyboard.js';
 import * as Voice from './voice.js';
@@ -31,6 +32,7 @@ export const Games = (function() {
         'note-id': NoteId,
         'interval-locator': IntervalLocator,
         'voice-leading': VoiceLeading,
+        'nearest-note': NearestNote,
         'note-locator': NoteLocator
     };
 
@@ -44,6 +46,7 @@ export const Games = (function() {
         'note-id': 'Note ID',
         'interval-locator': 'Interval Locator',
         'voice-leading': 'Voice leading',
+        'nearest-note': 'Nearest note',
         'note-locator': 'Note Locator'
     };
 
@@ -282,7 +285,7 @@ export const Games = (function() {
     }
 
     return {
-        configureVoiceLeading: VoiceLeading.configure,
+        configureVoiceLeading: value => { VoiceLeading.configure(value); NearestNote.configure(value); },
         activate,
         deactivate,
         getState: () => ({ ...gameState }),
