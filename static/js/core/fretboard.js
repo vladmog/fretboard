@@ -420,6 +420,32 @@ export function createFretboard(container, config = {}) {
         },
         setMarker: (string, fret, options) => setMarker(fretboardConfig, string, fret, options),
         clearMarkers: () => clearMarkers(fretboardConfig),
+        highlightString: string => {
+            const first = getMarkerPosition(fretboardConfig, string, 0);
+            const end = padding + totalLength;
+            markerGroup.appendChild(createSVGElement('rect', {
+                x: first.x - 10,
+                y: first.y - 10,
+                width: isVertical ? 20 : end - first.x + 20,
+                height: isVertical ? end - first.y + 20 : 20,
+                fill: '#888', 'fill-opacity': 0.12, stroke: '#555',
+                'stroke-width': 2, 'pointer-events': 'none', 'data-highlighted-string': string
+            }));
+        },
+        highlightFretRange: (first, last) => {
+            const start = padding + getFretPosition(first - 1, frets, totalLength);
+            const end = padding + getFretPosition(last, frets, totalLength);
+            const across = (numStrings - 1) * stringSpacing + 20;
+            markerGroup.appendChild(createSVGElement('rect', {
+                x: isVertical ? padding - 10 : start,
+                y: isVertical ? start : padding - 10,
+                width: isVertical ? across : end - start,
+                height: isVertical ? end - start : across,
+                fill: '#888', 'fill-opacity': 0.12, stroke: '#555',
+                'stroke-width': 2, 'pointer-events': 'none',
+                'data-fret-range': `${first}-${last}`
+            }));
+        },
         addShape: (points, options) => addShape(fretboardConfig, points, options),
         onFretClick: (callback) => { clickCallback = callback; }
     };

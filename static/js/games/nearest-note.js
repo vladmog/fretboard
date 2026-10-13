@@ -1,3 +1,4 @@
+import { showAnswerFeedback, clearAnswerFeedback } from './answer-feedback.js';
 import { createFretboard } from '../core/fretboard.js';
 import { instrumentConfig } from '../core/voice-leading.js';
 import { notePositions, closestNotes, checkNearest } from '../core/nearest-note.js';
@@ -29,16 +30,16 @@ function round(){
     const host=el('div','','voice-leading-board');host.setAttribute('aria-label','Choose the nearest target note');root.append(host);
     status=el('p',`${count} solved`,'voice-leading-feedback');status.setAttribute('role','status');root.append(status);
     const controls=el('div','','voice-leading-actions');
-    controls.append(button('Check',()=>{
+    function checkAnswer(){
         if(!answer){status.textContent='Tap a fret position first.';return;}
         const r=checkNearest(start,answer,target,instrument);
-        status.textContent=r.correct?`Correct — ${r.distance} semitone${r.distance===1?'':'s'} away. Every equally close position counts.`:r.matches?`Right note, but ${r.distance} semitones away. A closer octave is ${r.best} away. Try again.`:`That is not ${CHROMATIC_NOTES[target]}. Try another position.`;
+        showAnswerFeedback(status,r.correct,r.correct?`${r.distance} semitone${r.distance===1?'':'s'} away. Every equally close position counts.`:r.matches?`Right note, but ${r.distance} semitones away. A closer octave is ${r.best} away. Try again.`:`That is not ${CHROMATIC_NOTES[target]}. Try another position.`);
         next.disabled=!r.correct;
-    }));
-    next=button('Next note',()=>{count++;round();});next.disabled=true;
-    controls.append(next,button('Show nearest',()=>{const best=closestNotes(start,target,instrument);board.clearMarkers();board.setMarker(start.string,start.fret,{text:CHROMATIC_NOTES[start.midi%12],color:'#ddd',borderColor:'#666'});for(const p of best.positions)board.setMarker(p.string,p.fret,{text:CHROMATIC_NOTES[target],color:'#fff',borderColor:'#111'});answer=null;next.disabled=true;status.textContent=`All closest answers: ${best.distance} semitones away. Tap one to try it.`;}));root.append(controls);
+    }
+    next=button('Next note →',()=>{count++;round();});next.classList.add('practice-next');next.disabled=true;
+    controls.append(next,button('Show nearest',()=>{clearAnswerFeedback(status);const best=closestNotes(start,target,instrument);board.clearMarkers();board.setMarker(start.string,start.fret,{text:CHROMATIC_NOTES[start.midi%12],color:'#ddd',borderColor:'#666'});for(const p of best.positions)board.setMarker(p.string,p.fret,{text:CHROMATIC_NOTES[target],color:'#fff',borderColor:'#111'});answer=null;next.disabled=true;status.textContent=`All closest answers: ${best.distance} semitones away. Tap one to try it.`;}));root.append(controls);
     root.append(el('p','Distance is measured in semitones, not fretboard space. The same sounding pitch on different strings is equally correct.'));
-    function draw(){host.replaceChildren();const mobile=matchMedia('(max-width:768px) and (orientation:portrait)').matches;board=createFretboard(host,{tuning:instrumentConfig(instrument).tuning,frets:15,vertical:host.clientWidth<600,...(mobile?{}:{fretSpacing:37,stringSpacing:40})});board.onFretClick((string,fret)=>{answer={string,fret};next.disabled=true;status.textContent='Press Check to test your answer.';paint();play(answer);});paint();}
+    function draw(){host.replaceChildren();const mobile=matchMedia('(max-width:768px) and (orientation:portrait)').matches;board=createFretboard(host,{tuning:instrumentConfig(instrument).tuning,frets:15,vertical:host.clientWidth<600,...(mobile?{}:{fretSpacing:37,stringSpacing:40})});board.onFretClick((string,fret)=>{answer={string,fret};checkAnswer();paint();play(answer);});paint();}
     draw();let width=host.clientWidth;observer=new ResizeObserver(()=>{if(width!==host.clientWidth){width=host.clientWidth;draw();}});observer.observe(host);
 }
 function renderTitlePage(){cleanup();const root=el('div','','voice-leading');root.append(el('h2','Nearest note'),el('p','Find the closest pitch of a target note from a shown starting position. Any tied position counts. Uses your Guitar/Bass setting.'),button('Start practice',()=>{count=0;round();}));document.getElementById('game-content').replaceChildren(root);}

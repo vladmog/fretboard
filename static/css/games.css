@@ -1044,3 +1044,26 @@ html.amoled-on #games-panel {
 }
 .games-controls select { flex:1 1 140px; }
 .games-controls button, .games-controls select { min-height:44px; }
+
+/* Explicit answer verdicts remain visible until the next attempt or question. */
+.voice-leading .voice-leading-feedback[data-result] {
+    border: 2px solid currentColor;
+    padding: .65rem;
+    font-size: .95rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+.voice-leading-feedback[data-result="correct"] { color: #175b31; background: #e6f3e8; }
+.voice-leading-feedback[data-result="incorrect"] { color: #872b27; background: #fbece9; }
+.voice-leading .practice-next {
+    flex: 1 0 100%;
+    grid-column: 1 / -1;
+    min-height: 48px;
+    font-size: 1rem;
+    font-weight: 700;
+    border: 2px solid #111;
+    background: #111;
+    color: #fff;
+}
+.voice-leading .practice-next:disabled { background: #e4e3dd; color: #666; border-color: #aaa; opacity: 1; }
+.voice-leading .practice-next:focus-visible { outline: 3px solid #777; outline-offset: 2px; }
