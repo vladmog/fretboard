@@ -1067,3 +1067,26 @@ html.amoled-on #games-panel {
 }
 .voice-leading .practice-next:disabled { background: #e4e3dd; color: #666; border-color: #aaa; opacity: 1; }
 .voice-leading .practice-next:focus-visible { outline: 3px solid #777; outline-offset: 2px; }
+
+/* Physical alignment is enabled only by the iPhone 16 Pro standalone profile. */
+.magsafe-circle {
+    position: fixed !important;
+    left: var(--magsafe-x) !important;
+    top: var(--magsafe-y) !important;
+    width: var(--magsafe-size) !important;
+    height: var(--magsafe-size) !important;
+    transform: translate(-50%, -50%);
+    flex: none !important;
+    margin: 0 !important;
+}
+.magsafe-circle > svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+}
+.game-play-area:has(> .magsafe-circle) {
+    justify-content: flex-start;
+    padding-top: 24px;
+}
+#fifths-mode:has(.magsafe-circle) .fifths-summary { margin-top: auto; }

@@ -1,3 +1,4 @@
+import { currentMagsafeProfile, magsafeCircleSize, alignMagsafeCircle } from '../core/magsafe-layout.js';
 /**
  * Interval Training Game
  * Chromatic circle quiz for identifying intervals from root notes
@@ -446,7 +447,9 @@ function createIntervalTrainingGame(config) {
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         const maxSize = Math.min(vw, vh - 200) * 0.85;
-        const size = Math.max(maxSize, 250);
+        const profile = currentMagsafeProfile();
+        const size = profile ? magsafeCircleSize(profile, 0.38) : Math.max(maxSize, 250);
+        alignMagsafeCircle(container, 0.38);
 
         const svgNS = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(svgNS, 'svg');

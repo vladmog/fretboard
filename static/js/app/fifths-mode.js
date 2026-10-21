@@ -1,3 +1,4 @@
+import { alignMagsafeCircle } from '../core/magsafe-layout.js';
 import { getMarkerColor } from './marker-colors.js';
 import { buildChord, buildScale, buildScaleChords, getNoteIndex } from '../core/music-theory.js';
 import * as Sound from './instrument-sound.js';
@@ -105,6 +106,9 @@ export function showFifthsMode(onBack) {
             if(main) main.checked=state.soundEnabled;
         });
     }
+    const stage = panel.querySelector('.fifths-stage');
+    // Major-ring marker centers sit on the MagSafe ID; relative minors stay inside.
+    alignMagsafeCircle(stage, 78 / 200);
     panel.querySelector('.fifths-back').onclick=onBack;
     panel.querySelector('.fifths-sound').checked=state.soundEnabled;
     document.querySelector('.app-container').hidden=true;
