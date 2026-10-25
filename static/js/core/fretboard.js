@@ -433,7 +433,7 @@ export function createFretboard(container, config = {}) {
             }));
         },
         highlightFretRange: (first, last, strings) => {
-            const start = padding + getFretPosition(first - 1, frets, totalLength);
+            const start = first === 0 ? padding - 30 : padding + getFretPosition(first - 1, frets, totalLength);
             const end = padding + getFretPosition(last, frets, totalLength);
             // Merge adjacent selected strings so the box remains one region where possible.
             const selected = [...new Set(strings ?? Array.from({length:numStrings},(_,i)=>i+1))].sort((a,b)=>a-b);

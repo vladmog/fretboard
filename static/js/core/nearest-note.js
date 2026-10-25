@@ -3,12 +3,12 @@ export function notePositions(instrument, frets = 15) {
     const {bases} = instrumentConfig(instrument);
     return bases.flatMap((base, i) => Array.from({length: frets + 1}, (_, fret) => ({string: bases.length - i, fret, midi: base + fret})));
 }
-export function boxNotes(instrument, firstFret, targetPitch, strings) {
-    return notePositions(instrument).filter(p => (!strings || strings.includes(p.string)) && p.fret >= firstFret && p.fret < firstFret + 4 && (targetPitch === undefined || p.midi % 12 === targetPitch));
+export function boxNotes(instrument, firstFret, targetPitch, strings, lastFret = firstFret + 3) {
+    return notePositions(instrument).filter(p => (!strings || strings.includes(p.string)) && p.fret >= firstFret && p.fret <= lastFret && (targetPitch === undefined || p.midi % 12 === targetPitch));
 }
-export function checkBoxNote(answer, targetPitch, instrument, firstFret, strings) {
+export function checkBoxNote(answer, targetPitch, instrument, firstFret, strings, lastFret = firstFret + 3) {
     const pitch = pitches([answer], instrument)[0];
-    const inside = (!strings || strings.includes(answer.string)) && answer.fret >= firstFret && answer.fret < firstFret + 4;
+    const inside = (!strings || strings.includes(answer.string)) && answer.fret >= firstFret && answer.fret <= lastFret;
     const matches = pitch % 12 === targetPitch;
     return {inside, matches, correct: inside && matches};
 }
