@@ -18,3 +18,20 @@ for (const [w,h] of [[393,852],[412,915],[768,1024]]) {
         }
     });
 }
+
+test('entire rotated board stays inside iPhone safe areas in every orientation',()=>{
+    for(const [width,height,angle,safe] of [
+        [402,874,0,{top:62,bottom:34,left:0,right:0}],
+        [874,402,90,{top:0,bottom:21,left:62,right:62}],
+        [874,402,270,{top:0,bottom:21,left:62,right:62}],
+        [874,402,-90,{top:0,bottom:21,left:62,right:62}]
+    ]){
+        const f=regionBoardFrame(width,height,angle,safe);
+        const w=f.turn?f.height:f.width,h=f.turn?f.width:f.height;
+        assert.ok(f.x-w/2>=safe.left);
+        assert.ok(f.x+w/2<=width-safe.right);
+        assert.ok(f.y-h/2>=safe.top);
+        assert.ok(f.y+h/2<=height-safe.bottom);
+        assert.ok(f.width>0&&f.height>0);
+    }
+});

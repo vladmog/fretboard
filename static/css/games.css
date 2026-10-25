@@ -1175,3 +1175,19 @@ html.amoled-on #games-panel {
 .note-region-fret-range:not([hidden]) { display:flex; gap:0.75rem; }
 .note-region-fret-range label { flex:1; min-width:0; font-size:0.8rem; }
 .note-region-fret-range select { display:block; width:100%; min-height:44px; margin-top:0.3rem; color:#111; background:#fff; border:1px solid #999; }
+
+/* Read the actual device safe areas for the rotated board's geometry. */
+.note-region-safe-probe {
+    position:fixed; visibility:hidden; pointer-events:none;
+    width:0; height:0; box-sizing:content-box;
+    padding:env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+.note-region-mobile[data-controls="right"] {
+    padding-top:env(safe-area-inset-top, 0px);
+    padding-right:env(safe-area-inset-right, 0px);
+    padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+.note-region-mobile[data-controls="top"] { padding-top:calc(48px + env(safe-area-inset-top, 0px)); }
+.note-region-mobile[data-controls="bottom"] { padding-bottom:calc(6px + env(safe-area-inset-bottom, 0px)); }
+#games-panel:has(.note-region-mobile[data-controls="top"]) { --region-controls-top:env(safe-area-inset-top, 0px); }
+#games-panel:has(.note-region-mobile[data-controls="bottom"]) .games-controls { max-height:calc(50dvh - 52px - env(safe-area-inset-bottom, 0px)); }
