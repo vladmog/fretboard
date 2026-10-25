@@ -34,3 +34,16 @@ export function checkStringNote(answer, targetPitch, instrument, string) {
     const inside = answer.string === string;
     return {inside, matches, correct: inside && matches};
 }
+
+/** Questions with exactly one occurrence of the target on the selected strings. */
+export function uniqueBoxQuestions(instrument, strings, minFret=0, maxFret=15) {
+    const span=Math.min(3,maxFret-minFret), questions=[];
+    for(let first=minFret;first+span<=maxFret;first++){
+        const last=first+span;
+        const positions=boxNotes(instrument,first,undefined,strings,last);
+        const counts=new Map();
+        for(const p of positions)counts.set(p.midi%12,(counts.get(p.midi%12)||0)+1);
+        for(const [target,count] of counts)if(count===1)questions.push({first,last,target});
+    }
+    return questions;
+}

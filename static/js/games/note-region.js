@@ -1,7 +1,7 @@
 import { showAnswerFeedback, clearAnswerFeedback } from './answer-feedback.js';
 import { createFretboard } from '../core/fretboard.js';
 import { instrumentConfig } from '../core/voice-leading.js';
-import { notePositions, boxNotes, checkBoxNote, stringNotes, checkStringNote } from '../core/nearest-note.js';
+import { notePositions, uniqueBoxQuestions, boxNotes, checkBoxNote, stringNotes, checkStringNote } from '../core/nearest-note.js';
 import { CHROMATIC_NOTES } from '../core/music-theory.js';
 import { voicingNotes } from '../core/voicing-audio.js';
 import * as Voice from './voice.js';
@@ -24,7 +24,7 @@ const store=createSettingsStore('fretboard-note-in-box-settings',{guitar:[1,2,3,
 if(!isString)store.load();
 const selectedStrings=()=>store.settings[instrument];
 const stringName=n=>instrumentConfig(instrument).tuning[instrumentConfig(instrument).tuning.length-n];
-let chosenString, detachLayout, revealed=false;
+let chosenString, detachLayout, revealed=false, unavailable=false;
 let instrument='guitar', board, observer, firstFret, lastFret, target, answer, status, next, active=false, count=0, last='';
 const el=(tag,text='',className='')=>{const e=document.createElement(tag);e.textContent=text;e.className=className;return e;};
 const button=(text,fn)=>{const b=el('button',text);b.type='button';b.addEventListener('click',fn);return b;};
@@ -39,20 +39,33 @@ function paint(){
     if(answer)board.setMarker(answer.string,answer.fret,{text:CHROMATIC_NOTES[notePositions(instrument).find(p=>p.string===answer.string&&p.fret===answer.fret).midi%12],color:'#fff',borderColor:'#111',textColor:'#111'});
 }
 function round(){
-    cleanup();active=true;answer=null;revealed=false;
+    cleanup();active=true;unavailable=false;answer=null;revealed=false;
     // Pick the target from notes actually present in the four-fret region.
     let key, attempts=0;
     const min=!isString&&store.settings.limitFrets?store.settings.minFret:0;
     const max=!isString&&store.settings.limitFrets?store.settings.maxFret:15;
-    const span=Math.min(3,max-min);
-    do {
-        firstFret = min + Math.floor(Math.random() * (max-min-span+1));
-        lastFret = firstFret + span;
-        chosenString = 1 + Math.floor(Math.random() * instrumentConfig(instrument).bases.length);
-        const candidates = isString ? stringNotes(instrument, chosenString) : boxNotes(instrument, firstFret, undefined, selectedStrings(),lastFret);
-        target = candidates[Math.floor(Math.random() * candidates.length)].midi % 12;
-        key = `${isString ? chosenString : firstFret}:${target}`;
-    } while (key === last && ++attempts<32);
+    if(!isString){
+        const pool=uniqueBoxQuestions(instrument,selectedStrings(),min,max);
+        if(!pool.length){
+            active=false;unavailable=true;
+            const root=el('div','','voice-leading');
+            root.append(el('h2',title),el('p','No single-occurrence notes with these settings. Open Menu and change the selected strings or fret range.'));
+            document.getElementById('game-content').replaceChildren(root);
+            return;
+        }
+        const fresh=pool.filter(q=>`${q.first}:${q.target}`!==last);
+        const choices=fresh.length?fresh:pool;
+        const question=choices[Math.floor(Math.random()*choices.length)];
+        firstFret=question.first;lastFret=question.last;target=question.target;
+        key=`${firstFret}:${target}`;
+    }else{
+        do {
+            chosenString = 1 + Math.floor(Math.random() * instrumentConfig(instrument).bases.length);
+            const candidates = stringNotes(instrument, chosenString);
+            target = candidates[Math.floor(Math.random() * candidates.length)].midi % 12;
+            key = `${chosenString}:${target}`;
+        } while (key === last && ++attempts<32);
+    }
     last = key;
     const root=el('div','','voice-leading voice-leading-round note-region-round');
     document.getElementById('game-content').replaceChildren(root);
@@ -83,7 +96,7 @@ function round(){
     announceQuestion();
 
 }
-function renderTitlePage(){cleanup();const root=el('div','','voice-leading');root.append(el('h2',title),el('p',isString ? 'Find a named note on a highlighted string. Uses your Guitar/Bass setting.' : 'Find a named note inside a four-fret box across all strings. Uses your Guitar/Bass setting.'),button('Start practice',()=>{count=0;round();}));document.getElementById('game-content').replaceChildren(root);}
+function renderTitlePage(){unavailable=false;cleanup();const root=el('div','','voice-leading');root.append(el('h2',title),el('p',isString ? 'Find a named note on a highlighted string. Uses your Guitar/Bass setting.' : 'Find a named note inside a four-fret box across all strings. Uses your Guitar/Bass setting.'),button('Start practice',()=>{count=0;round();}));document.getElementById('game-content').replaceChildren(root);}
 function renderSettings(body){
     if(isString){body.replaceChildren(el('p','Uses your Guitar/Bass setting. Find the note on the highlighted string.'));return;}
     body.replaceChildren(el('h3','Strings to practice'),el('p','Choose at least one string. Only selected strings count.'));
@@ -97,7 +110,7 @@ function renderSettings(body){
             if(input.checked)chosen.add(n);else chosen.delete(n);
             if(!chosen.size){input.checked=true;return;}
             store.settings[instrument]=[...chosen].sort((a,b)=>a-b);store.save();
-            if(active)round();
+            if(active||unavailable)round();
             renderSettings(body);
         });
         label.append(input,el('span',`${stringName(n)} · String ${n}`));fields.append(label);
@@ -106,7 +119,7 @@ function renderSettings(body){
     const limitLabel=el('label','','note-region-limit-toggle');
     const limit=el('input');limit.type='checkbox';limit.checked=store.settings.limitFrets;
     const range=el('div','','note-region-fret-range');range.hidden=!limit.checked;
-    function saveRange(){store.save();if(active)round();}
+    function saveRange(){store.save();if(active||unavailable)round();}
     function fillRange(){
         range.replaceChildren();
         for(const [key,labelText] of [['minFret','Starting fret'],['maxFret','Ending fret']]){

@@ -23,3 +23,19 @@ test('single and nonadjacent guitar selections always supply valid targets',()=>
         assert.equal(checkBoxNote({...candidates[0],fret:first+4},candidates[0].midi%12,'guitar',first,strings).inside,false);
     }
 });
+
+test('every generated box question has exactly one answer, across all string subsets and fret ranges',async()=>{
+    const {uniqueBoxQuestions}=await import('../static/js/core/nearest-note.js');
+    for(const [instrument,total] of [['guitar',6],['bass',4]]){
+        for(let mask=1;mask<(1<<total);mask++){
+            const strings=Array.from({length:total},(_,i)=>i+1).filter(n=>mask&(1<<(n-1)));
+            for(let min=0;min<=15;min++)for(let max=min;max<=15;max++){
+                for(const q of uniqueBoxQuestions(instrument,strings,min,max)){
+                    assert.equal(boxNotes(instrument,q.first,q.target,strings,q.last).length,1);
+                    assert.ok(q.first>=min&&q.last<=max);
+                }
+            }
+        }
+    }
+    assert.deepEqual(uniqueBoxQuestions('guitar',[1,6]),[],'two E strings always duplicate pitch classes');
+});
