@@ -18,6 +18,7 @@ import NoteOnString from './note-on-string.js';
 import { gameState, isAwaitingAdvance, setAwaitingAdvance, markReady } from './session.js';
 import * as NoteKeyboard from './note-keyboard.js';
 import * as Voice from './voice.js';
+import { createSettingsStore } from './storage.js';
 import * as Blackout from './blackout.js';
 
 export const Games = (function() {
@@ -40,6 +41,14 @@ export const Games = (function() {
         'note-locator': NoteLocator
     };
 
+    const selectionStore = createSettingsStore('fretboard-games-settings', {
+        lastGame: 'interval-training'
+    }, settings => {
+        if (!Object.hasOwn(GAMES, settings.lastGame)) settings.lastGame = 'interval-training';
+    });
+    selectionStore.load();
+    gameState.currentGame = selectionStore.settings.lastGame;
+
     const GAME_NAMES = {
         'interval-training': 'Interval Training',
         'blind-interval-training': 'Blind Interval Training',
@@ -57,6 +66,8 @@ export const Games = (function() {
     };
 
     function activate() {
+        const picker = document.getElementById('games-select');
+        if (picker) picker.value = gameState.currentGame;
         gameState.active = true;
         setControlsOpen(false);
         setAwaitingAdvance(false);
@@ -252,7 +263,10 @@ export const Games = (function() {
                 const game = getCurrentGame();
                 if (game && game.cleanup) game.cleanup();
 
+                if (!Object.hasOwn(GAMES, e.target.value)) return;
                 gameState.currentGame = e.target.value;
+                selectionStore.settings.lastGame = gameState.currentGame;
+                selectionStore.save();
                 setControlsOpen(false, true);
                 // Drop focus so typed note letters don't jump the dropdown
                 gameSelect.blur();
