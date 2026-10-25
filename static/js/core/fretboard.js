@@ -432,19 +432,30 @@ export function createFretboard(container, config = {}) {
                 'stroke-width': 2, 'pointer-events': 'none', 'data-highlighted-string': string
             }));
         },
-        highlightFretRange: (first, last) => {
+        highlightFretRange: (first, last, strings) => {
             const start = padding + getFretPosition(first - 1, frets, totalLength);
             const end = padding + getFretPosition(last, frets, totalLength);
-            const across = (numStrings - 1) * stringSpacing + 20;
-            markerGroup.appendChild(createSVGElement('rect', {
-                x: isVertical ? padding - 10 : start,
-                y: isVertical ? start : padding - 10,
-                width: isVertical ? across : end - start,
-                height: isVertical ? end - start : across,
-                fill: '#888', 'fill-opacity': 0.12, stroke: '#555',
-                'stroke-width': 2, 'pointer-events': 'none',
-                'data-fret-range': `${first}-${last}`
-            }));
+            // Merge adjacent selected strings so the box remains one region where possible.
+            const selected = [...new Set(strings ?? Array.from({length:numStrings},(_,i)=>i+1))].sort((a,b)=>a-b);
+            const runs=[];
+            for(const string of selected) {
+                const run=runs.at(-1);
+                if(run && string===run[1]+1)run[1]=string;else runs.push([string,string]);
+            }
+            for(const [lo,hi] of runs) {
+                const a=getMarkerPosition(fretboardConfig,lo,first), b=getMarkerPosition(fretboardConfig,hi,first);
+                const acrossStart=Math.min(isVertical?a.x:a.y,isVertical?b.x:b.y)-10;
+                const across=(hi-lo)*stringSpacing+20;
+                markerGroup.appendChild(createSVGElement('rect', {
+                    x: isVertical ? acrossStart : start,
+                    y: isVertical ? start : acrossStart,
+                    width: isVertical ? across : end - start,
+                    height: isVertical ? end - start : across,
+                    fill: '#888', 'fill-opacity': 0.12, stroke: '#555',
+                    'stroke-width': 2, 'pointer-events': 'none',
+                    'data-fret-range': `${first}-${last}`
+                }));
+            }
         },
         addShape: (points, options) => addShape(fretboardConfig, points, options),
         onFretClick: (callback) => { clickCallback = callback; }

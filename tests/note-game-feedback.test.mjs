@@ -18,6 +18,7 @@ for(const kind of ['nearest','box','string'])test(`${kind} checks on tap and ena
  }
  const root=new Element('div');
  const context=vm.createContext({...notes,instrumentConfig,CHROMATIC_NOTES,voicingNotes,showAnswerFeedback,clearAnswerFeedback,
+  createSettingsStore:(_key,defaults)=>({settings:defaults,load(){},save(){}}),
   attachRegionLayout:(_root,_host,draw)=>{draw(true);return ()=>{};},
   document:{getElementById:()=>root,createElement:tag=>new Element(tag)},gameState:{soundEnabled:false},Sound:{},matchMedia:()=>({matches:true}),ResizeObserver:class{observe(){}disconnect(){}},
   createFretboard:()=>({clearMarkers(){markers=[];},setMarker(string,fret){markers.push({string,fret});},highlightString(){},highlightFretRange(){},onFretClick(fn){tap=fn;}})
