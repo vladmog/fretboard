@@ -8,7 +8,7 @@ import {CHROMATIC_NOTES} from '../static/js/core/music-theory.js';
 import {voicingNotes} from '../static/js/core/voicing-audio.js';
 import {showAnswerFeedback,clearAnswerFeedback} from '../static/js/games/answer-feedback.js';
 for(const kind of ['nearest','box','string'])test(`${kind} checks on tap and enables Next only for a correct answer`,()=>{
- let tap,markers=[];
+ let tap,markers=[],announcements=[],voiceEnabled=true,cancellations=0;
  class Element {
   constructor(tag){this.tag=tag;this.children=[];this.dataset={};this.clientWidth=390;this.classList={add(){}};}
   append(...children){this.children.push(...children);}
@@ -18,6 +18,7 @@ for(const kind of ['nearest','box','string'])test(`${kind} checks on tap and ena
  }
  const root=new Element('div');
  const context=vm.createContext({...notes,instrumentConfig,CHROMATIC_NOTES,voicingNotes,showAnswerFeedback,clearAnswerFeedback,
+  Voice:{speak(text){if(voiceEnabled)announcements.push(text);},spokenNote:n=>n.replace('#',' sharp'),cancel(){cancellations++;},isEnabled:()=>voiceEnabled},
   createSettingsStore:(_key,defaults)=>({settings:defaults,load(){},save(){}}),
   attachRegionLayout:(_root,_host,draw)=>{draw(true);return ()=>{};},
   document:{getElementById:()=>root,createElement:tag=>new Element(tag)},gameState:{soundEnabled:false},Sound:{},matchMedia:()=>({matches:true}),ResizeObserver:class{observe(){}disconnect(){}},
@@ -29,6 +30,11 @@ for(const kind of ['nearest','box','string'])test(`${kind} checks on tap and ena
  vm.runInContext(source,context);context.game.renderTitlePage();
  const all=()=>{const out=[];const walk=e=>{out.push(e);e.children.forEach(walk);};walk(root);return out;};
  all().find(e=>e.textContent==='Start practice').click();
+ if(kind!=='nearest'){
+  const target=all().find(e=>e.className==='note-region-target').textContent;
+  assert.deepEqual(announcements,[target.replace('#',' sharp').toLowerCase()]);
+  context.game.repeatQuestion();assert.equal(announcements.length,2);
+ }
  assert.equal(all().some(e=>e.textContent==='Check'),false);
  const status=all().find(e=>e.className==='voice-leading-feedback');
  const next=all().find(e=>e.textContent==='Next note →');
@@ -41,5 +47,10 @@ for(const kind of ['nearest','box','string'])test(`${kind} checks on tap and ena
  assert.equal(status.dataset.result,'incorrect');assert.match(status.textContent,/✕ Not quite/);assert.equal(next.disabled,true);
  next.disabled=false;next.click();
  assert.equal(all().find(e=>e.className==='voice-leading-feedback').dataset.result,undefined);
- context.game.cleanup();
+ if(kind!=='nearest'){
+  assert.equal(announcements.length,3,'Next announces exactly once');
+  voiceEnabled=false;const before=announcements.length;
+  next.click();assert.equal(announcements.length,before,'Voice off remains silent');
+  const cancelled=cancellations;context.game.cleanup();assert.ok(cancellations>cancelled);
+ }else context.game.cleanup();
 });

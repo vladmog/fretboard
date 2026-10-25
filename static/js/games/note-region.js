@@ -4,6 +4,7 @@ import { instrumentConfig } from '../core/voice-leading.js';
 import { notePositions, boxNotes, checkBoxNote, stringNotes, checkStringNote } from '../core/nearest-note.js';
 import { CHROMATIC_NOTES } from '../core/music-theory.js';
 import { voicingNotes } from '../core/voicing-audio.js';
+import * as Voice from './voice.js';
 import * as Sound from '../core/sound.js';
 import { attachRegionLayout } from './region-layout.js';
 import { createSettingsStore } from './storage.js';
@@ -25,7 +26,8 @@ let instrument='guitar', board, observer, firstFret, target, answer, status, nex
 const el=(tag,text='',className='')=>{const e=document.createElement(tag);e.textContent=text;e.className=className;return e;};
 const button=(text,fn)=>{const b=el('button',text);b.type='button';b.addEventListener('click',fn);return b;};
 function play(position){if(gameState.soundEnabled)Sound.playChord(voicingNotes({positions:[position]},instrument));}
-function cleanup(){active=false;detachLayout?.();detachLayout=null;observer?.disconnect();observer=null;board=null;}
+function announceQuestion(){if(active)Voice.speak(Voice.spokenNote(CHROMATIC_NOTES[target]).toLowerCase());}
+function cleanup(){Voice.cancel();active=false;detachLayout?.();detachLayout=null;observer?.disconnect();observer=null;board=null;}
 function paint(){
     if(!board)return;board.clearMarkers();
     if (isString) board.highlightString(chosenString);
@@ -71,6 +73,7 @@ function round(){
     detachLayout=attachRegionLayout(root,host,draw);
     let width=host.clientWidth;
     observer=new ResizeObserver(()=>{if(width!==host.clientWidth){width=host.clientWidth;draw();}});observer.observe(host);
+    announceQuestion();
 
 }
 function renderTitlePage(){cleanup();const root=el('div','','voice-leading');root.append(el('h2',title),el('p',isString ? 'Find a named note on a highlighted string. Uses your Guitar/Bass setting.' : 'Find a named note inside a four-fret box across all strings. Uses your Guitar/Bass setting.'),button('Start practice',()=>{count=0;round();}));document.getElementById('game-content').replaceChildren(root);}
@@ -94,6 +97,6 @@ function renderSettings(body){
     }
     body.append(fields);
 }
-return {configure(value){instrument=value.instrument||'guitar';},renderTitlePage,cleanup,renderSettings,advance(){if(active&&!next.disabled){count++;round();}},repeatQuestion(){if(active&&answer)play(answer);}};
+return {configure(value){instrument=value.instrument||'guitar';},renderTitlePage,cleanup,renderSettings,advance(){if(active&&!next.disabled){count++;round();}},repeatQuestion(){if(Voice.isEnabled())announceQuestion();else if(active&&answer)play(answer);}};
 
 }

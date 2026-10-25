@@ -1148,3 +1148,25 @@ html.amoled-on #games-panel {
     .note-region-string-options { gap:0.35rem; }
     .note-region-string-options label { font-size:0.75rem; gap:0.3rem; padding:0.35rem; }
 }
+
+/* Keep navigation in the controls half, never over a region game's board. */
+#games-panel:has(.note-region-mobile[data-controls="top"]) { --region-controls-top:0px; }
+#games-panel:has(.note-region-mobile[data-controls="bottom"]) { --region-controls-top:50dvh; }
+#games-panel:has(.note-region-mobile:is([data-controls="top"], [data-controls="bottom"])) .games-back-btn,
+#games-panel:has(.note-region-mobile:is([data-controls="top"], [data-controls="bottom"])) .games-controls-toggle {
+    top:calc(var(--region-controls-top) + 6px); bottom:auto;
+    min-height:36px; height:36px;
+}
+#games-panel:has(.note-region-mobile:is([data-controls="top"], [data-controls="bottom"])) .games-back-btn {
+    left:max(8px, env(safe-area-inset-left)); right:auto;
+}
+#games-panel:has(.note-region-mobile:is([data-controls="top"], [data-controls="bottom"])) .games-controls-toggle {
+    right:max(8px, env(safe-area-inset-right)); left:auto;
+}
+#games-panel:has(.note-region-mobile:is([data-controls="top"], [data-controls="bottom"])) .games-controls {
+    top:calc(var(--region-controls-top) + 46px); bottom:auto;
+    max-height:calc(50dvh - 52px); overflow-y:auto;
+}
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) {
+    padding-top:48px; padding-bottom:6px;
+}
