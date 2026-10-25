@@ -282,8 +282,11 @@ export const Games = (function() {
         // advance once the current question has been answered. Replaces the old
         // per-game "Next" button.
         const content = document.getElementById('game-content');
-        if (content) {
-            content.addEventListener('click', (e) => {
+        const tapSurface = document.getElementById('games-panel');
+        if (content && tapSurface) {
+            tapSurface.addEventListener('click', (e) => {
+                const regionGame=['note-in-box','note-on-string'].includes(gameState.currentGame);
+                if (!regionGame && !content.contains(e.target)) return;
                 if (!isAwaitingAdvance() || Blackout.isActive()) return;
                 const modal = document.getElementById('game-settings-modal');
                 if (modal && getComputedStyle(modal).display !== 'none') return;

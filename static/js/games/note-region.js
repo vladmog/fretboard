@@ -8,7 +8,7 @@ import * as Voice from './voice.js';
 import * as Sound from '../core/sound.js';
 import { attachRegionLayout } from './region-layout.js';
 import { createSettingsStore } from './storage.js';
-import { gameState } from './session.js';
+import { gameState, markReady, isAwaitingAdvance, setAwaitingAdvance } from './session.js';
 export function createRegionGame(kind = 'box') {
 const isString = kind === 'string';
 const title = isString ? 'Note on a string' : 'Note in a box';
@@ -30,7 +30,7 @@ const el=(tag,text='',className='')=>{const e=document.createElement(tag);e.text
 const button=(text,fn)=>{const b=el('button',text);b.type='button';b.addEventListener('click',fn);return b;};
 function play(position){if(gameState.soundEnabled)Sound.playChord(voicingNotes({positions:[position]},instrument));}
 function announceQuestion(){if(active)Voice.speak(Voice.spokenNote(CHROMATIC_NOTES[target]).toLowerCase());}
-function cleanup(){Voice.cancel();active=false;detachLayout?.();detachLayout=null;observer?.disconnect();observer=null;board=null;}
+function cleanup(){setAwaitingAdvance(false);Voice.cancel();active=false;detachLayout?.();detachLayout=null;observer?.disconnect();observer=null;board=null;}
 function paint(){
     if(!board)return;board.clearMarkers();
     if (isString) board.highlightString(chosenString);
@@ -79,16 +79,18 @@ function round(){
         const r=isString ? checkStringNote(answer,target,instrument,chosenString) : checkBoxNote(answer,target,instrument,firstFret,selectedStrings(),lastFret);
         showAnswerFeedback(status,r.correct,r.correct ? 'That note matches the highlighted area.' : !r.inside ? (isString ? `Use string ${chosenString}.` : `Use the selected strings inside frets ${firstFret}–${lastFret}.`) : `That is not ${CHROMATIC_NOTES[target]}. Try another position.`);
         next.disabled=!r.correct;
+        if(r.correct){status.append(el('span',' Tap anywhere for the next note.'));markReady();}
+        else setAwaitingAdvance(false);
     }
     next=button('Next note →',()=>{count++;round();});next.classList.add('practice-next');next.disabled=true;
-    controls.append(next,button('Show answers',()=>{clearAnswerFeedback(status);
+    next.hidden=true;controls.append(next,button('Show answers',()=>{clearAnswerFeedback(status);
         answer=null;revealed=true;paint();
         next.disabled=true;status.textContent='These are the matching positions. Tap one to answer.';
     }));root.append(controls);
     function draw(mobile=root.classList.contains('note-region-mobile')) {
         host.replaceChildren();
         board=createFretboard(host,{tuning:instrumentConfig(instrument).tuning,frets:15,vertical:mobile||host.clientWidth<600,...(mobile?{}:{fretSpacing:37,stringSpacing:40})});
-        board.onFretClick((string,fret)=>{revealed=false;answer={string,fret};checkAnswer();paint();play(answer);});paint();
+        board.onFretClick((string,fret)=>{if(isAwaitingAdvance())return;revealed=false;answer={string,fret};checkAnswer();paint();play(answer);});paint();
     }
     detachLayout=attachRegionLayout(root,host,draw);
     let width=host.clientWidth;
