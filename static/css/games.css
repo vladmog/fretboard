@@ -1090,3 +1090,10 @@ html.amoled-on #games-panel {
     padding-top: 24px;
 }
 #fifths-mode:has(.magsafe-circle) .fifths-summary { margin-top: auto; }
+
+/* Spoken interval answers: compact controls below the calibrated circle. */
+.interval-voice-controls { max-width:360px; padding:12px; margin:12px auto; text-align:center; background:var(--bg-color,#f7f6f2); }
+.interval-voice-controls p { font-size:14px; margin:8px 0; }
+.interval-voice-controls small { display:block; font-size:11px; line-height:1.35; }
+.interval-voice-controls button { color:#111; border:1px solid #111; min-height:40px; }
+.interval-voice-calibrated .interval-voice-controls { position:absolute; bottom:max(16px,env(safe-area-inset-bottom)); left:12px; right:60px; margin:0; max-height:190px; overflow:auto; }

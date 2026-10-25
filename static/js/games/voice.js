@@ -82,15 +82,15 @@ export function isEnabled() {
  * (or immediately when voice is off), so callers can sequence audio after
  * the announcement. A newer speak()/cancel() supersedes a pending onDone.
  */
-export function speak(text, onDone) {
+export function speak(text, onDone, { force = false } = {}) {
     const token = ++currentToken;
-    const finish = () => {
+    const finish = (success = true) => {
         if (token !== currentToken) return;
         currentToken++;
-        if (onDone) onDone();
+        if (onDone) onDone(success);
     };
-    if (!text || !isEnabled()) {
-        if (onDone) onDone();
+    if (!text || !synth || (!force && !isEnabled())) {
+        if (onDone) onDone(force && !synth ? false : undefined);
         return;
     }
     lastText = text;
@@ -102,10 +102,11 @@ export function speak(text, onDone) {
         utterance.lang = voice.lang;
     }
     utterance.rate = settings.rate;
-    utterance.onend = finish;
-    utterance.onerror = finish;
+    utterance.volume = 1;
+    utterance.onend = () => finish(true);
+    utterance.onerror = () => finish(false);
     // Some engines never fire onend; don't hold follow-up audio hostage
-    setTimeout(finish, 1500 + text.length * 90);
+    setTimeout(() => { if (token === currentToken) { synth.cancel(); finish(false); } }, 1500 + text.length * 90);
     synth.speak(utterance);
 }
 

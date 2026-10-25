@@ -10,6 +10,8 @@ import * as Sound from '../core/sound.js';
 import * as WeightedSelection from '../core/weighted-selection.js';
 import * as GameSession from './session.js';
 import * as Voice from './voice.js';
+import { createIntervalVoice } from './interval-voice.js';
+import { createIntervalPrompts } from './interval-prompts.js';
 import { shuffleArray, accuracyToColor, reactionTimeToColor, formatTime, snapRoundCount, ROUND_OPTIONS, roundOptionLabel, totalRoundsFor, roundCounterText, logQuestionTime } from './game-utils.js';
 
 function createIntervalTrainingGame(config) {
@@ -94,6 +96,10 @@ function createIntervalTrainingGame(config) {
         lastDrawnItem: null,
         showHint: false
     };
+
+    const { questionSpeech, playRoundStartSounds } = createIntervalPrompts(gameState, LONG_NAMES, GAME_OCTAVE, getNoteOctave);
+    const voiceInput = createIntervalVoice({ getState: () => gameState, question: questionSpeech,
+        submit: handleNoteClick, next: nextQuestion, restart: () => { commitSessionStats(); startGame(); }, roundSounds: playRoundStartSounds });
 
     // Stats
     let stats = {};
@@ -598,6 +604,7 @@ function createIntervalTrainingGame(config) {
     // ---- Title Page ----
 
     function renderTitlePage() {
+        voiceInput.stop();
         loadStats();
         const content = document.getElementById('game-content');
         if (!content) return;
@@ -1362,50 +1369,28 @@ function createIntervalTrainingGame(config) {
 
         wrapper.appendChild(circleContainer);
 
+        voiceInput.mount(wrapper);
         content.appendChild(wrapper);
 
         gameState.questionStartTime = performance.now();
 
         // Tapping the question text repeats the voice announcement
         gameState.circleApi.questionGroup.addEventListener('click', () => {
-            if (!gameState.answered) Voice.repeat();
+            if (!gameState.answered) {
+                if (voiceInput.enabled) voiceInput.announce();
+                else Voice.repeat();
+            }
         });
 
         // Announce the question (if voice is on), then play round-start sounds
-        Voice.speak(questionSpeech(), playRoundStartSounds);
-    }
-
-    // Spoken form of the current question; intervals always use long names
-    function questionSpeech() {
-        const mode = gameState.activeMode;
-        const root = Voice.spokenNote(gameState.currentRoot);
-        const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
-        const noteName = (index) => Voice.spokenNote(MusicTheory.getNoteName(index, useFlats));
-        const interval = (semitone) => Voice.spokenName(LONG_NAMES[semitone]);
-        if (mode === 'scale-builder') {
-            return root + ' ' + Voice.spokenName(MusicTheory.SCALES[gameState.currentScaleType].name);
-        }
-        if (mode === 'chord-builder') {
-            return root + ' ' + Voice.spokenName(MusicTheory.CHORD_TYPES[gameState.currentChordType].name);
-        }
-        if (mode === 'root-to-interval') {
-            return interval(gameState.currentSemitone) + ' from ' + root;
-        }
-        if (mode === 'interval-to-root') {
-            return noteName(gameState.givenNoteIndex) + ' is the ' + interval(gameState.givenSemitone);
-        }
-        if (mode === 'interval-to-interval') {
-            return noteName(gameState.givenNoteIndex) + ' is the ' + interval(gameState.givenSemitone) +
-                '. Find the ' + interval(gameState.targetSemitone);
-        }
-        return '';
+        voiceInput.announce();
     }
 
     // Enter key: re-announce the question and replay its round-start sounds
     function repeatQuestion() {
         const api = gameState.circleApi;
         if (!api || !api.svg.isConnected) return;
-        Voice.speak(questionSpeech(), playRoundStartSounds);
+        voiceInput.announce();
     }
 
     // Keyboard note input (games/note-keyboard.js via the framework)
@@ -1415,43 +1400,10 @@ function createIntervalTrainingGame(config) {
         handleNoteClick(noteIndex, (noteIndex - gameState.currentRootIndex + 12) % 12);
     }
 
-    function playRoundStartSounds() {
-        // Skip if the round moved on while the announcement was playing
-        if (!gameState.circleApi || !gameState.circleApi.svg.isConnected) return;
-        const mode = gameState.activeMode;
-        const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) {
-            if (mode === 'root-to-interval') {
-                // Play root, then target interval note
-                const targetIndex = (gameState.currentRootIndex + gameState.currentSemitone) % 12;
-                const targetNote = MusicTheory.getNoteName(targetIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
-                Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
-                setTimeout(() => {
-                    Sound.playNote(targetNote, getNoteOctave(targetIndex, gameState.currentRootIndex));
-                }, 400);
-            } else if (mode === 'interval-to-root') {
-                // Play interval note, then root
-                const givenNoteName = MusicTheory.getNoteName(gameState.givenNoteIndex, false);
-                Sound.playNote(givenNoteName, getNoteOctave(gameState.givenNoteIndex, gameState.currentRootIndex));
-                setTimeout(() => {
-                    Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
-                }, 400);
-            } else if (mode === 'scale-builder' || mode === 'chord-builder') {
-                Sound.playNote(gameState.currentRoot, GAME_OCTAVE);
-            } else if (mode === 'interval-to-interval') {
-                // Play given note, then target note
-                const givenNoteName = MusicTheory.getNoteName(gameState.givenNoteIndex, false);
-                const targetIndex = (gameState.currentRootIndex + gameState.targetSemitone) % 12;
-                const targetNote = MusicTheory.getNoteName(targetIndex, false);
-                Sound.playNote(givenNoteName, getNoteOctave(gameState.givenNoteIndex, gameState.currentRootIndex));
-                setTimeout(() => {
-                    Sound.playNote(targetNote, getNoteOctave(targetIndex, gameState.currentRootIndex));
-                }, 400);
-            }
-        }
-    }
-
     function handleNoteClick(noteIndex, semitone) {
+        voiceInput.answer(noteIndex, () => processNoteClick(noteIndex, semitone));
+    }
+    function processNoteClick(noteIndex, semitone) {
         if (gameState.answered || gameState.inputLocked) return;
 
         const mode = gameState.activeMode;
@@ -1497,7 +1449,7 @@ function createIntervalTrainingGame(config) {
 
         // Wrong-answer buzz
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) Sound.playError();
+        if (gamesState && gamesState.soundEnabled && !voiceInput.enabled) Sound.playError();
 
         // Flash red
         const api = gameState.circleApi;
@@ -1613,7 +1565,7 @@ function createIntervalTrainingGame(config) {
 
             // Sound
             const gamesState2 = GameSession.getState();
-            if (gamesState2 && gamesState2.soundEnabled) {
+            if (gamesState2 && gamesState2.soundEnabled && !voiceInput.enabled) {
                 if (mode === 'root-to-interval') {
                     const targetIndex = (rootIndex + gameState.currentSemitone) % 12;
                     const targetNote = MusicTheory.getNoteName(targetIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
@@ -1647,7 +1599,7 @@ function createIntervalTrainingGame(config) {
 
         // Play clicked note sound
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) {
+        if (gamesState && gamesState.soundEnabled && !voiceInput.enabled) {
             const noteName = MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
             Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
         }
@@ -1696,7 +1648,7 @@ function createIntervalTrainingGame(config) {
         // Wrong-answer buzz; the sequence restarts from the root. Input is
         // locked during the red flash so fast typing can't land mid-reset.
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) Sound.playError();
+        if (gamesState && gamesState.soundEnabled && !voiceInput.enabled) Sound.playError();
         gameState.inputLocked = true;
 
         gameState.hadMistake = true;
@@ -1817,7 +1769,7 @@ function createIntervalTrainingGame(config) {
         // Arpeggiated playthrough
         const gamesState = GameSession.getState();
         const noteCount = gameState.scaleNotes.length;
-        if (gamesState && gamesState.soundEnabled) {
+        if (gamesState && gamesState.soundEnabled && !voiceInput.enabled) {
             gameState.scaleNotes.forEach((noteIdx, i) => {
                 setTimeout(() => {
                     const noteName = MusicTheory.getNoteName(noteIdx, MusicTheory.shouldUseFlats(gameState.currentRoot));
@@ -1838,7 +1790,7 @@ function createIntervalTrainingGame(config) {
         // Play clicked note sound (skip on last step — chord plays on complete)
         if (!isLastStep) {
             const gamesState = GameSession.getState();
-            if (gamesState && gamesState.soundEnabled) {
+            if (gamesState && gamesState.soundEnabled && !voiceInput.enabled) {
                 const noteName = MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
                 Sound.playNote(noteName, getNoteOctave(noteIndex, gameState.currentRootIndex));
             }
@@ -1888,7 +1840,7 @@ function createIntervalTrainingGame(config) {
         // Wrong-answer buzz; the sequence restarts from the root. Input is
         // locked during the red flash so fast typing can't land mid-reset.
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) Sound.playError();
+        if (gamesState && gamesState.soundEnabled && !voiceInput.enabled) Sound.playError();
         gameState.inputLocked = true;
 
         gameState.hadMistake = true;
@@ -2003,7 +1955,7 @@ function createIntervalTrainingGame(config) {
 
         // Play chord
         const gamesState = GameSession.getState();
-        if (gamesState && gamesState.soundEnabled) {
+        if (gamesState && gamesState.soundEnabled && !voiceInput.enabled) {
             const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
             const chordNoteNames = gameState.chordNotes.map(noteIdx => {
                 const name = MusicTheory.getNoteName(noteIdx, useFlats);
@@ -2016,6 +1968,7 @@ function createIntervalTrainingGame(config) {
     }
 
     function showResults() {
+        voiceInput.finish();
         const content = document.getElementById('game-content');
         if (!content) return;
 
@@ -2111,6 +2064,7 @@ function createIntervalTrainingGame(config) {
         btnRow.appendChild(menuBtn);
 
         wrapper.appendChild(btnRow);
+        voiceInput.mount(wrapper);
         content.appendChild(wrapper);
     }
 
@@ -2562,6 +2516,7 @@ function createIntervalTrainingGame(config) {
     // ---- Cleanup ----
 
     function cleanup() {
+        voiceInput.stop();
         gameState.circleApi = null;
     }
 
@@ -2574,6 +2529,7 @@ function createIntervalTrainingGame(config) {
         renderTitlePage,
         renderSettings,
         cleanup,
+        pauseVoice: voiceInput.pause,
         advance: nextQuestion,
         handleNoteKey,
         repeatQuestion

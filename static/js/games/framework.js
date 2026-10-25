@@ -143,6 +143,7 @@ export const Games = (function() {
         setControlsOpen(false);
         const modal = document.getElementById('game-settings-modal');
         if (!modal) return;
+        getCurrentGame()?.pauseVoice?.();
 
         const body = document.getElementById('game-settings-body');
         const title = document.getElementById('game-settings-title');
