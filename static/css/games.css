@@ -1097,3 +1097,45 @@ html.amoled-on #games-panel {
 .interval-voice-controls small { display:block; font-size:11px; line-height:1.35; }
 .interval-voice-controls button { color:#111; border:1px solid #111; min-height:40px; }
 .interval-voice-calibrated .interval-voice-controls { position:absolute; bottom:max(16px,env(safe-area-inset-bottom)); left:12px; right:60px; margin:0; max-height:190px; overflow:auto; }
+
+/* Region games: a prominent target, with the board fixed to the device. */
+.note-region-round .note-region-target {
+    font-size:clamp(3rem, 9vmin, 5rem);
+    font-weight:750;
+    line-height:1.05;
+    margin:0.5rem 0;
+}
+.note-region-round .note-region-hint { font-weight:600; }
+.note-region-mobile { display:block; }
+.note-region-mobile > :not(.voice-leading-board) { margin-left:50%; }
+.note-region-mobile .voice-leading-board {
+    position:fixed; margin:0; max-width:none; transform-origin:center;
+}
+.note-region-mobile .voice-leading-board svg { width:100%; height:100%; max-height:none; }
+.note-region-mobile .marker text { font-size:20px; }
+/* Explicit slots prevent shared practice-button grids from stretching the panel. */
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) {
+    position:fixed; left:0; right:0; height:50%; overflow-y:auto;
+    max-width:none; padding:0.75rem max(1rem, env(safe-area-inset-right)) 0.75rem max(1rem, env(safe-area-inset-left));
+    display:grid; grid-template-columns:minmax(5rem, 0.7fr) minmax(0, 1.5fr) minmax(9rem, 1fr);
+    grid-template-rows:auto auto auto; gap:0.35rem 1rem; align-content:center;
+}
+.note-region-mobile[data-controls="top"] { top:0; }
+.note-region-mobile[data-controls="bottom"] { bottom:0; }
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) > :not(.voice-leading-board) { margin:0; }
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-target {
+    grid-column:1; grid-row:1 / 4; align-self:center; text-align:center; font-size:clamp(3rem, 18vh, 5rem);
+}
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) h2 { grid-column:2; grid-row:1; font-size:0.8rem; }
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-hint { grid-column:2; grid-row:2; }
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .voice-leading-feedback { grid-column:2; grid-row:3; }
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-audio { grid-column:3; grid-row:1; display:block; }
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-navigation { grid-column:3; grid-row:2 / 4; display:flex; flex-direction:column; gap:0.35rem; }
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) button { width:100%; min-height:36px; padding:0.35rem 0.6rem; }
+
+/* Counter-rotate labels, leaving their fret positions and hit targets intact. */
+.note-region-mobile .voice-leading-board .marker text {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: rotate(var(--note-label-turn, 0deg));
+}
