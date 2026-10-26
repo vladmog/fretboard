@@ -189,3 +189,13 @@ export function saveTapAction() {
     try { localStorage.setItem(TAP_ACTION_STORAGE_KEY, state.fretboardTapAction); }
     catch { /* Tap behavior remains available without storage. */ }
 }
+
+const NOTE_NAMES_STORAGE_KEY = 'fretboard-show-note-names';
+export function loadNoteNames() {
+    try { state.showNoteNames = localStorage.getItem(NOTE_NAMES_STORAGE_KEY) === 'true'; }
+    catch { state.showNoteNames = false; }
+}
+export function saveNoteNames() {
+    try { localStorage.setItem(NOTE_NAMES_STORAGE_KEY, String(state.showNoteNames)); }
+    catch { /* Label switching still works without storage. */ }
+}

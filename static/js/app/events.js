@@ -10,7 +10,7 @@ import { restoreProgressionKey } from './chord-key.js';
 import * as MusicTheory from '../core/music-theory.js';
 import * as ChordProgressions from '../core/progressions.js';
 import * as Sound from './instrument-sound.js';
-import { getProgressionKey, getResolvedFavorites, isFindMode, saveInversionScrubbing, saveTapAction, saveInstrument, saveFavorites, state } from './state.js';
+import { getProgressionKey, getResolvedFavorites, isFindMode, saveInversionScrubbing, saveTapAction, saveNoteNames, saveInstrument, saveFavorites, state } from './state.js';
 import { updateDisplay, updateRelToggleVisibility } from './display.js';
 import { addChordToList, clearChordList, renderChordList, renderScaleChords } from './chord-list.js';
 import { addFindResultToChordList, clearFindMarkers, renderFindScaleChords } from './find-mode.js';
@@ -173,8 +173,10 @@ export function initEventListeners({ onInstrumentChange } = {}) {
     // Note names toggle
     const noteNamesToggle = document.getElementById('notenames-toggle');
     if (noteNamesToggle) {
+        noteNamesToggle.checked = state.showNoteNames;
         noteNamesToggle.addEventListener('change', (e) => {
             state.showNoteNames = e.target.checked;
+            saveNoteNames();
             updateDisplay();
         });
     }
