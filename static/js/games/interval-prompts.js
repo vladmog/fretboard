@@ -2,7 +2,7 @@ import * as MusicTheory from '../core/music-theory.js';
 import * as Voice from './voice.js';
 import * as Sound from '../core/sound.js';
 import * as GameSession from './session.js';
-export function createIntervalPrompts(gameState, LONG_NAMES, GAME_OCTAVE, getNoteOctave) {
+export function createIntervalPrompts(gameState, LONG_NAMES, GAME_OCTAVE, getNoteOctave, rootFirst = () => false) {
     // Spoken form of the current question; intervals always use long names
     function questionSpeech() {
         const mode = gameState.activeMode;
@@ -17,7 +17,9 @@ export function createIntervalPrompts(gameState, LONG_NAMES, GAME_OCTAVE, getNot
             return root + ' ' + Voice.spokenName(MusicTheory.CHORD_TYPES[gameState.currentChordType].name);
         }
         if (mode === 'root-to-interval') {
-            return interval(gameState.currentSemitone) + ' from ' + root;
+            return rootFirst()
+                ? root + '. ' + interval(gameState.currentSemitone)
+                : interval(gameState.currentSemitone) + ' from ' + root;
         }
         if (mode === 'interval-to-root') {
             return noteName(gameState.givenNoteIndex) + ' is the ' + interval(gameState.givenSemitone);

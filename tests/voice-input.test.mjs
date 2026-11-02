@@ -168,3 +168,14 @@ test('single-result recognition ignores duplicate or extra final results',()=>{
     callback({resultIndex:1,results:[first,second]});
     assert.deepEqual(h.answers,[1]);assert.equal(r.aborted,true);
 });
+
+test('spoken corrections grade only the last answer after no',()=>{
+    for (const [text,note] of [['Charlie, no, Delta',2],['Alpha sharp no Bravo flat',10],['Charlie no Delta no Foxtrot sharp',6]]) {
+        assert.deepEqual(parseSpokenAnswer(text),{note});
+        assert.deepEqual(resolveSpokenAlternatives([{transcript:text}]),{note});
+    }
+    assert.equal(resolveSpokenAlternatives([{transcript:'Charlie no'},{transcript:'Charlie'}]),null);
+    assert.deepEqual(resolveSpokenAlternatives([{transcript:'Charlie no Delta'},{transcript:'Charlie'}]),{note:2});
+    const h=harness();h.voice.start();h.final(h.instances[0],'Charlie no Delta');
+    assert.deepEqual(h.answers,[2]);
+});

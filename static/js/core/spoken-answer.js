@@ -23,8 +23,12 @@ function accidental(word) {
     if(flatMatch && !sharpMatch) return 'flat';
     return null;
 }
+function correctedAnswer(text) {
+    // Keep only the final revision in a single spoken answer.
+    return normalize(text).split(/\bno\b/).at(-1).trim();
+}
 function candidates(text) {
-    const value=normalize(text).replace(/^(?:my answer is|the answer is|answer|note|it's|it is) /,'');
+    const value=correctedAnswer(text).replace(/^(?:my answer is|the answer is|answer|note|it's|it is) /,'');
     // Confirmation words must never accidentally grade as notes (e.g. "correct" as C).
     if (parseConfirmation(value) !== null || command(value)) return [];
     const match=/^([a-g][a-z]*)(?: ([a-z]+))?$/.exec(value);
@@ -42,12 +46,18 @@ function command(text) {
     return null;
 }
 export function parseSpokenAnswer(text) {
-    const cmd=command(text); if(cmd) return cmd;
+    const cmd=command(correctedAnswer(text)); if(cmd) return cmd;
     const matches=candidates(text), best=matches[0];
     return best?.score===0 ? {note:best.note} : null;
 }
 export function resolveSpokenAlternatives(alternatives) {
-    const first=alternatives[0]?.transcript, cmd=command(first);
+    const first=alternatives[0]?.transcript;
+    // Never resurrect an abandoned answer from a recognition alternative.
+    if (/\bno\b/.test(normalize(first))) {
+        alternatives = alternatives.filter(a => /\bno\b/.test(normalize(a.transcript)));
+        if (!candidates(first).length) return null;
+    }
+    const cmd=command(correctedAnswer(first));
     if(cmd) return cmd;
     const ranked=alternatives.map(a=>candidates(a.transcript));
     const top=ranked[0]?.[0];

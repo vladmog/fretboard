@@ -1,3 +1,4 @@
+import { renderAnnouncementOrder } from './interval-announcement-settings.js';
 import { currentMagsafeProfile, magsafeCircleSize, alignMagsafeCircle } from '../core/magsafe-layout.js';
 /**
  * Interval Training Game
@@ -63,6 +64,7 @@ function createIntervalTrainingGame(config) {
         showColors: true,
         showLabels: true,
         showIntervalLabels: false,
+        sayRootFirst: false,
         enabledScales: [...ALL_SCALE_TYPES],
         enabledChords: [...ALL_CHORD_TYPES]
     };
@@ -97,7 +99,7 @@ function createIntervalTrainingGame(config) {
         showHint: false
     };
 
-    const { questionSpeech, playRoundStartSounds } = createIntervalPrompts(gameState, LONG_NAMES, GAME_OCTAVE, getNoteOctave);
+    const { questionSpeech, playRoundStartSounds } = createIntervalPrompts(gameState, LONG_NAMES, GAME_OCTAVE, getNoteOctave, () => settings.sayRootFirst === true);
     const voiceInput = createIntervalVoice({ getState: () => gameState, question: questionSpeech,
         submit: handleNoteClick, next: nextQuestion, restart: () => { commitSessionStats(); startGame(); }, roundSounds: playRoundStartSounds });
 
@@ -696,6 +698,7 @@ function createIntervalTrainingGame(config) {
 
     function renderSettings(modalBody) {
         modalBody.innerHTML = '';
+        renderAnnouncementOrder(modalBody, settings, saveSettings);
 
         // Game Mode
         const modeGroup = document.createElement('div');
