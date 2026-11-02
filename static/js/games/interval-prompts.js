@@ -6,9 +6,9 @@ export function createIntervalPrompts(gameState, LONG_NAMES, GAME_OCTAVE, getNot
     // Spoken form of the current question; intervals always use long names
     function questionSpeech() {
         const mode = gameState.activeMode;
-        const root = Voice.spokenNote(gameState.currentRoot);
+        const root = Voice.spokenNote(gameState.currentRoot).toLowerCase();
         const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
-        const noteName = (index) => Voice.spokenNote(MusicTheory.getNoteName(index, useFlats));
+        const noteName = (index) => Voice.spokenNote(MusicTheory.getNoteName(index, useFlats)).toLowerCase();
         const interval = (semitone) => Voice.spokenName(LONG_NAMES[semitone]);
         if (mode === 'scale-builder') {
             return root + ' ' + Voice.spokenName(MusicTheory.SCALES[gameState.currentScaleType].name);
