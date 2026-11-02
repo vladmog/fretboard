@@ -18,7 +18,7 @@ export function createIntervalPrompts(gameState, LONG_NAMES, GAME_OCTAVE, getNot
         }
         if (mode === 'root-to-interval') {
             return rootFirst()
-                ? root + '. ' + interval(gameState.currentSemitone)
+                ? root + '\n' + interval(gameState.currentSemitone)
                 : interval(gameState.currentSemitone) + ' from ' + root;
         }
         if (mode === 'interval-to-root') {

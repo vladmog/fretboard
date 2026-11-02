@@ -9,9 +9,9 @@ test('spoken interval order follows the live preference and defaults to interval
     const {questionSpeech}=createIntervalPrompts(state,names,3,()=>3,()=>rootFirst);
     assert.equal(questionSpeech(),'major second from F sharp');
     rootFirst=true;
-    assert.equal(questionSpeech(),'F sharp. major second');
+    assert.equal(questionSpeech(),'F sharp\nmajor second');
     state.currentRoot='D';state.currentSemitone=3;
-    assert.equal(questionSpeech(),'D. minor third');
+    assert.equal(questionSpeech(),'D\nminor third');
     rootFirst=false;
     assert.equal(questionSpeech(),'minor third from D');
     assert.equal(createIntervalPrompts(state,names,3,()=>3).questionSpeech(),'minor third from D');

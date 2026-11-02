@@ -95,19 +95,33 @@ export function speak(text, onDone, { force = false } = {}) {
     }
     lastText = text;
     if (synth.speaking || synth.pending) synth.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+    // Newlines request a deliberate gap, rather than voice-dependent punctuation.
+    const parts = text.split('\n').map(part => part.trim()).filter(Boolean);
     const voice = pickVoice();
-    if (voice) {
-        utterance.voice = voice;
-        utterance.lang = voice.lang;
+    function speakPart(index) {
+        if (token !== currentToken) return;
+        const utterance = new SpeechSynthesisUtterance(parts[index]);
+        if (voice) {
+            utterance.voice = voice;
+            utterance.lang = voice.lang;
+        }
+        utterance.rate = settings.rate;
+        utterance.volume = 1;
+        let ended = false;
+        utterance.onend = () => {
+            if (ended || token !== currentToken) return;
+            ended = true;
+            if (index + 1 < parts.length) setTimeout(() => speakPart(index + 1), 350);
+            else finish(true);
+        };
+        utterance.onerror = () => { ended = true; finish(false); };
+        setTimeout(() => {
+            if (!ended && token === currentToken) { synth.cancel(); finish(false); }
+        }, 1500 + parts[index].length * 90);
+        synth.speak(utterance);
     }
-    utterance.rate = settings.rate;
-    utterance.volume = 1;
-    utterance.onend = () => finish(true);
-    utterance.onerror = () => finish(false);
-    // Some engines never fire onend; don't hold follow-up audio hostage
-    setTimeout(() => { if (token === currentToken) { synth.cancel(); finish(false); } }, 1500 + text.length * 90);
-    synth.speak(utterance);
+    if (parts.length) speakPart(0);
+    else finish(true);
 }
 
 /** Replay the most recent announcement. */
