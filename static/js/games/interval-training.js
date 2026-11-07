@@ -208,7 +208,7 @@ function createIntervalTrainingGame(config) {
         if (gameState.showHint) {
             var intervals = allIntervals.slice();
             var notes = allNoteIndices.slice(0, idx).map(function(ni) {
-                return MusicTheory.getNoteName(ni, useFlats);
+                return getBuilderNoteName(ni);
             });
             // Pad notes with empty placeholders for remaining positions
             while (notes.length < allIntervals.length) {
@@ -218,7 +218,7 @@ function createIntervalTrainingGame(config) {
         } else {
             var intervals = allIntervals.slice(0, idx);
             var notes = allNoteIndices.slice(0, idx).map(function(ni) {
-                return MusicTheory.getNoteName(ni, useFlats);
+                return getBuilderNoteName(ni);
             });
             setCenterColumns(rootText, intervals, notesText, notes, api.center, api.size);
         }
@@ -284,6 +284,15 @@ function createIntervalTrainingGame(config) {
     }
 
     // ---- Helper functions ----
+
+    function getBuilderNoteName(noteIndex) {
+        if (gameState.activeMode === 'chord-builder') {
+            const chord = MusicTheory.buildChord(gameState.currentRoot, gameState.currentChordType);
+            const spelling = chord.noteSpelling[noteIndex];
+            if (spelling) return spelling;
+        }
+        return MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
+    }
 
     function getDisplayNoteName(noteIndex) {
         if (MusicTheory.isAccidentalNote(noteIndex)) {
@@ -419,6 +428,12 @@ function createIntervalTrainingGame(config) {
 
     function setMarkerNoteText(textEl, noteIndex, x, y, markerRadius) {
         textEl.textContent = '';
+        if (gameState.activeMode === 'chord-builder' &&
+            MusicTheory.buildChord(gameState.currentRoot, gameState.currentChordType).noteSpelling[noteIndex]) {
+            textEl.setAttribute('font-size', markerRadius * 0.9);
+            textEl.textContent = getBuilderNoteName(noteIndex);
+            return;
+        }
         if (MusicTheory.isAccidentalNote(noteIndex)) {
             const svgNS = 'http://www.w3.org/2000/svg';
             const sharp = MusicTheory.CHROMATIC_NOTES[noteIndex];
@@ -1951,7 +1966,7 @@ function createIntervalTrainingGame(config) {
         }
         if (rootText && notesText) {
             var notes = gameState.chordNotes.map(function(idx) {
-                return MusicTheory.getNoteName(idx, useFlats);
+                return getBuilderNoteName(idx);
             });
             setCenterColumns(rootText, gameState.chordIntervals, notesText, notes, api.center, api.size);
         }

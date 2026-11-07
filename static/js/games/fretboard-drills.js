@@ -495,6 +495,15 @@ export default (function() {
         return '';
     }
 
+    function getBuilderNoteName(noteIndex) {
+        if (gameState.activeMode === 'chord-builder') {
+            const chord = MusicTheory.buildChord(gameState.currentRoot, gameState.currentChordType);
+            const spelling = chord.noteSpelling[noteIndex];
+            if (spelling) return spelling;
+        }
+        return MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
+    }
+
     function getBuilderHintText() {
         const mode = gameState.activeMode;
         if (mode !== 'scale-builder' && mode !== 'chord-builder') return '';
@@ -506,7 +515,7 @@ export default (function() {
         if (gameState.showHint) {
             const parts = allIntervals.map((interval, i) => {
                 if (i < idx) {
-                    return interval + '=' + MusicTheory.getNoteName(allNoteIndices[i], useFlats);
+                    return interval + '=' + getBuilderNoteName(allNoteIndices[i]);
                 }
                 return interval + '=?';
             });
@@ -514,7 +523,7 @@ export default (function() {
         } else if (idx > 0) {
             const parts = [];
             for (let i = 0; i < idx; i++) {
-                parts.push(allIntervals[i] + '=' + MusicTheory.getNoteName(allNoteIndices[i], useFlats));
+                parts.push(allIntervals[i] + '=' + getBuilderNoteName(allNoteIndices[i]));
             }
             return parts.join('  ');
         }
@@ -1054,7 +1063,7 @@ export default (function() {
         if (questionDiv) {
             const chordName = MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
             const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);
-            const noteNames = gameState.chordNotes.map(idx => MusicTheory.getNoteName(idx, useFlats));
+            const noteNames = gameState.chordNotes.map(idx => getBuilderNoteName(idx));
             questionDiv.textContent = gameState.currentRoot + ' ' + chordName + ': ' + noteNames.join(' ');
         }
         const hintDiv = document.getElementById('fb-drills-hint');
