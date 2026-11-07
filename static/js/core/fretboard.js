@@ -375,6 +375,7 @@ export function createFretboard(container, config = {}) {
         svg,
         markerGroup,
         markerScale: config.markerScale ?? 1,
+        markerTextRotation: config.markerTextRotation ?? 0,
         numStrings,
         frets,
         padding,
@@ -535,6 +536,10 @@ function setMarker(config, string, fret, options = {}) {
             'text-anchor': 'middle',
             'dominant-baseline': 'central'
         }, { ...styles.markerText, fontSize: styles.markerText.fontSize * config.markerScale, fill: textColor });
+        // SVG coordinates avoid Safari text bounding-box transform inconsistencies.
+        if (config.markerTextRotation) {
+            label.setAttribute('transform', `rotate(${config.markerTextRotation} ${x} ${y})`);
+        }
         label.textContent = text;
         group.appendChild(label);
     }

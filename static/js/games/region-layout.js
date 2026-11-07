@@ -32,7 +32,7 @@ export function attachRegionLayout(root, host, redraw) {
     function update() {
         const enabled = mobile.matches;
         root.classList.toggle('note-region-mobile', enabled);
-        if (!enabled) { host.removeAttribute('style'); delete root.dataset.controls; redraw(false); return; }
+        if (!enabled) { host.removeAttribute('style'); delete root.dataset.controls; delete root.dataset.markerTextRotation; redraw(false); return; }
         const angle = screen.orientation?.angle ?? window.orientation ?? 0;
         const insets=getComputedStyle(safeProbe);
         const safe={top:parseFloat(insets.paddingTop)||0,bottom:parseFloat(insets.paddingBottom)||0,left:parseFloat(insets.paddingLeft)||0,right:parseFloat(insets.paddingRight)||0};
@@ -43,7 +43,7 @@ export function attachRegionLayout(root, host, redraw) {
             left: `${frame.x}px`, top: `${frame.y}px`,
             transform: `translate(-50%, -50%) rotate(${frame.turn}deg)`
         });
-        host.style.setProperty('--note-label-turn', `${-frame.turn}deg`);
+        root.dataset.markerTextRotation = String(-frame.turn);
         redraw(true);
     }
     window.visualViewport?.addEventListener('resize', update);

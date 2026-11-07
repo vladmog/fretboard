@@ -1133,12 +1133,7 @@ html.amoled-on #games-panel {
 .note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-navigation { grid-column:3; grid-row:2 / 4; display:flex; flex-direction:column; gap:0.35rem; }
 .note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) button { width:100%; min-height:36px; padding:0.35rem 0.6rem; }
 
-/* Counter-rotate labels, leaving their fret positions and hit targets intact. */
-.note-region-mobile .voice-leading-board .marker text {
-    transform-box: fill-box;
-    transform-origin: center;
-    transform: rotate(var(--note-label-turn, 0deg));
-}
+
 
 .note-region-string-options { display:flex; flex-wrap:wrap; gap:0.5rem; }
 .note-region-string-options label { display:flex; align-items:center; gap:0.5rem; min-height:44px; padding:0.5rem; border:1px solid #999; }

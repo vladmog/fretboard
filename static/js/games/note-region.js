@@ -93,7 +93,7 @@ function round(){
     }));root.append(controls);
     function draw(mobile=root.classList.contains('note-region-mobile')) {
         host.replaceChildren();
-        board=createFretboard(host,{tuning:instrumentConfig(instrument).tuning,frets:15,vertical:mobile||host.clientWidth<600,...(mobile?{}:{fretSpacing:37,stringSpacing:40})});
+        board=createFretboard(host,{tuning:instrumentConfig(instrument).tuning,frets:15,vertical:mobile||host.clientWidth<600,markerTextRotation:mobile?(Number(root.dataset.markerTextRotation)||0):0,...(mobile?{}:{fretSpacing:37,stringSpacing:40})});
         board.onFretClick((string,fret)=>{if(isAwaitingAdvance())return;revealed=false;answer={string,fret};checkAnswer();paint();play(answer);});paint();
     }
     detachLayout=attachRegionLayout(root,host,draw);

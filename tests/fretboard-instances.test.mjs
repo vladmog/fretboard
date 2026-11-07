@@ -37,3 +37,24 @@ test('multiple fretboards isolate markers and click handlers', () => {
         globalThis.document = previousDocument; globalThis.DOMPoint = previousPoint;
     }
 });
+
+test('landscape labels rotate around their marker centers without moving circles', () => {
+    const previousDocument = globalThis.document;
+    globalThis.document = { createElementNS: (_, tag) => new Node(tag) };
+    try {
+        for (const rotation of [0, 90, -90]) {
+            const host = new Node('div');
+            const board = createFretboard(host, { vertical: true, markerTextRotation: rotation });
+            for (const fret of [0, 4, 15]) board.setMarker(1, fret, { text: 'Gb' });
+            const layer = host.children[0].children.find(node => node.attrs.class === 'marker-layer');
+            for (const marker of layer.children) {
+                const [circle, text] = marker.children;
+                assert.equal(text.textContent, 'Gb');
+                assert.equal(text.attrs.x, circle.attrs.cx);
+                assert.equal(text.attrs.y, circle.attrs.cy);
+                assert.equal(circle.attrs.transform, undefined);
+                assert.equal(text.attrs.transform, rotation ? `rotate(${rotation} ${circle.attrs.cx} ${circle.attrs.cy})` : undefined);
+            }
+        }
+    } finally { globalThis.document = previousDocument; }
+});
