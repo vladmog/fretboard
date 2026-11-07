@@ -2,7 +2,7 @@ import { showAnswerFeedback, clearAnswerFeedback } from './answer-feedback.js';
 import { createFretboard } from '../core/fretboard.js';
 import { instrumentConfig } from '../core/voice-leading.js';
 import { notePositions, uniqueBoxQuestions, boxNotes, checkBoxNote, stringNotes, checkStringNote } from '../core/nearest-note.js';
-import { CHROMATIC_NOTES } from '../core/music-theory.js';
+import { getNoteName } from '../core/music-theory.js';
 import { voicingNotes } from '../core/voicing-audio.js';
 import * as Voice from './voice.js';
 import * as Sound from '../core/sound.js';
@@ -24,19 +24,21 @@ const store=createSettingsStore('fretboard-note-in-box-settings',{guitar:[1,2,3,
 if(!isString)store.load();
 const selectedStrings=()=>store.settings[instrument];
 const stringName=n=>instrumentConfig(instrument).tuning[instrumentConfig(instrument).tuning.length-n];
+let useFlats=false;
+const questionNoteName=pitch=>getNoteName(pitch,useFlats);
 let chosenString, detachLayout, revealed=false, unavailable=false;
 let instrument='guitar', board, observer, firstFret, lastFret, target, answer, status, next, active=false, count=0, last='';
 const el=(tag,text='',className='')=>{const e=document.createElement(tag);e.textContent=text;e.className=className;return e;};
 const button=(text,fn)=>{const b=el('button',text);b.type='button';b.addEventListener('click',fn);return b;};
 function play(position){if(gameState.soundEnabled)Sound.playChord(voicingNotes({positions:[position]},instrument));}
-function announceQuestion(){if(active)Voice.speak(Voice.spokenNote(CHROMATIC_NOTES[target]).toLowerCase());}
+function announceQuestion(){if(active)Voice.speak(Voice.spokenNote(questionNoteName(target)).toLowerCase());}
 function cleanup(){setAwaitingAdvance(false);Voice.cancel();active=false;detachLayout?.();detachLayout=null;observer?.disconnect();observer=null;board=null;}
 function paint(){
     if(!board)return;board.clearMarkers();
     if (isString) board.highlightString(chosenString);
     else board.highlightFretRange(firstFret, lastFret, selectedStrings());
-    if(revealed) for(const p of (isString ? stringNotes(instrument,chosenString,target) : boxNotes(instrument,firstFret,target,selectedStrings(),lastFret))) board.setMarker(p.string,p.fret,{text:CHROMATIC_NOTES[target],color:'#fff',borderColor:'#111',textColor:'#111'});
-    if(answer)board.setMarker(answer.string,answer.fret,{text:CHROMATIC_NOTES[notePositions(instrument).find(p=>p.string===answer.string&&p.fret===answer.fret).midi%12],color:'#fff',borderColor:'#111',textColor:'#111'});
+    if(revealed) for(const p of (isString ? stringNotes(instrument,chosenString,target) : boxNotes(instrument,firstFret,target,selectedStrings(),lastFret))) board.setMarker(p.string,p.fret,{text:questionNoteName(target),color:'#fff',borderColor:'#111',textColor:'#111'});
+    if(answer)board.setMarker(answer.string,answer.fret,{text:questionNoteName(notePositions(instrument).find(p=>p.string===answer.string&&p.fret===answer.fret).midi%12),color:'#fff',borderColor:'#111',textColor:'#111'});
 }
 function round(){
     cleanup();active=true;unavailable=false;answer=null;revealed=false;
@@ -67,9 +69,11 @@ function round(){
         } while (key === last && ++attempts<32);
     }
     last = key;
+    // Keep one spelling throughout the question, including repeats and revealed markers.
+    useFlats=!isString&&Math.random()<0.5;
     const root=el('div','','voice-leading voice-leading-round note-region-round');
     document.getElementById('game-content').replaceChildren(root);
-    root.append(el('h2',title),el('p',CHROMATIC_NOTES[target],'note-region-target'),el('p',isString ? `String ${chosenString} · ${voicingNotes({positions:[{string:chosenString,fret:0}]},instrument)[0]}` : `Frets ${firstFret}–${lastFret} · ${selectedStrings().map(stringName).join(" / ")}`, 'note-region-hint'));
+    root.append(el('h2',title),el('p',questionNoteName(target),'note-region-target'),el('p',isString ? `String ${chosenString} · ${voicingNotes({positions:[{string:chosenString,fret:0}]},instrument)[0]}` : `Frets ${firstFret}–${lastFret} · ${selectedStrings().map(stringName).join(" / ")}`, 'note-region-hint'));
     const actions=el('div','','voice-leading-actions note-region-audio');actions.append(button('Hear answer',()=>{if(answer)play(answer);}));root.append(actions);
     const host=el('div','','voice-leading-board');host.setAttribute('aria-label',isString ? 'Find the target note on the highlighted string' : 'Find the target note inside the four-fret box');root.append(host);
     status=el('p',`${count} solved`,'voice-leading-feedback');status.setAttribute('role','status');root.append(status);
@@ -77,7 +81,7 @@ function round(){
     function checkAnswer(){
         if(!answer){status.textContent='Tap a fret position first.';return;}
         const r=isString ? checkStringNote(answer,target,instrument,chosenString) : checkBoxNote(answer,target,instrument,firstFret,selectedStrings(),lastFret);
-        showAnswerFeedback(status,r.correct,r.correct ? 'That note matches the highlighted area.' : !r.inside ? (isString ? `Use string ${chosenString}.` : `Use the selected strings inside frets ${firstFret}–${lastFret}.`) : `That is not ${CHROMATIC_NOTES[target]}. Try another position.`);
+        showAnswerFeedback(status,r.correct,r.correct ? 'That note matches the highlighted area.' : !r.inside ? (isString ? `Use string ${chosenString}.` : `Use the selected strings inside frets ${firstFret}–${lastFret}.`) : `That is not ${questionNoteName(target)}. Try another position.`);
         next.disabled=!r.correct;
         if(r.correct){status.append(el('span',' Tap anywhere for the next note.'));markReady();}
         else setAwaitingAdvance(false);

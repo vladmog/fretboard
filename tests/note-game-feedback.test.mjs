@@ -4,10 +4,10 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import * as notes from '../static/js/core/nearest-note.js';
 import {instrumentConfig} from '../static/js/core/voice-leading.js';
-import {CHROMATIC_NOTES} from '../static/js/core/music-theory.js';
+import {CHROMATIC_NOTES,getNoteName} from '../static/js/core/music-theory.js';
 import {voicingNotes} from '../static/js/core/voicing-audio.js';
 import {showAnswerFeedback,clearAnswerFeedback} from '../static/js/games/answer-feedback.js';
-for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',min:0,max:0},{kind:'box',min:7,max:8},{kind:'box',min:12,max:15}])test(`${config.kind} checks taps and voice with bounds ${config.min ?? 'off'}–${config.max ?? 'off'}`,()=>{
+for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',min:0,max:0},{kind:'box',min:7,max:8},{kind:'box',min:12,max:15},{kind:'box',min:2,max:2,random:0.25,expected:'Gb'},{kind:'box',min:2,max:2,random:0.75,expected:'F#'}])test(`${config.kind} checks taps and voice with bounds ${config.min ?? 'off'}–${config.max ?? 'off'}`,()=>{
  const {kind}=config;
  let tap,markers=[],announcements=[],voiceEnabled=true,cancellations=0;
  class Element {
@@ -18,8 +18,8 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
   setAttribute(){}
  }
  const root=new Element('div');
- const context=vm.createContext({...notes,instrumentConfig,CHROMATIC_NOTES,voicingNotes,showAnswerFeedback,clearAnswerFeedback,
-  Voice:{speak(text){if(voiceEnabled)announcements.push(text);},spokenNote:n=>n.replace('#',' sharp'),cancel(){cancellations++;},isEnabled:()=>voiceEnabled},
+ const context=vm.createContext({...notes,instrumentConfig,CHROMATIC_NOTES,getNoteName,voicingNotes,Math:config.random===undefined?Math:Object.assign(Object.create(Math),{random:()=>config.random}),showAnswerFeedback,clearAnswerFeedback,
+  Voice:{speak(text){if(voiceEnabled)announcements.push(text);},spokenNote:n=>n.replace('#',' sharp').replace('b',' flat'),cancel(){cancellations++;},isEnabled:()=>voiceEnabled},
   markReady(){},isAwaitingAdvance:()=>false,setAwaitingAdvance(){},
   createSettingsStore:(_key,defaults)=>({settings:{...defaults,...(config.min===undefined?{}:{limitFrets:true,minFret:config.min,maxFret:config.max,guitar:[1]})},load(){},save(){}}),
   attachRegionLayout:(_root,_host,draw)=>{draw(true);return ()=>{};},
@@ -34,7 +34,8 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
  all().find(e=>e.textContent==='Start practice').click();
  if(kind!=='nearest'){
   const target=all().find(e=>e.className==='note-region-target').textContent;
-  assert.deepEqual(announcements,[target.replace('#',' sharp').toLowerCase()]);
+  assert.deepEqual(announcements,[target.replace('#',' sharp').replace('b',' flat').toLowerCase()]);
+  if(config.expected)assert.equal(target,config.expected);
   context.game.repeatQuestion();assert.equal(announcements.length,2);
  }
  assert.equal(all().some(e=>e.textContent==='Check'),false);
