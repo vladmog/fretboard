@@ -1,3 +1,5 @@
+import { beginPositionTiming } from './note-position-stats.js';
+import { renderPositionHeatmap } from './note-position-heatmap.js';
 import { beginPracticeQuestion } from './practice-log.js';
 import { showAnswerFeedback, clearAnswerFeedback } from './answer-feedback.js';
 import { createFretboard } from '../core/fretboard.js';
@@ -27,22 +29,22 @@ const selectedStrings=()=>store.settings[instrument];
 const stringName=n=>instrumentConfig(instrument).tuning[instrumentConfig(instrument).tuning.length-n];
 let useFlats=false;
 const questionNoteName=pitch=>getNoteName(pitch,useFlats);
-let chosenString, detachLayout, revealed=false, unavailable=false;
+let chosenString, detachHeatmap, answerCorrect=null, detachLayout, revealed=false, unavailable=false;
 let instrument='guitar', board, observer, firstFret, lastFret, target, answer, status, next, active=false, count=0, answeredCount=0, last='';
 const el=(tag,text='',className='')=>{const e=document.createElement(tag);e.textContent=text;e.className=className;return e;};
 const button=(text,fn)=>{const b=el('button',text);b.type='button';b.addEventListener('click',fn);return b;};
 function play(position){if(gameState.soundEnabled)Sound.playChord(voicingNotes({positions:[position]},instrument));}
 function announceQuestion(){if(active)Voice.speak(Voice.spokenNote(questionNoteName(target)).toLowerCase());}
-function cleanup(){setAwaitingAdvance(false);Voice.cancel();active=false;detachLayout?.();detachLayout=null;observer?.disconnect();observer=null;board=null;}
+function cleanup(){detachHeatmap?.();detachHeatmap=null;setAwaitingAdvance(false);Voice.cancel();active=false;detachLayout?.();detachLayout=null;observer?.disconnect();observer=null;board=null;}
 function paint(){
     if(!board)return;board.clearMarkers();
     if (isString) board.highlightString(chosenString);
     else board.highlightFretRange(firstFret, lastFret, selectedStrings());
     if(revealed) for(const p of (isString ? stringNotes(instrument,chosenString,target) : boxNotes(instrument,firstFret,target,selectedStrings(),lastFret))) board.setMarker(p.string,p.fret,{text:questionNoteName(target),color:'#fff',borderColor:'#111',textColor:'#111'});
-    if(answer)board.setMarker(answer.string,answer.fret,{text:questionNoteName(notePositions(instrument).find(p=>p.string===answer.string&&p.fret===answer.fret).midi%12),color:'#fff',borderColor:'#111',textColor:'#111'});
+    if(answer)board.setMarker(answer.string,answer.fret,{text:questionNoteName(notePositions(instrument).find(p=>p.string===answer.string&&p.fret===answer.fret).midi%12),color:isString?'#fff':answerCorrect?'#32CD32':'#ed5353',borderColor:isString?'#111':answerCorrect?'#167326':'#a31515',textColor:'#111'});
 }
 function round(){
-    cleanup();active=true;unavailable=false;answer=null;revealed=false;
+    cleanup();active=true;unavailable=false;answer=null;answerCorrect=null;revealed=false;
     // Pick the target from notes actually present in the four-fret region.
     let key, attempts=0;
     const min=!isString&&store.settings.limitFrets?store.settings.minFret:0;
@@ -70,6 +72,7 @@ function round(){
         } while (key === last && ++attempts<32);
     }
     last = key;
+    const timing=isString?null:beginPositionTiming(instrument);
     const logAnswer=beginPracticeQuestion(isString?'note-on-string':'note-in-box',[instrument,String(target)]);
     // Keep one spelling throughout the question, including repeats and revealed markers.
     useFlats=!isString&&Math.random()<0.5;
@@ -92,6 +95,8 @@ function round(){
     function checkAnswer(){
         if(!answer){status.textContent='Tap a fret position first.';return;}
         const r=isString ? checkStringNote(answer,target,instrument,chosenString) : checkBoxNote(answer,target,instrument,firstFret,selectedStrings(),lastFret);
+        answerCorrect=r.correct;
+        if(r.correct)timing?.complete(answer);
         logAnswer(r.correct && !revealed);
         if(isString){
         showAnswerFeedback(status,r.correct,r.correct ? 'That note matches the highlighted area.' : !r.inside ? (isString ? `Use string ${chosenString}.` : `Use the selected strings inside frets ${firstFret}–${lastFret}.`) : `That is not ${questionNoteName(target)}. Try another position.`);
@@ -107,7 +112,7 @@ function round(){
     }
     next=button('Next note →',()=>{count++;round();});next.classList.add('practice-next');next.disabled=true;
     next.hidden=true;controls.append(next,button(isString?'Show answers':'Show answer',()=>{clearAnswerFeedback(status);
-        answer=null;revealed=true;paint();
+        timing?.reveal();answerCorrect=null;answer=null;revealed=true;paint();
         next.disabled=true;status.textContent=isString?'These are the matching positions. Tap one to answer.':'';
     }));panel.append(controls);
     function draw(mobile=root.classList.contains('note-region-mobile')) {
@@ -121,7 +126,7 @@ function round(){
     announceQuestion();
 
 }
-function renderTitlePage(){unavailable=false;cleanup();const root=el('div','','voice-leading');root.append(el('h2',title),el('p',isString ? 'Find a named note on a highlighted string. Uses your Guitar/Bass setting.' : 'Find a named note inside a four-fret box across all strings. Uses your Guitar/Bass setting.'),button('Start practice',()=>{count=0;answeredCount=0;round();}));document.getElementById('game-content').replaceChildren(root);}
+function renderTitlePage(){unavailable=false;cleanup();const root=el('div','','voice-leading');root.append(el('h2',title),el('p',isString ? 'Find a named note on a highlighted string. Uses your Guitar/Bass setting.' : 'Find a named note inside a four-fret box across all strings. Uses your Guitar/Bass setting.'),button('Start practice',()=>{count=0;answeredCount=0;round();}));document.getElementById('game-content').replaceChildren(root);if(!isString)detachHeatmap=renderPositionHeatmap(root,instrument);}
 function renderSettings(body){
     if(isString){body.replaceChildren(el('p','Uses your Guitar/Bass setting. Find the note on the highlighted string.'));return;}
     body.replaceChildren(el('h3','Strings to practice'),el('p','Choose at least one string. Only selected strings count.'));

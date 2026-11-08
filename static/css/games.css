@@ -1234,3 +1234,10 @@ html.amoled-on #games-panel {
 .voice-leading-generated-types input { accent-color:#111; }
 .voice-leading-fields > [hidden] { display:none; }
 .voice-leading-fields > .voice-leading-generated-types { grid-column:1 / -1; }
+
+.note-position-heatmap { margin-top:1.25rem; }
+.note-position-heatmap h3 { font-size:1rem; margin:0 0 0.5rem; }
+.note-position-legend,.note-position-detail { font-size:0.8rem; }
+.note-position-legend::before { content:''; display:inline-block; width:5rem; height:0.65rem; margin-right:0.5rem; background:linear-gradient(to right,#32cd32,#ffd700,#f00); }
+.note-position-board svg { display:block; width:100%; height:auto; touch-action:manipulation; }
+.note-position-detail { min-height:2.5em; }

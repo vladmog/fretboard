@@ -19,13 +19,13 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
   setAttribute(){}
  }
  const root=new Element('div');
- const context=vm.createContext({beginPracticeQuestion:()=>()=>{},...notes,instrumentConfig,CHROMATIC_NOTES,getNoteName,voicingNotes,Math:config.random===undefined?Math:Object.assign(Object.create(Math),{random:()=>config.random}),showAnswerFeedback,clearAnswerFeedback,
+ const context=vm.createContext({beginPositionTiming:()=>({complete(){},reveal(){}}),renderPositionHeatmap:()=>()=>{},beginPracticeQuestion:()=>()=>{},...notes,instrumentConfig,CHROMATIC_NOTES,getNoteName,voicingNotes,Math:config.random===undefined?Math:Object.assign(Object.create(Math),{random:()=>config.random}),showAnswerFeedback,clearAnswerFeedback,
   Voice:{speak(text){if(voiceEnabled)announcements.push(text);},spokenNote:n=>n.replace('#',' sharp').replace('b',' flat'),cancel(){cancellations++;},isEnabled:()=>voiceEnabled},
   markReady(){awaiting=true;},isAwaitingAdvance:()=>awaiting,setAwaitingAdvance(value){awaiting=value;},
   createSettingsStore:(_key,defaults)=>({settings:{...defaults,...(config.min===undefined?{}:{limitFrets:true,minFret:config.min,maxFret:config.max,guitar:[1]})},load(){},save(){}}),
   attachRegionLayout:(_root,_host,draw)=>{draw(true);return ()=>{};},
   document:{getElementById:()=>root,createElement:tag=>new Element(tag)},gameState:{soundEnabled:false},Sound:{},matchMedia:()=>({matches:true}),ResizeObserver:class{observe(){}disconnect(){}},
-  createFretboard:()=>({clearMarkers(){markers=[];},setMarker(string,fret){markers.push({string,fret});},highlightString(){},highlightFretRange(){},onFretClick(fn){tap=fn;}})
+  createFretboard:()=>({clearMarkers(){markers=[];},setMarker(string,fret,options){markers.push({string,fret,...options});},highlightString(){},highlightFretRange(){},onFretClick(fn){tap=fn;}})
  });
  const file=kind==='nearest'?'nearest-note':'note-region';
  let source=readFileSync(new URL(`../static/js/games/${file}.js`,import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace('export default','globalThis.game =').replace('export function','function');
@@ -49,12 +49,12 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
  if(counter)assert.equal(counter.textContent,'0 answered');
  const correct=markers.at(-1);
  tap(correct.string,correct.fret);
- if(kind==='box'){assert.equal(status.textContent,'Correct');assert.equal(status.dataset.result,undefined);assert.equal(all().some(e=>e.textContent==='Hear answer'),false);}else{assert.equal(status.dataset.result,'correct');assert.match(status.textContent,/✓ Correct/);}assert.equal(next.disabled,false);
+ if(kind==='box'){assert.equal(markers.at(-1).color,'#32CD32');assert.equal(status.textContent,'Correct');assert.equal(status.dataset.result,undefined);assert.equal(all().some(e=>e.textContent==='Hear answer'),false);}else{assert.equal(status.dataset.result,'correct');assert.match(status.textContent,/✓ Correct/);}assert.equal(next.disabled,false);
  if(kind!=='nearest')assert.equal(awaiting,true,'correct answer arms the next tap synchronously');
  if(counter)assert.equal(counter.textContent,'1 answered');
  awaiting=false; // Also exercise an incorrect answer before advancing.
  tap(correct.string,correct.fret===15?14:correct.fret+1);
- if(kind==='box'){assert.match(status.textContent,/^(Try again|Tap inside the box)$/);assert.equal(status.dataset.result,undefined);}else{assert.equal(status.dataset.result,'incorrect');assert.match(status.textContent,/✕ Not quite/);}assert.equal(next.disabled,true);
+ if(kind==='box'){assert.equal(markers.at(-1).color,'#ed5353');assert.match(status.textContent,/^(Try again|Tap inside the box)$/);assert.equal(status.dataset.result,undefined);}else{assert.equal(status.dataset.result,'incorrect');assert.match(status.textContent,/✕ Not quite/);}assert.equal(next.disabled,true);
  if(counter)assert.equal(counter.textContent,'1 answered');
  next.disabled=false;
  if(kind==='nearest')next.click();
