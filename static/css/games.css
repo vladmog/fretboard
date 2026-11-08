@@ -1114,15 +1114,16 @@ html.amoled-on #games-panel {
 .note-region-mobile .voice-leading-board svg { width:100%; height:100%; max-height:none; }
 .note-region-mobile .marker text { font-size:20px; }
 /* Explicit slots prevent shared practice-button grids from stretching the panel. */
-.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) {
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-controls {
     position:fixed; left:0; right:0; height:50%; overflow-y:auto;
     max-width:none; padding:0.75rem max(1rem, env(safe-area-inset-right)) 0.75rem max(1rem, env(safe-area-inset-left));
     display:grid; grid-template-columns:minmax(5rem, 0.7fr) minmax(0, 1.5fr) minmax(9rem, 1fr);
     grid-template-rows:auto auto auto; gap:0.35rem 1rem; align-content:center;
 }
-.note-region-mobile[data-controls="top"] { top:0; }
-.note-region-mobile[data-controls="bottom"] { bottom:0; }
-.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) > :not(.voice-leading-board) { margin:0; }
+.note-region-mobile[data-controls="top"] .note-region-controls { top:0; }
+.note-region-mobile[data-controls="bottom"] .note-region-controls { bottom:0; }
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-controls { margin:0; }
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-controls > * { margin:0; }
 .note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-target {
     grid-column:1; grid-row:1 / 4; align-self:center; text-align:center; font-size:clamp(3rem, 18vh, 5rem);
 }
@@ -1162,7 +1163,7 @@ html.amoled-on #games-panel {
     top:calc(var(--region-controls-top) + 46px); bottom:auto;
     max-height:calc(50dvh - 52px); overflow-y:auto;
 }
-.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) {
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-controls {
     padding-top:48px; padding-bottom:6px;
 }
 .note-region-limit-toggle { display:flex; align-items:center; gap:0.5rem; min-height:44px; margin-top:0.5rem; }
@@ -1182,8 +1183,8 @@ html.amoled-on #games-panel {
     padding-right:env(safe-area-inset-right, 0px);
     padding-bottom:env(safe-area-inset-bottom, 0px);
 }
-.note-region-mobile[data-controls="top"] { padding-top:calc(48px + env(safe-area-inset-top, 0px)); }
-.note-region-mobile[data-controls="bottom"] { padding-bottom:calc(6px + env(safe-area-inset-bottom, 0px)); }
+.note-region-mobile[data-controls="top"] .note-region-controls { padding-top:calc(48px + env(safe-area-inset-top, 0px)); }
+.note-region-mobile[data-controls="bottom"] .note-region-controls { padding-bottom:calc(6px + env(safe-area-inset-bottom, 0px)); }
 #games-panel:has(.note-region-mobile[data-controls="top"]) { --region-controls-top:env(safe-area-inset-top, 0px); }
 #games-panel:has(.note-region-mobile[data-controls="bottom"]) .games-controls { max-height:calc(50dvh - 52px - env(safe-area-inset-bottom, 0px)); }
 
@@ -1207,3 +1208,8 @@ html.amoled-on #games-panel {
 .voice-leading-more > summary { padding:0.75rem; min-height:48px; box-sizing:border-box; cursor:pointer; }
 .voice-leading-more[open] { grid-column:1 / -1; }
 .voice-leading-more .voice-leading-actions { display:flex; flex-wrap:wrap; }
+
+/* Keep the fixed board outside the scrolling controls hit-test region. */
+.note-region-controls { display:contents; }
+.note-region-mobile .note-region-controls { display:block; }
+.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-controls { display:grid; }

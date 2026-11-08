@@ -1,3 +1,4 @@
+import { quarterTurnPoint } from './svg-quarter-turn.js';
 import { getNoteAt } from './music-theory.js';
 /**
  * Fretboard SVG Rendering Module
@@ -388,6 +389,10 @@ export function createFretboard(container, config = {}) {
     };
 
     const positionAt = (clientX, clientY) => {
+        if (Number.isFinite(config.screenRotation)) {
+            const local=quarterTurnPoint(svg.getBoundingClientRect(),svgWidth,svgHeight,config.screenRotation,clientX,clientY);
+            return local ? getStringFretFromPoint(fretboardConfig,local.x,local.y) : null;
+        }
         const point = new DOMPoint(clientX, clientY);
         const matrix = svg.getScreenCTM();
         if (!matrix) return null;

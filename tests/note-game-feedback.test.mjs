@@ -9,6 +9,7 @@ import {voicingNotes} from '../static/js/core/voicing-audio.js';
 import {showAnswerFeedback,clearAnswerFeedback} from '../static/js/games/answer-feedback.js';
 for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',min:0,max:0},{kind:'box',min:7,max:8},{kind:'box',min:12,max:15},{kind:'box',min:2,max:2,random:0.25,expected:'Gb'},{kind:'box',min:2,max:2,random:0.75,expected:'F#'}])test(`${config.kind} checks taps and voice with bounds ${config.min ?? 'off'}–${config.max ?? 'off'}`,()=>{
  const {kind}=config;
+ let awaiting=false;
  let tap,markers=[],announcements=[],voiceEnabled=true,cancellations=0;
  class Element {
   constructor(tag){this.tag=tag;this.children=[];this.dataset={};this.clientWidth=390;this.classList={add(){}};}
@@ -20,7 +21,7 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
  const root=new Element('div');
  const context=vm.createContext({...notes,instrumentConfig,CHROMATIC_NOTES,getNoteName,voicingNotes,Math:config.random===undefined?Math:Object.assign(Object.create(Math),{random:()=>config.random}),showAnswerFeedback,clearAnswerFeedback,
   Voice:{speak(text){if(voiceEnabled)announcements.push(text);},spokenNote:n=>n.replace('#',' sharp').replace('b',' flat'),cancel(){cancellations++;},isEnabled:()=>voiceEnabled},
-  markReady(){},isAwaitingAdvance:()=>false,setAwaitingAdvance(){},
+  markReady(){awaiting=true;},isAwaitingAdvance:()=>awaiting,setAwaitingAdvance(value){awaiting=value;},
   createSettingsStore:(_key,defaults)=>({settings:{...defaults,...(config.min===undefined?{}:{limitFrets:true,minFret:config.min,maxFret:config.max,guitar:[1]})},load(){},save(){}}),
   attachRegionLayout:(_root,_host,draw)=>{draw(true);return ()=>{};},
   document:{getElementById:()=>root,createElement:tag=>new Element(tag)},gameState:{soundEnabled:false},Sound:{},matchMedia:()=>({matches:true}),ResizeObserver:class{observe(){}disconnect(){}},
@@ -47,9 +48,12 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
  const correct=markers.at(-1);
  tap(correct.string,correct.fret);
  assert.equal(status.dataset.result,'correct');assert.match(status.textContent,/✓ Correct/);assert.equal(next.disabled,false);
+ awaiting=false; // Also exercise an incorrect answer before advancing.
  tap(correct.string,correct.fret===15?14:correct.fret+1);
  assert.equal(status.dataset.result,'incorrect');assert.match(status.textContent,/✕ Not quite/);assert.equal(next.disabled,true);
- next.disabled=false;next.click();
+ next.disabled=false;
+ if(kind==='nearest')next.click();
+ else {awaiting=true;tap(correct.string,correct.fret);assert.equal(awaiting,false);assert.equal(markers.length,0,'advance tap must not answer the new question');}
  assert.equal(all().find(e=>e.className==='voice-leading-feedback').dataset.result,undefined);
  if(kind!=='nearest'){
   assert.equal(announcements.length,3,'Next announces exactly once');

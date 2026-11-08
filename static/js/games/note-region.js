@@ -73,10 +73,11 @@ function round(){
     useFlats=!isString&&Math.random()<0.5;
     const root=el('div','','voice-leading voice-leading-round note-region-round');
     document.getElementById('game-content').replaceChildren(root);
-    root.append(el('h2',title),el('p',questionNoteName(target),'note-region-target'),el('p',isString ? `String ${chosenString} · ${voicingNotes({positions:[{string:chosenString,fret:0}]},instrument)[0]}` : `Frets ${firstFret}–${lastFret} · ${selectedStrings().map(stringName).join(" / ")}`, 'note-region-hint'));
-    const actions=el('div','','voice-leading-actions note-region-audio');actions.append(button('Hear answer',()=>{if(answer)play(answer);}));root.append(actions);
+    const panel=el('div','','note-region-controls');root.append(panel);
+    panel.append(el('h2',title),el('p',questionNoteName(target),'note-region-target'),el('p',isString ? `String ${chosenString} · ${voicingNotes({positions:[{string:chosenString,fret:0}]},instrument)[0]}` : `Frets ${firstFret}–${lastFret} · ${selectedStrings().map(stringName).join(" / ")}`, 'note-region-hint'));
+    const actions=el('div','','voice-leading-actions note-region-audio');actions.append(button('Hear answer',()=>{if(answer)play(answer);}));panel.append(actions);
     const host=el('div','','voice-leading-board');host.setAttribute('aria-label',isString ? 'Find the target note on the highlighted string' : 'Find the target note inside the four-fret box');root.append(host);
-    status=el('p',`${count} solved`,'voice-leading-feedback');status.setAttribute('role','status');root.append(status);
+    status=el('p',`${count} solved`,'voice-leading-feedback');status.setAttribute('role','status');panel.append(status);
     const controls=el('div','','voice-leading-actions note-region-navigation');
     function checkAnswer(){
         if(!answer){status.textContent='Tap a fret position first.';return;}
@@ -90,11 +91,11 @@ function round(){
     next.hidden=true;controls.append(next,button('Show answers',()=>{clearAnswerFeedback(status);
         answer=null;revealed=true;paint();
         next.disabled=true;status.textContent='These are the matching positions. Tap one to answer.';
-    }));root.append(controls);
+    }));panel.append(controls);
     function draw(mobile=root.classList.contains('note-region-mobile')) {
         host.replaceChildren();
-        board=createFretboard(host,{tuning:instrumentConfig(instrument).tuning,frets:15,vertical:mobile||host.clientWidth<600,markerTextRotation:mobile?(Number(root.dataset.markerTextRotation)||0):0,...(mobile?{}:{fretSpacing:37,stringSpacing:40})});
-        board.onFretClick((string,fret)=>{if(isAwaitingAdvance())return;revealed=false;answer={string,fret};checkAnswer();paint();play(answer);});paint();
+        board=createFretboard(host,{tuning:instrumentConfig(instrument).tuning,frets:15,vertical:mobile||host.clientWidth<600,screenRotation:mobile?-(Number(root.dataset.markerTextRotation)||0):undefined,markerTextRotation:mobile?(Number(root.dataset.markerTextRotation)||0):0,...(mobile?{}:{fretSpacing:37,stringSpacing:40})});
+        board.onFretClick((string,fret)=>{if(isAwaitingAdvance()){if(!next.disabled){count++;round();}return;}revealed=false;answer={string,fret};checkAnswer();paint();play(answer);});paint();
     }
     detachLayout=attachRegionLayout(root,host,draw);
     let width=host.clientWidth;
