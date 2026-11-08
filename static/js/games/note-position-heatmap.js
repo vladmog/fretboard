@@ -5,7 +5,7 @@ import { getNoteName } from '../core/music-theory.js';
 import { reactionTimeToColor } from './game-utils.js';
 import { positionTimings } from './note-position-stats.js';
 
-export function renderPositionHeatmap(parent,instrument){
+export function renderPositionHeatmap(parent,instrument,mode='note'){
     const section=document.createElement('section');section.className='note-position-heatmap';
     const heading=document.createElement('h3');heading.textContent='Time to identify';
     const legend=document.createElement('p');legend.className='note-position-legend';
@@ -15,7 +15,7 @@ export function renderPositionHeatmap(parent,instrument){
     const detail=document.createElement('p');detail.className='note-position-detail';detail.setAttribute('role','status');
     detail.textContent='Tap a marker for its average time. Unassisted answers only.';
     section.append(heading,legend,host,detail);parent.append(section);
-    const stats=positionTimings(instrument), times=Object.values(stats).map(s=>s.mean);
+    const stats=positionTimings(instrument,mode), times=Object.values(stats).map(s=>s.mean);
     const min=Math.min(...times),max=Math.max(...times);
     let width=-1;
     function draw(){
