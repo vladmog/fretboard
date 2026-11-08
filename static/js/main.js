@@ -1,3 +1,4 @@
+import { versionLabel } from './app/version.js';
 import { initSoundSettings } from './app/sound-settings.js';
 import { initDisclosureMotion } from './app/disclosure-motion.js';
 import { initSongs } from './app/songs-ui.js';
@@ -31,6 +32,7 @@ if (window.navigator.standalone === true) {
  * Initialize the application
  */
 async function init() {
+    document.getElementById('app-settings')?.append(versionLabel());
     // Restore instrument before the first fretboard is created.
     loadInstrument();
     loadInversionScrubbing();

@@ -74,23 +74,33 @@ function round(){
     const root=el('div','','voice-leading voice-leading-round note-region-round');
     document.getElementById('game-content').replaceChildren(root);
     const panel=el('div','','note-region-controls');root.append(panel);
-    panel.append(el('h2',title),el('p',questionNoteName(target),'note-region-target'),el('p',isString ? `String ${chosenString} · ${voicingNotes({positions:[{string:chosenString,fret:0}]},instrument)[0]}` : `Frets ${firstFret}–${lastFret} · ${selectedStrings().map(stringName).join(" / ")}`, 'note-region-hint'));
-    const actions=el('div','','voice-leading-actions note-region-audio');actions.append(button('Hear answer',()=>{if(answer)play(answer);}));panel.append(actions);
+    if(isString){
+        panel.append(el('h2',title),el('p',questionNoteName(target),'note-region-target'),el('p',`String ${chosenString} · ${voicingNotes({positions:[{string:chosenString,fret:0}]},instrument)[0]}`,'note-region-hint'));
+        const actions=el('div','','voice-leading-actions note-region-audio');actions.append(button('Hear answer',()=>{if(answer)play(answer);}));panel.append(actions);
+    }else{
+        root.classList.add('note-box-simple');
+        panel.append(el('p','Find','note-region-instruction'),el('p',questionNoteName(target),'note-region-target'));
+    }
     const host=el('div','','voice-leading-board');host.setAttribute('aria-label',isString ? 'Find the target note on the highlighted string' : 'Find the target note inside the four-fret box');root.append(host);
-    status=el('p',`${count} solved`,'voice-leading-feedback');status.setAttribute('role','status');panel.append(status);
+    status=el('p',isString?`${count} solved`:'','voice-leading-feedback');status.setAttribute('role','status');panel.append(status);
     const controls=el('div','','voice-leading-actions note-region-navigation');
     function checkAnswer(){
         if(!answer){status.textContent='Tap a fret position first.';return;}
         const r=isString ? checkStringNote(answer,target,instrument,chosenString) : checkBoxNote(answer,target,instrument,firstFret,selectedStrings(),lastFret);
+        if(isString){
         showAnswerFeedback(status,r.correct,r.correct ? 'That note matches the highlighted area.' : !r.inside ? (isString ? `Use string ${chosenString}.` : `Use the selected strings inside frets ${firstFret}–${lastFret}.`) : `That is not ${questionNoteName(target)}. Try another position.`);
+        }else{
+            clearAnswerFeedback(status);
+            status.textContent=r.correct?'Correct':!r.inside?'Tap inside the box':'Try again';
+        }
         next.disabled=!r.correct;
-        if(r.correct){status.append(el('span',' Tap anywhere for the next note.'));markReady();}
+        if(r.correct){if(isString)status.append(el('span',' Tap anywhere for the next note.'));markReady();}
         else setAwaitingAdvance(false);
     }
     next=button('Next note →',()=>{count++;round();});next.classList.add('practice-next');next.disabled=true;
-    next.hidden=true;controls.append(next,button('Show answers',()=>{clearAnswerFeedback(status);
+    next.hidden=true;controls.append(next,button(isString?'Show answers':'Show answer',()=>{clearAnswerFeedback(status);
         answer=null;revealed=true;paint();
-        next.disabled=true;status.textContent='These are the matching positions. Tap one to answer.';
+        next.disabled=true;status.textContent=isString?'These are the matching positions. Tap one to answer.':'';
     }));panel.append(controls);
     function draw(mobile=root.classList.contains('note-region-mobile')) {
         host.replaceChildren();

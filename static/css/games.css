@@ -1213,3 +1213,8 @@ html.amoled-on #games-panel {
 .note-region-controls { display:contents; }
 .note-region-mobile .note-region-controls { display:block; }
 .note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-controls { display:grid; }
+
+.note-box-simple .note-region-instruction { font-size:1rem; margin:0; }
+.note-box-simple .voice-leading-feedback { min-height:1.4em; }
+.note-box-simple.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-instruction { grid-column:1; grid-row:1; align-self:end; text-align:center; }
+.note-box-simple.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-region-target { grid-column:1; grid-row:2 / 4; }

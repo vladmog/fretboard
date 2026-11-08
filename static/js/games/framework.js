@@ -1,3 +1,4 @@
+import { versionLabel } from '../app/version.js';
 /**
  * Games Framework
  * Mode switching, controls box, modal, and game routing
@@ -178,6 +179,7 @@ export const Games = (function() {
                 body.after(voiceBox);
             }
             Voice.renderVoiceSettings(voiceBox);
+            voiceBox.append(versionLabel());
         }
 
         modal.style.display = 'flex';

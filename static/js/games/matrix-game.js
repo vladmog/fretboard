@@ -1,3 +1,4 @@
+import { refreshMatrixAppearance } from './matrix-appearance.js';
 /**
  * Matrix Drills Factory
  * Builds the four matrix games from a small config instead of four
@@ -61,10 +62,12 @@ export function createMatrixGame(config) {
     const settingsStore = createSettingsStore(
         `fretboard-${id}-settings`,
         isNoteDomain
-            ? { matrixSize: 3, roundCount: 10, showColors: true, accidental: 'sharps' }
-            : { matrixSize: 3, roundCount: 10, showColors: true, allowedCenters: [...ALL_SEMITONES] },
+            ? { matrixSize: 3, roundCount: 10, showColors: true, circleColors: true, circleLabels: true, accidental: 'sharps' }
+            : { matrixSize: 3, roundCount: 10, showColors: true, circleColors: true, circleLabels: true, allowedCenters: [...ALL_SEMITONES] },
         settings => {
             sanitizeCommon(settings);
+            settings.circleColors=settings.circleColors!==false;
+            settings.circleLabels=settings.circleLabels!==false;
             if (isNoteDomain) {
                 if (settings.accidental !== 'sharps' && settings.accidental !== 'flats') {
                     settings.accidental = 'sharps';
@@ -140,8 +143,8 @@ export function createMatrixGame(config) {
 
     // Note domain: color by interval relative to the center; interval domain:
     // absolute color per interval label
-    function colorForSemitone(semitone, centerSemitone) {
-        if (!settings.showColors) {
+    function colorForSemitone(semitone, centerSemitone, colored=settings.showColors) {
+        if (!colored) {
             return { fill: '#000', border: '#000', text: '#fff' };
         }
         const interval = isNoteDomain
@@ -207,6 +210,7 @@ export function createMatrixGame(config) {
                 text.setAttribute('font-size', cell * 0.4);
 
                 if (isCenter) {
+                    g.dataset.matrixTone = centerSemitone;
                     const colors = colorForSemitone(centerSemitone, centerSemitone);
                     rect.setAttribute('fill', colors.fill);
                     rect.setAttribute('stroke', colors.border);
@@ -274,9 +278,9 @@ export function createMatrixGame(config) {
             const x = center + radius * Math.cos(angle);
             const y = center + radius * Math.sin(angle);
 
-            const colors = settings.showColors
-                ? colorForSemitone(i, centerSemitone)
-                : { fill: i % 2 === 0 ? '#000' : '#777', border: i % 2 === 0 ? '#000' : '#777', text: '#fff' };
+            const colors = settings.circleColors
+                ? colorForSemitone(i, centerSemitone, true)
+                : { fill: i % 2 === 0 ? '#000' : '#fff', border: '#000', text: i % 2 === 0 ? '#fff' : '#000' };
 
             const g = document.createElementNS(svgNS, 'g');
             g.setAttribute('data-semitone', i);
@@ -330,6 +334,7 @@ export function createMatrixGame(config) {
             text.setAttribute('font-family', "'Helvetica Neue', Helvetica, Arial, sans-serif");
             text.setAttribute('font-weight', '700');
             text.textContent = labels[i];
+            text.setAttribute('visibility',settings.circleLabels?'visible':'hidden');
 
             g.appendChild(circle);
             g.appendChild(text);
@@ -403,6 +408,7 @@ export function createMatrixGame(config) {
         select.addEventListener('change', () => {
             onChange(select.value);
             saveSettings();
+            refreshMatrixAppearance(document.getElementById('game-content'), settings, gameState.centerSemitone, colorForSemitone);
         });
         group.appendChild(label);
         group.appendChild(select);
@@ -492,10 +498,19 @@ export function createMatrixGame(config) {
                 v => { settings.accidental = v; });
         }
 
-        addSelectSetting(modalBody, 'Colors',
+        addSelectSetting(modalBody, 'Matrix colors',
             [{ value: 'on', text: 'On' }, { value: 'off', text: 'Off' }],
             v => (v === 'on') === settings.showColors,
             v => { settings.showColors = v === 'on'; });
+
+        addSelectSetting(modalBody, 'Circle colors',
+            [{ value: 'on', text: 'On' }, { value: 'off', text: 'Black and white' }],
+            v => (v === 'on') === settings.circleColors,
+            v => { settings.circleColors = v === 'on'; });
+        addSelectSetting(modalBody, 'Circle labels',
+            [{ value: 'on', text: 'Show' }, { value: 'off', text: 'Hide' }],
+            v => (v === 'on') === settings.circleLabels,
+            v => { settings.circleLabels = v === 'on'; });
 
         if (!isNoteDomain) {
             addCenterIntervalsSetting(modalBody);
@@ -727,6 +742,7 @@ export function createMatrixGame(config) {
         const m = gameState.matrixApi;
         if (m && m.targetCellEl && m.targetTextEl) {
             const colors = colorForSemitone(gameState.targetSemitone, gameState.centerSemitone);
+            m.targetCellEl.parentNode.dataset.matrixTone = gameState.targetSemitone;
             m.targetCellEl.setAttribute('fill', colors.fill);
             m.targetCellEl.setAttribute('stroke', colors.border);
             m.targetTextEl.setAttribute('fill', colors.text);
@@ -767,6 +783,7 @@ export function createMatrixGame(config) {
 
     function revealCell(cellData) {
         const colors = colorForSemitone(cellData.semitone, gameState.centerSemitone);
+        cellData.rect.parentNode.dataset.matrixTone = cellData.semitone;
         cellData.rect.setAttribute('fill', colors.fill);
         cellData.rect.setAttribute('stroke', colors.border);
         cellData.rect.setAttribute('stroke-width', 4);

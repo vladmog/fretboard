@@ -43,14 +43,14 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
  const status=all().find(e=>e.className==='voice-leading-feedback');
  const next=all().find(e=>e.textContent==='Next note →');
  assert.equal(next.disabled,true);
- all().find(e=>e.textContent===(kind==='nearest'?'Show nearest':'Show answers')).click();
+ all().find(e=>e.textContent===(kind==='nearest'?'Show nearest':kind==='box'?'Show answer':'Show answers')).click();
  if(config.min!==undefined){assert.ok(markers.length);assert.ok(markers.every(p=>p.fret>=config.min&&p.fret<=config.max));}
  const correct=markers.at(-1);
  tap(correct.string,correct.fret);
- assert.equal(status.dataset.result,'correct');assert.match(status.textContent,/✓ Correct/);assert.equal(next.disabled,false);
+ if(kind==='box'){assert.equal(status.textContent,'Correct');assert.equal(status.dataset.result,undefined);assert.equal(all().some(e=>e.textContent==='Hear answer'),false);}else{assert.equal(status.dataset.result,'correct');assert.match(status.textContent,/✓ Correct/);}assert.equal(next.disabled,false);
  awaiting=false; // Also exercise an incorrect answer before advancing.
  tap(correct.string,correct.fret===15?14:correct.fret+1);
- assert.equal(status.dataset.result,'incorrect');assert.match(status.textContent,/✕ Not quite/);assert.equal(next.disabled,true);
+ if(kind==='box'){assert.match(status.textContent,/^(Try again|Tap inside the box)$/);assert.equal(status.dataset.result,undefined);}else{assert.equal(status.dataset.result,'incorrect');assert.match(status.textContent,/✕ Not quite/);}assert.equal(next.disabled,true);
  next.disabled=false;
  if(kind==='nearest')next.click();
  else {awaiting=true;tap(correct.string,correct.fret);assert.equal(awaiting,false);assert.equal(markers.length,0,'advance tap must not answer the new question');}
