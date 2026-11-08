@@ -1,3 +1,4 @@
+import { beginPracticeQuestion } from './practice-log.js';
 import { showAnswerFeedback, clearAnswerFeedback } from './answer-feedback.js';
 import { createFretboard } from '../core/fretboard.js';
 import { instrumentConfig } from '../core/voice-leading.js';
@@ -23,6 +24,7 @@ function round(){
     let key;
     do {start=positions[Math.floor(Math.random()*positions.length)];target=(start.midi%12+1+Math.floor(Math.random()*11))%12;key=`${start.string}:${start.fret}:${target}`;} while(key===last);
     last=key;
+    const logAnswer=beginPracticeQuestion('nearest-note',[instrument,String(target)]);
     const root=el('div','','voice-leading voice-leading-round');
     document.getElementById('game-content').replaceChildren(root);
     root.append(el('h2','Nearest note'),el('p',`Start: ${voicingNotes({positions:[start]},instrument)[0]} · Find ${CHROMATIC_NOTES[target]}`),el('p','Tap the target note with the smallest pitch distance, up or down. Gray marks the start.'));
@@ -34,6 +36,7 @@ function round(){
         if(!answer){status.textContent='Tap a fret position first.';return;}
         const r=checkNearest(start,answer,target,instrument);
         showAnswerFeedback(status,r.correct,r.correct?`${r.distance} semitone${r.distance===1?'':'s'} away. Every equally close position counts.`:r.matches?`Right note, but ${r.distance} semitones away. A closer octave is ${r.best} away. Try again.`:`That is not ${CHROMATIC_NOTES[target]}. Try another position.`);
+        logAnswer(r.correct);
         next.disabled=!r.correct;
     }
     next=button('Next note →',()=>{count++;round();});next.classList.add('practice-next');next.disabled=true;

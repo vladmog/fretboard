@@ -24,7 +24,7 @@ export default (function() {
 
     // Game settings (persisted)
     let settings = {
-        roundCount: 10,
+        roundCount: 0,
         enabledNotes: [...ALL_NOTES],
         showColors: true,
         gameMode: 'note-names'
@@ -383,28 +383,7 @@ export default (function() {
         modeGroup.appendChild(modeSelect);
         modalBody.appendChild(modeGroup);
 
-        // Round count
-        const roundGroup = document.createElement('div');
-        roundGroup.className = 'game-setting-group';
-        const roundLabel = document.createElement('label');
-        roundLabel.textContent = 'Rounds';
-        roundLabel.className = 'game-setting-label';
-        const roundInput = document.createElement('select');
-        roundInput.className = 'game-setting-select';
-        ROUND_OPTIONS.forEach(n => {
-            const opt = document.createElement('option');
-            opt.value = n;
-            opt.textContent = roundOptionLabel(n);
-            if (n === settings.roundCount) opt.selected = true;
-            roundInput.appendChild(opt);
-        });
-        roundInput.addEventListener('change', () => {
-            settings.roundCount = parseInt(roundInput.value);
-            saveSettings();
-        });
-        roundGroup.appendChild(roundLabel);
-        roundGroup.appendChild(roundInput);
-        modalBody.appendChild(roundGroup);
+
 
         // Colors toggle
         const colorsGroup = document.createElement('div');

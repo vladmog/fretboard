@@ -25,18 +25,10 @@ export function setAwaitingAdvance(value) {
     awaitingAdvance = value;
 }
 
-/**
- * Called by the active game once a question has been answered. Defers arming
- * the flag to the next macrotask so that the click which produced the answer
- * finishes bubbling without immediately advancing — the NEXT tap advances.
- * The identity guard prevents a deferred arm from leaking into a different
- * game if the user switches games during the reveal.
- */
+/** Arm immediately; the framework checks readiness in click capture phase,
+ * before the answer handler runs, so the answer click never advances itself. */
 export function markReady() {
-    const g = gameState.currentGame;
-    setTimeout(() => {
-        if (gameState.currentGame === g) awaitingAdvance = true;
-    }, 0);
+    awaitingAdvance = true;
 }
 
 export function getState() {

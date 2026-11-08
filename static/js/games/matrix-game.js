@@ -62,8 +62,8 @@ export function createMatrixGame(config) {
     const settingsStore = createSettingsStore(
         `fretboard-${id}-settings`,
         isNoteDomain
-            ? { matrixSize: 3, roundCount: 10, showColors: true, circleColors: true, circleLabels: true, accidental: 'sharps' }
-            : { matrixSize: 3, roundCount: 10, showColors: true, circleColors: true, circleLabels: true, allowedCenters: [...ALL_SEMITONES] },
+            ? { matrixSize: 3, roundCount: 0, showColors: true, circleColors: true, circleLabels: true, accidental: 'sharps' }
+            : { matrixSize: 3, roundCount: 0, showColors: true, circleColors: true, circleLabels: true, allowedCenters: [...ALL_SEMITONES] },
         settings => {
             sanitizeCommon(settings);
             settings.circleColors=settings.circleColors!==false;
@@ -486,10 +486,7 @@ export function createMatrixGame(config) {
             v => parseInt(v) === settings.matrixSize,
             v => { settings.matrixSize = parseInt(v); });
 
-        addSelectSetting(modalBody, 'Rounds',
-            ROUND_OPTIONS.map(n => ({ value: n, text: roundOptionLabel(n) })),
-            v => parseInt(v) === settings.roundCount,
-            v => { settings.roundCount = parseInt(v); });
+
 
         if (isNoteDomain) {
             addSelectSetting(modalBody, 'Accidentals',

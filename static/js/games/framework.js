@@ -286,10 +286,10 @@ export const Games = (function() {
         const content = document.getElementById('game-content');
         const tapSurface = document.getElementById('games-panel');
         if (content && tapSurface) {
-            // Handle a completed region question before the SVG consumes the
-            // click: advancing must not depend on hitting a valid string/fret.
+            // Capture the NEXT click before answer widgets can consume it.
+            // Readiness is checked before the current click reaches its answer
+            // handler, so answering cannot also skip to the next question.
             tapSurface.addEventListener('click', (e) => {
-                if (!['note-in-box','note-on-string'].includes(gameState.currentGame)) return;
                 if (!isAwaitingAdvance() || Blackout.isActive()) return;
                 const modal = document.getElementById('game-settings-modal');
                 if (modal && getComputedStyle(modal).display !== 'none') return;
@@ -297,18 +297,6 @@ export const Games = (function() {
                 e.stopPropagation();
                 tryAdvance();
             }, true);
-            tapSurface.addEventListener('click', (e) => {
-                const regionGame=['note-in-box','note-on-string'].includes(gameState.currentGame);
-                if (!regionGame && !content.contains(e.target)) return;
-                if (!isAwaitingAdvance() || Blackout.isActive()) return;
-                const modal = document.getElementById('game-settings-modal');
-                if (modal && getComputedStyle(modal).display !== 'none') return;
-                // Real interactive controls (answer buttons, toggles, links) keep
-                // their own behavior; SVG answer inputs are not excluded, so a tap
-                // on the circle/fretboard after answering advances.
-                if (e.target.closest('button, select, input, label, a')) return;
-                tryAdvance();
-            });
         }
     }
 

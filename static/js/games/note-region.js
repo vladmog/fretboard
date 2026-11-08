@@ -1,3 +1,4 @@
+import { beginPracticeQuestion } from './practice-log.js';
 import { showAnswerFeedback, clearAnswerFeedback } from './answer-feedback.js';
 import { createFretboard } from '../core/fretboard.js';
 import { instrumentConfig } from '../core/voice-leading.js';
@@ -27,7 +28,7 @@ const stringName=n=>instrumentConfig(instrument).tuning[instrumentConfig(instrum
 let useFlats=false;
 const questionNoteName=pitch=>getNoteName(pitch,useFlats);
 let chosenString, detachLayout, revealed=false, unavailable=false;
-let instrument='guitar', board, observer, firstFret, lastFret, target, answer, status, next, active=false, count=0, last='';
+let instrument='guitar', board, observer, firstFret, lastFret, target, answer, status, next, active=false, count=0, answeredCount=0, last='';
 const el=(tag,text='',className='')=>{const e=document.createElement(tag);e.textContent=text;e.className=className;return e;};
 const button=(text,fn)=>{const b=el('button',text);b.type='button';b.addEventListener('click',fn);return b;};
 function play(position){if(gameState.soundEnabled)Sound.playChord(voicingNotes({positions:[position]},instrument));}
@@ -69,6 +70,7 @@ function round(){
         } while (key === last && ++attempts<32);
     }
     last = key;
+    const logAnswer=beginPracticeQuestion(isString?'note-on-string':'note-in-box',[instrument,String(target)]);
     // Keep one spelling throughout the question, including repeats and revealed markers.
     useFlats=!isString&&Math.random()<0.5;
     const root=el('div','','voice-leading voice-leading-round note-region-round');
@@ -84,15 +86,20 @@ function round(){
     const host=el('div','','voice-leading-board');host.setAttribute('aria-label',isString ? 'Find the target note on the highlighted string' : 'Find the target note inside the four-fret box');root.append(host);
     status=el('p',isString?`${count} solved`:'','voice-leading-feedback');status.setAttribute('role','status');panel.append(status);
     const controls=el('div','','voice-leading-actions note-region-navigation');
+    let counted=false;
+    const counter=el('p',`${answeredCount} answered`,'game-round-counter note-box-counter');
+    if(!isString)panel.append(counter);
     function checkAnswer(){
         if(!answer){status.textContent='Tap a fret position first.';return;}
         const r=isString ? checkStringNote(answer,target,instrument,chosenString) : checkBoxNote(answer,target,instrument,firstFret,selectedStrings(),lastFret);
+        logAnswer(r.correct && !revealed);
         if(isString){
         showAnswerFeedback(status,r.correct,r.correct ? 'That note matches the highlighted area.' : !r.inside ? (isString ? `Use string ${chosenString}.` : `Use the selected strings inside frets ${firstFret}–${lastFret}.`) : `That is not ${questionNoteName(target)}. Try another position.`);
         }else{
             clearAnswerFeedback(status);
             status.textContent=r.correct?'Correct':!r.inside?'Tap inside the box':'Try again';
         }
+        if(r.correct&&!counted){counted=true;answeredCount++;counter.textContent=`${answeredCount} answered`;}
         next.disabled=!r.correct;
         // Fretboard clicks stop propagation, so arming immediately cannot also advance this answer tap.
         if(r.correct){if(isString)status.append(el('span',' Tap anywhere for the next note.'));setAwaitingAdvance(true);}
@@ -114,7 +121,7 @@ function round(){
     announceQuestion();
 
 }
-function renderTitlePage(){unavailable=false;cleanup();const root=el('div','','voice-leading');root.append(el('h2',title),el('p',isString ? 'Find a named note on a highlighted string. Uses your Guitar/Bass setting.' : 'Find a named note inside a four-fret box across all strings. Uses your Guitar/Bass setting.'),button('Start practice',()=>{count=0;round();}));document.getElementById('game-content').replaceChildren(root);}
+function renderTitlePage(){unavailable=false;cleanup();const root=el('div','','voice-leading');root.append(el('h2',title),el('p',isString ? 'Find a named note on a highlighted string. Uses your Guitar/Bass setting.' : 'Find a named note inside a four-fret box across all strings. Uses your Guitar/Bass setting.'),button('Start practice',()=>{count=0;answeredCount=0;round();}));document.getElementById('game-content').replaceChildren(root);}
 function renderSettings(body){
     if(isString){body.replaceChildren(el('p','Uses your Guitar/Bass setting. Find the note on the highlighted string.'));return;}
     body.replaceChildren(el('h3','Strings to practice'),el('p','Choose at least one string. Only selected strings count.'));

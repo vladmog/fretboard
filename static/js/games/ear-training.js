@@ -24,7 +24,7 @@ function createEarTrainingGame(config) {
     // Game settings (persisted)
     let settings = {
         activeMode: 'chord',
-        roundCount: 10,
+        roundCount: 0,
         enabledRoots: [...ALL_ROOTS],
         enabledChordTypes: ['maj', 'min'],
         playStyle: 'strum'
@@ -176,28 +176,7 @@ function createEarTrainingGame(config) {
     function renderSettings(modalBody) {
         modalBody.innerHTML = '';
 
-        // Round count
-        const roundGroup = document.createElement('div');
-        roundGroup.className = 'game-setting-group';
-        const roundLabel = document.createElement('label');
-        roundLabel.textContent = 'Rounds';
-        roundLabel.className = 'game-setting-label';
-        const roundInput = document.createElement('select');
-        roundInput.className = 'game-setting-select';
-        ROUND_OPTIONS.forEach(n => {
-            const opt = document.createElement('option');
-            opt.value = n;
-            opt.textContent = roundOptionLabel(n);
-            if (n === settings.roundCount) opt.selected = true;
-            roundInput.appendChild(opt);
-        });
-        roundInput.addEventListener('change', () => {
-            settings.roundCount = parseInt(roundInput.value);
-            saveSettings();
-        });
-        roundGroup.appendChild(roundLabel);
-        roundGroup.appendChild(roundInput);
-        modalBody.appendChild(roundGroup);
+
 
         // Root note checkboxes
         const rootGroup = document.createElement('div');

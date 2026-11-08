@@ -1,3 +1,4 @@
+import { beginPracticeQuestion } from './practice-log.js';
 import { clearAnswerFeedback } from './answer-feedback.js';
 /** Phone-first chord-to-chord practice using the shared progression catalog. */
 import * as Theory from '../core/music-theory.js';
@@ -84,6 +85,7 @@ function renderRound(){
     const root=el('div','','voice-leading voice-leading-round');content().replaceChildren(root);
     document.getElementById('games-panel').scrollTop=0;
     const target=sequence[(step+1)%sequence.length],source=sequence[step%sequence.length];
+    const logAnswer=beginPracticeQuestion('voice-leading',[context.instrument,source.symbol,target.symbol]);
     const rules={requireChange:Theory.getNoteIndex(source.root)===Theory.getNoteIndex(target.root) && source.type===target.type};
     const prompt=el('div','','voice-leading-transition');
     prompt.setAttribute('aria-label', `${source.symbol}, ${source.numeral}, to ${target.symbol}, ${target.numeral}`);
@@ -104,6 +106,7 @@ function renderRound(){
         board.onFretClick((string,fret)=>{const i=selected.findIndex(p=>p.string===string&&p.fret===fret);if(i>=0)selected.splice(i,1);else selected.push({string,fret});setReady(false);clearAnswerFeedback(status);status.textContent=`${selected.length} / ${target.intervals.length} notes selected`;
             if(selected.length>=target.intervals.length){
                 const result=checkAnswer(current,selected,target,context.instrument,rules);
+                logAnswer(result.valid&&!assisted);
                 showResult(result);setReady(result.valid);
             }
             paint();});paint();}

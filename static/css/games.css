@@ -1222,3 +1222,9 @@ html.amoled-on #games-panel {
 /* Allow the very next tap without waiting for Safari's double-tap zoom gesture. */
 #games-panel:has(.note-region-round),
 .note-region-round, .note-region-round .voice-leading-board svg { touch-action:manipulation; }
+
+.note-box-counter { margin:0.25rem 0; }
+.note-box-simple.note-region-mobile:is([data-controls="top"], [data-controls="bottom"]) .note-box-counter { grid-column:2; grid-row:1; align-self:end; }
+
+/* Shared game surface: do not reserve rapid taps for double-tap zoom. */
+#games-panel, #game-content, #game-content svg { touch-action:manipulation; }

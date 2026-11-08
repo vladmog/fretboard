@@ -19,7 +19,7 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
   setAttribute(){}
  }
  const root=new Element('div');
- const context=vm.createContext({...notes,instrumentConfig,CHROMATIC_NOTES,getNoteName,voicingNotes,Math:config.random===undefined?Math:Object.assign(Object.create(Math),{random:()=>config.random}),showAnswerFeedback,clearAnswerFeedback,
+ const context=vm.createContext({beginPracticeQuestion:()=>()=>{},...notes,instrumentConfig,CHROMATIC_NOTES,getNoteName,voicingNotes,Math:config.random===undefined?Math:Object.assign(Object.create(Math),{random:()=>config.random}),showAnswerFeedback,clearAnswerFeedback,
   Voice:{speak(text){if(voiceEnabled)announcements.push(text);},spokenNote:n=>n.replace('#',' sharp').replace('b',' flat'),cancel(){cancellations++;},isEnabled:()=>voiceEnabled},
   markReady(){awaiting=true;},isAwaitingAdvance:()=>awaiting,setAwaitingAdvance(value){awaiting=value;},
   createSettingsStore:(_key,defaults)=>({settings:{...defaults,...(config.min===undefined?{}:{limitFrets:true,minFret:config.min,maxFret:config.max,guitar:[1]})},load(){},save(){}}),
@@ -45,13 +45,17 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
  assert.equal(next.disabled,true);
  all().find(e=>e.textContent===(kind==='nearest'?'Show nearest':kind==='box'?'Show answer':'Show answers')).click();
  if(config.min!==undefined){assert.ok(markers.length);assert.ok(markers.every(p=>p.fret>=config.min&&p.fret<=config.max));}
+ const counter=kind==='box'?all().find(e=>e.className==='game-round-counter note-box-counter'):null;
+ if(counter)assert.equal(counter.textContent,'0 answered');
  const correct=markers.at(-1);
  tap(correct.string,correct.fret);
  if(kind==='box'){assert.equal(status.textContent,'Correct');assert.equal(status.dataset.result,undefined);assert.equal(all().some(e=>e.textContent==='Hear answer'),false);}else{assert.equal(status.dataset.result,'correct');assert.match(status.textContent,/✓ Correct/);}assert.equal(next.disabled,false);
  if(kind!=='nearest')assert.equal(awaiting,true,'correct answer arms the next tap synchronously');
+ if(counter)assert.equal(counter.textContent,'1 answered');
  awaiting=false; // Also exercise an incorrect answer before advancing.
  tap(correct.string,correct.fret===15?14:correct.fret+1);
  if(kind==='box'){assert.match(status.textContent,/^(Try again|Tap inside the box)$/);assert.equal(status.dataset.result,undefined);}else{assert.equal(status.dataset.result,'incorrect');assert.match(status.textContent,/✕ Not quite/);}assert.equal(next.disabled,true);
+ if(counter)assert.equal(counter.textContent,'1 answered');
  next.disabled=false;
  if(kind==='nearest')next.click();
  else {awaiting=true;tap(correct.string,correct.fret);assert.equal(awaiting,false);assert.equal(markers.length,0,'advance tap must not answer the new question');}
