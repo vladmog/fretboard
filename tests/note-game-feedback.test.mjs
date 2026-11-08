@@ -48,6 +48,7 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
  const correct=markers.at(-1);
  tap(correct.string,correct.fret);
  if(kind==='box'){assert.equal(status.textContent,'Correct');assert.equal(status.dataset.result,undefined);assert.equal(all().some(e=>e.textContent==='Hear answer'),false);}else{assert.equal(status.dataset.result,'correct');assert.match(status.textContent,/✓ Correct/);}assert.equal(next.disabled,false);
+ if(kind!=='nearest')assert.equal(awaiting,true,'correct answer arms the next tap synchronously');
  awaiting=false; // Also exercise an incorrect answer before advancing.
  tap(correct.string,correct.fret===15?14:correct.fret+1);
  if(kind==='box'){assert.match(status.textContent,/^(Try again|Tap inside the box)$/);assert.equal(status.dataset.result,undefined);}else{assert.equal(status.dataset.result,'incorrect');assert.match(status.textContent,/✕ Not quite/);}assert.equal(next.disabled,true);

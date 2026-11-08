@@ -8,7 +8,7 @@ import * as Voice from './voice.js';
 import * as Sound from '../core/sound.js';
 import { attachRegionLayout } from './region-layout.js';
 import { createSettingsStore } from './storage.js';
-import { gameState, markReady, isAwaitingAdvance, setAwaitingAdvance } from './session.js';
+import { gameState, isAwaitingAdvance, setAwaitingAdvance } from './session.js';
 export function createRegionGame(kind = 'box') {
 const isString = kind === 'string';
 const title = isString ? 'Note on a string' : 'Note in a box';
@@ -94,7 +94,8 @@ function round(){
             status.textContent=r.correct?'Correct':!r.inside?'Tap inside the box':'Try again';
         }
         next.disabled=!r.correct;
-        if(r.correct){if(isString)status.append(el('span',' Tap anywhere for the next note.'));markReady();}
+        // Fretboard clicks stop propagation, so arming immediately cannot also advance this answer tap.
+        if(r.correct){if(isString)status.append(el('span',' Tap anywhere for the next note.'));setAwaitingAdvance(true);}
         else setAwaitingAdvance(false);
     }
     next=button('Next note →',()=>{count++;round();});next.classList.add('practice-next');next.disabled=true;

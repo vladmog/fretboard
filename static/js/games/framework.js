@@ -286,6 +286,17 @@ export const Games = (function() {
         const content = document.getElementById('game-content');
         const tapSurface = document.getElementById('games-panel');
         if (content && tapSurface) {
+            // Handle a completed region question before the SVG consumes the
+            // click: advancing must not depend on hitting a valid string/fret.
+            tapSurface.addEventListener('click', (e) => {
+                if (!['note-in-box','note-on-string'].includes(gameState.currentGame)) return;
+                if (!isAwaitingAdvance() || Blackout.isActive()) return;
+                const modal = document.getElementById('game-settings-modal');
+                if (modal && getComputedStyle(modal).display !== 'none') return;
+                if (e.target.closest('button, select, input, label, a')) return;
+                e.stopPropagation();
+                tryAdvance();
+            }, true);
             tapSurface.addEventListener('click', (e) => {
                 const regionGame=['note-in-box','note-on-string'].includes(gameState.currentGame);
                 if (!regionGame && !content.contains(e.target)) return;
