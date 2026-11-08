@@ -1,4 +1,4 @@
-import { showAnswerFeedback, clearAnswerFeedback } from './answer-feedback.js';
+import { clearAnswerFeedback } from './answer-feedback.js';
 /** Phone-first chord-to-chord practice using the shared progression catalog. */
 import * as Theory from '../core/music-theory.js';
 import * as Progressions from '../core/progressions.js';
@@ -73,27 +73,44 @@ function paint(){
     for(const p of selected){const pc=Theory.getNoteAt(tuning.length-p.string,p.fret,tuning),degree=target.chord.noteToInterval[pc];const colors=Theory.getIntervalColor(degree||'?');
         board.setMarker(p.string,p.fret,{color:degree?colors.fill:'#fff',borderColor:degree?colors.border:'#000',text:degree||Theory.getNoteName(pc),textColor:'#000',borderWidth:3});}
 }
+function showResult(result){
+    status.dataset.result=result.valid?'correct':'incorrect';
+    status.textContent=result.valid
+        ? (result.cost<=result.best?'✓ Best found':`✓ Correct — ${result.cost-result.best} fewer movement points possible`)
+        : `✕ ${result.message.startsWith('Choose a different inversion')?'Try a different inversion or octave.':result.message}`;
+}
 function renderRound(){
     cancelPlayback();resizeObserver?.disconnect();selected=[];assisted=false;
     const root=el('div','','voice-leading voice-leading-round');content().replaceChildren(root);
     document.getElementById('games-panel').scrollTop=0;
     const target=sequence[(step+1)%sequence.length],source=sequence[step%sequence.length];
     const rules={requireChange:Theory.getNoteIndex(source.root)===Theory.getNoteIndex(target.root) && source.type===target.type};
-    root.append(el('h2',`${source.symbol} → ${target.symbol}`),el('p',`${source.numeral} → ${target.numeral} · ${store.settings.key} · Lap ${Math.floor(step/sequence.length)+1} · ${completed} transitions · ${smoothCount} smooth unassisted`));
-    root.append(el('p',`Build ${target.symbol}${target.voicing==='shell'?' (shell)':''}: ${target.intervals.join(' · ')}. Gray = current shape. ${rules.requireChange?'Same chord: choose a different inversion or register. ':''}Tap positions to add or remove notes.`));
+    const prompt=el('div','','voice-leading-transition');
+    prompt.setAttribute('aria-label', `${source.symbol}, ${source.numeral}, to ${target.symbol}, ${target.numeral}`);
+    for(const [index,chord] of [source,target].entries()){
+        if(index) {const arrow=el('span','→','voice-leading-arrow');arrow.setAttribute('aria-hidden','true');prompt.append(arrow);}
+        const card=el('div','','voice-leading-chord');
+        card.append(el('span',chord.symbol,'voice-leading-chord-name'),el('span',chord.numeral,'voice-leading-degree'));
+        prompt.append(card);
+    }
+    root.append(prompt);
+    const setReady=value=>{nextButton.disabled=!value;};
     const actions=el('div','','voice-leading-actions');
-    actions.append(button('Hear current',()=>{cancelPlayback();play(current);}),button('Hear transition',()=>{if(selected.length)transition(selected);else status.textContent='Place notes first.';}),button('Clear',()=>{selected=[];nextButton.disabled=true;clearAnswerFeedback(status);status.textContent='';paint();}));
-    root.append(actions);
+    actions.append(button('Hear current',()=>{cancelPlayback();play(current);}),button('Hear transition',()=>{if(selected.length)transition(selected);else status.textContent='Place notes first.';}),button('Clear',()=>{selected=[];setReady(false);clearAnswerFeedback(status);status.textContent='';paint();}));
     const host=el('div','','voice-leading-board');host.setAttribute('aria-label','Tap fret positions to build the next chord');root.append(host);
     function draw(){host.replaceChildren();const mobilePortrait=matchMedia('(max-width:768px) and (orientation:portrait)').matches;
         board=createFretboard(host,{tuning:instrumentConfig(context.instrument).tuning,frets:15,vertical:host.clientWidth<600,
             ...(mobilePortrait?{}:{fretSpacing:37,stringSpacing:40})});
-        board.onFretClick((string,fret)=>{const i=selected.findIndex(p=>p.string===string&&p.fret===fret);if(i>=0)selected.splice(i,1);else selected.push({string,fret});nextButton.disabled=true;clearAnswerFeedback(status);status.textContent=`${selected.length} / ${target.intervals.length} notes selected`;paint();});paint();}
-    status=el('p','','voice-leading-feedback');status.setAttribute('role','status');status.textContent=lapNotice;root.append(status);
+        board.onFretClick((string,fret)=>{const i=selected.findIndex(p=>p.string===string&&p.fret===fret);if(i>=0)selected.splice(i,1);else selected.push({string,fret});setReady(false);clearAnswerFeedback(status);status.textContent=`${selected.length} / ${target.intervals.length} notes selected`;
+            if(selected.length>=target.intervals.length){
+                const result=checkAnswer(current,selected,target,context.instrument,rules);
+                showResult(result);setReady(result.valid);
+            }
+            paint();});paint();}
+    status=el('p','','voice-leading-feedback');status.setAttribute('role','status');root.append(status);
     const controls=el('div','','voice-leading-actions');
-    controls.append(button('Check',()=>{const result=checkAnswer(current,selected,target,context.instrument,rules);showAnswerFeedback(status,result.valid,result.message);nextButton.disabled=!result.valid;}));
-    controls.append(button('Show suggestion',()=>{clearAnswerFeedback(status);assisted=true;const suggestion=nearestShapes(current,target,context.instrument,rules)[0];if(!suggestion){status.textContent='No different suggested voicing is available. Try your own inversion or register.';return;}selected=suggestion.shape.positions.map(p=>({...p}));paint();const result=checkAnswer(current,selected,target,context.instrument,rules);status.textContent=`Suggested shape. ${result.message}`;nextButton.disabled=false;transition(selected);}));
-    nextButton=button('Next chord →',()=>{const result=checkAnswer(current,selected,target,context.instrument,rules);if(!result.valid)return;if(result.smooth&&!assisted)smoothCount++;completed++;current=selected.map(p=>({...p}));step++;
+    actions.append(button('Show suggestion',()=>{clearAnswerFeedback(status);assisted=true;const suggestion=nearestShapes(current,target,context.instrument,rules)[0];if(!suggestion){status.textContent='No different suggested voicing is available. Try your own inversion or register.';return;}selected=suggestion.shape.positions.map(p=>({...p}));paint();const result=checkAnswer(current,selected,target,context.instrument,rules);status.textContent='Suggested shape';setReady(true);transition(selected);}));
+    nextButton=button('Next chord →',()=>{const result=checkAnswer(current,selected,target,context.instrument,rules);if(!result.valid){setReady(false);return;}if(result.smooth&&!assisted)smoothCount++;completed++;current=selected.map(p=>({...p}));step++;
         lapNotice='';
         if(step%sequence.length===0){
             const seed=chooseLapStart(sequence[0].shapes,context.instrument,lapStarts,current);
@@ -101,10 +118,14 @@ function renderRound(){
             lapNotice=seed.changed?'New lap: a different starting voicing. Hear current before answering.':'New lap: no different starting voicing is available.';
             if(seed.exhausted&&seed.uniqueCount>1)lapNotice+=' All starting voicings explored; beginning another cycle.';
         }
-        renderRound();play(current);});nextButton.disabled=true;
+        renderRound();play(current);});
+    setReady(false);
     nextButton.classList.add('practice-next');
-    controls.append(nextButton,button('Choose progression',renderTitlePage));root.append(controls);
-    const explanation=el('details');explanation.append(el('summary','How scoring works'),el('p','Motion adds the semitone distances between matched voices. An entering or leaving voice costs 12 points. Common tones keep their pitch. The benchmark is the best generated shape within four fret positions; your valid answer may improve it. More distant valid chords can still advance. Suggestions do not earn unassisted credit.'));root.append(explanation);
+    actions.append(button('Choose progression',renderTitlePage));
+    const more=el('details','','voice-leading-more');more.append(el('summary','More'),actions);
+    controls.classList.add('voice-leading-toolbar');
+    controls.append(nextButton,more);root.append(controls);
+    const explanation=el('details');explanation.append(el('summary','How scoring works'),el('p','Motion adds the semitone distances between matched voices. An entering or leaving voice costs 12 points. Common tones keep their pitch. The benchmark is the best generated shape within four fret positions; your valid answer may improve it. More distant valid chords can still advance. Suggestions do not earn unassisted credit.'));more.append(explanation);
     draw();let previousWidth=host.clientWidth;resizeObserver=new ResizeObserver(()=>{if(host.clientWidth!==previousWidth){previousWidth=host.clientWidth;draw();}});resizeObserver.observe(host);
 }
 function cleanup(){active=false;cancelPlayback();resizeObserver?.disconnect();resizeObserver=null;board=null;}

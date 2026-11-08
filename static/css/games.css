@@ -1186,3 +1186,24 @@ html.amoled-on #games-panel {
 .note-region-mobile[data-controls="bottom"] { padding-bottom:calc(6px + env(safe-area-inset-bottom, 0px)); }
 #games-panel:has(.note-region-mobile[data-controls="top"]) { --region-controls-top:env(safe-area-inset-top, 0px); }
 #games-panel:has(.note-region-mobile[data-controls="bottom"]) .games-controls { max-height:calc(50dvh - 52px - env(safe-area-inset-bottom, 0px)); }
+
+/* Keep the source and destination visually paired at every screen size. */
+.voice-leading-transition {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+    align-items:center;
+    gap:clamp(0.25rem,1vw,0.75rem);
+    margin:0 0 0.8rem;
+    text-align:center;
+}
+.voice-leading-chord { display:flex; flex-direction:column; align-items:center; gap:0.2rem; min-width:0; }
+.voice-leading-chord-name { font-size:clamp(1.05rem,3.5vw,2.2rem); font-weight:750; line-height:1.2; overflow-wrap:anywhere; }
+.voice-leading-degree { font-size:clamp(0.9rem,2.5vw,1.4rem); line-height:1.2; color:#555; }
+.voice-leading-arrow { font-size:clamp(1.2rem,3vw,2rem); }
+
+.voice-leading-round .voice-leading-toolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; }
+.voice-leading-toolbar > .practice-next { grid-column:auto; }
+.voice-leading .voice-leading-more { margin:0; }
+.voice-leading-more > summary { padding:0.75rem; min-height:48px; box-sizing:border-box; cursor:pointer; }
+.voice-leading-more[open] { grid-column:1 / -1; }
+.voice-leading-more .voice-leading-actions { display:flex; flex-wrap:wrap; }
