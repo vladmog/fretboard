@@ -30,6 +30,7 @@ const params = { ...defaults };
 
 let synth = null;
 let errorSynth = null;
+let spellingSynth = null;
 let filter = null;
 let reverb = null;
 let limiter = null;
@@ -266,4 +267,17 @@ async function playError() {
     errorSynth.triggerAttackRelease('E2', 0.22, now + 0.13);
 }
 
-export { playChord, playNote, playInterval, playArpeggio, playError, getParams, getDefaults, setParam };
+// A quiet, rounded cue for correct pitch with incorrect notation.
+async function playSpellingRetry() {
+    if (!await preparePlayback()) return;
+    if (!spellingSynth) {
+        spellingSynth = new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.01, decay: 0.08, sustain: 0, release: 0.12 }
+        }).connect(limiter);
+        spellingSynth.volume.value = -24;
+    }
+    spellingSynth.triggerAttackRelease('E4', 0.12, Tone.now());
+}
+
+export { playSpellingRetry, playChord, playNote, playInterval, playArpeggio, playError, getParams, getDefaults, setParam };

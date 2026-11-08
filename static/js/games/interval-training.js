@@ -1,3 +1,4 @@
+import { needsSpellingRetry } from './note-spelling.js';
 import { renderAnnouncementOrder } from './interval-announcement-settings.js';
 import { currentMagsafeProfile, magsafeCircleSize, alignMagsafeCircle } from '../core/magsafe-layout.js';
 /**
@@ -290,6 +291,10 @@ function createIntervalTrainingGame(config) {
             const chord = MusicTheory.buildChord(gameState.currentRoot, gameState.currentChordType);
             const spelling = chord.noteSpelling[noteIndex];
             if (spelling) return spelling;
+        }
+        if (gameState.activeMode === 'scale-builder') {
+            const scale = MusicTheory.buildScale(gameState.currentRoot, gameState.currentScaleType);
+            if (scale.noteSpelling[noteIndex]) return scale.noteSpelling[noteIndex];
         }
         return MusicTheory.getNoteName(noteIndex, MusicTheory.shouldUseFlats(gameState.currentRoot));
     }
@@ -1412,9 +1417,17 @@ function createIntervalTrainingGame(config) {
     }
 
     // Keyboard note input (games/note-keyboard.js via the framework)
-    function handleNoteKey(noteIndex) {
+    function handleNoteKey(noteIndex, spelling) {
         const api = gameState.circleApi;
         if (!api || !api.svg.isConnected || gameState.answered) return;
+        if (gameState.inputLocked) return;
+        if (needsSpellingRetry(gameState, noteIndex, spelling)) {
+            if (GameSession.getState()?.soundEnabled) Sound.playSpellingRetry();
+            const label = api.questionGroup.querySelector('.question-interval');
+            if (label) label.textContent = 'Right pitch — try the correct spelling';
+            return;
+        }
+        updateQuestionText();
         handleNoteClick(noteIndex, (noteIndex - gameState.currentRootIndex + 12) % 12);
     }
 

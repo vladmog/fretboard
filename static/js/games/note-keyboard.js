@@ -63,7 +63,9 @@ function onKeyDown(e) {
     const index = noteIndexFor(e.key, held.up, held.down);
     if (index === null) return;
     e.preventDefault();
-    handlers.onNote(index);
+    const offset = ((held.up || e.key !== e.key.toLowerCase()) ? 1 : 0) - (held.down ? 1 : 0);
+    const spelling = e.key.toUpperCase() + (offset === 1 ? '#' : offset === -1 ? 'b' : '');
+    handlers.onNote(index, spelling);
 }
 
 function onKeyUp(e) {
