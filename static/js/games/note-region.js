@@ -1,4 +1,4 @@
-import { makeBoxQuestion, boxQuestionText, sanitizeBoxMode, BOX_INTERVALS } from '../core/note-box-question.js';
+import { boxNoteName, makeBoxQuestion, boxQuestionText, sanitizeBoxMode, BOX_INTERVALS } from '../core/note-box-question.js';
 import { renderBoxModeSettings } from './note-box-mode-settings.js';
 import { beginPositionTiming } from './note-position-stats.js';
 import { renderPositionHeatmap } from './note-position-heatmap.js';
@@ -7,7 +7,7 @@ import { showAnswerFeedback, clearAnswerFeedback } from './answer-feedback.js';
 import { createFretboard } from '../core/fretboard.js';
 import { instrumentConfig } from '../core/voice-leading.js';
 import { notePositions, uniqueBoxQuestions, boxNotes, checkBoxNote, stringNotes, checkStringNote } from '../core/nearest-note.js';
-import { getNoteName } from '../core/music-theory.js';
+import { getNoteName, getIntervalColor } from '../core/music-theory.js';
 import { voicingNotes } from '../core/voicing-audio.js';
 import * as Voice from './voice.js';
 import * as Sound from '../core/sound.js';
@@ -17,8 +17,10 @@ import { gameState, isAwaitingAdvance, setAwaitingAdvance } from './session.js';
 export function createRegionGame(kind = 'box') {
 const isString = kind === 'string';
 const title = isString ? 'Note on a string' : 'Note in a box';
-const store=createSettingsStore('fretboard-note-in-box-settings',{mode:'note',intervals:BOX_INTERVALS.map(i=>i.semitones),guitar:[1,2,3,4,5,6],bass:[1,2,3,4],limitFrets:false,minFret:0,maxFret:15}, settings=>{
+const store=createSettingsStore('fretboard-note-in-box-settings',{mode:'note',showReference:false,intervalColors:true,intervals:BOX_INTERVALS.map(i=>i.semitones),guitar:[1,2,3,4,5,6],bass:[1,2,3,4],limitFrets:false,minFret:0,maxFret:15}, settings=>{
     sanitizeBoxMode(settings);
+    settings.showReference=settings.showReference===true;
+    settings.intervalColors=settings.intervalColors!==false;
     settings.limitFrets=settings.limitFrets===true;
     settings.minFret=Number.isInteger(settings.minFret)?Math.max(0,Math.min(15,settings.minFret)):0;
     settings.maxFret=Number.isInteger(settings.maxFret)?Math.max(settings.minFret,Math.min(15,settings.maxFret)):15;
@@ -31,7 +33,7 @@ if(!isString)store.load();
 const selectedStrings=()=>store.settings[instrument];
 const stringName=n=>instrumentConfig(instrument).tuning[instrumentConfig(instrument).tuning.length-n];
 let useFlats=false,question=null;
-const questionNoteName=pitch=>getNoteName(pitch,useFlats);
+const questionNoteName=pitch=>boxNoteName(question,pitch,useFlats);
 let chosenString, detachHeatmap, answerCorrect=null, detachLayout, revealed=false, unavailable=false;
 let instrument='guitar', board, observer, firstFret, lastFret, target, answer, status, next, active=false, count=0, answeredCount=0, last='';
 const el=(tag,text='',className='')=>{const e=document.createElement(tag);e.textContent=text;e.className=className;return e;};
@@ -44,12 +46,21 @@ function announceQuestion(){
     Voice.speak(`${words.instruction} ${Voice.spokenName(words.target)} ${Voice.spokenName(words.context)}`);
 }
 function cleanup(){detachHeatmap?.();detachHeatmap=null;setAwaitingAdvance(false);Voice.cancel();active=false;detachLayout?.();detachLayout=null;observer?.disconnect();observer=null;board=null;}
+function intervalMarker(pitch){
+    const degree=(pitch-question.root+12)%12;
+    const colors=getIntervalColor(['1','b2','2','b3','3','4','b5','5','b6','6','b7','7'][degree]);
+    return {color:degree===0?'#000':colors.fill,borderColor:colors.border,textColor:degree===0?'#fff':colors.text};
+}
 function paint(){
     if(!board)return;board.clearMarkers();
     if (isString) board.highlightString(chosenString);
     else board.highlightFretRange(firstFret, lastFret, selectedStrings());
+    if(!isString&&question?.mode!=='note'&&(store.settings.showReference||answerCorrect===true)){
+        const reference=boxNotes(instrument,firstFret,question.given,selectedStrings(),lastFret)[0];
+        if(reference)board.setMarker(reference.string,reference.fret,{text:questionNoteName(question.given),color:'#ddd',borderColor:'#111',textColor:'#111',...(store.settings.intervalColors?intervalMarker(question.given):{})});
+    }
     if(revealed) for(const p of (isString ? stringNotes(instrument,chosenString,target) : boxNotes(instrument,firstFret,target,selectedStrings(),lastFret))) board.setMarker(p.string,p.fret,{text:questionNoteName(target),color:'#fff',borderColor:'#111',textColor:'#111'});
-    if(answer)board.setMarker(answer.string,answer.fret,{text:questionNoteName(notePositions(instrument).find(p=>p.string===answer.string&&p.fret===answer.fret).midi%12),color:isString?'#fff':answerCorrect?'#32CD32':'#ed5353',borderColor:isString?'#111':answerCorrect?'#167326':'#a31515',textColor:'#111'});
+    if(answer)board.setMarker(answer.string,answer.fret,{text:questionNoteName(notePositions(instrument).find(p=>p.string===answer.string&&p.fret===answer.fret).midi%12),color:isString?'#fff':answerCorrect?'#32CD32':'#ed5353',borderColor:isString?'#111':answerCorrect?'#167326':'#a31515',textColor:'#111',...(!isString&&question.mode!=='note'&&answerCorrect&&store.settings.intervalColors?intervalMarker(target):{})});
 }
 function round(){
     cleanup();active=true;unavailable=false;answer=null;answerCorrect=null;revealed=false;
@@ -58,11 +69,11 @@ function round(){
     const min=!isString&&store.settings.limitFrets?store.settings.minFret:0;
     const max=!isString&&store.settings.limitFrets?store.settings.maxFret:15;
     if(!isString){
-        const pool=uniqueBoxQuestions(instrument,selectedStrings(),min,max);
+        const pool=uniqueBoxQuestions(instrument,selectedStrings(),min,max).filter(q=>makeBoxQuestion(q.target,store.settings.mode,store.settings.intervals,()=>0,boxNotes(instrument,q.first,undefined,selectedStrings(),q.last).map(p=>p.midi%12)));
         if(!pool.length){
             active=false;unavailable=true;
             const root=el('div','','voice-leading');
-            root.append(el('h2',title),el('p','No single-occurrence notes with these settings. Open Menu and change the selected strings or fret range.'));
+            root.append(el('h2',title),el('p','No matching questions with these settings. Open Menu and change the selected strings or fret range.'));
             document.getElementById('game-content').replaceChildren(root);
             return;
         }
@@ -80,7 +91,7 @@ function round(){
         } while (key === last && ++attempts<32);
     }
     last = key;
-    question=makeBoxQuestion(target,isString?'note':store.settings.mode,store.settings.intervals);
+    question=makeBoxQuestion(target,isString?'note':store.settings.mode,store.settings.intervals,Math.random,isString?null:boxNotes(instrument,firstFret,undefined,selectedStrings(),lastFret).map(p=>p.midi%12));
     const timing=isString?null:beginPositionTiming(instrument,undefined,question.mode);
     const logAnswer=beginPracticeQuestion(isString?'note-on-string':question.mode==='note'?'note-in-box':`note-in-box-${question.mode}`,[instrument,String(target)]);
     // Keep one spelling throughout the question, including repeats and revealed markers.
@@ -147,6 +158,16 @@ function renderSettings(body){
     if(isString){body.replaceChildren(el('p','Uses your Guitar/Bass setting. Find the note on the highlighted string.'));return;}
     body.replaceChildren();
     renderBoxModeSettings(body,store.settings,()=>{store.save();if(active||unavailable)round();else renderTitlePage();renderSettings(body);});
+    if(store.settings.mode!=='note'){
+        const label=el('label','','note-region-limit-toggle'),toggle=el('input');
+        toggle.type='checkbox';toggle.checked=store.settings.showReference;
+        label.append(toggle,el('span','Show reference note during question'));body.append(label);
+        toggle.addEventListener('change',()=>{store.settings.showReference=toggle.checked;store.save();paint();});
+        const colorsLabel=el('label','','note-region-limit-toggle'),colorsToggle=el('input');
+        colorsToggle.type='checkbox';colorsToggle.checked=store.settings.intervalColors;
+        colorsLabel.append(colorsToggle,el('span','Use interval colors'));body.append(colorsLabel);
+        colorsToggle.addEventListener('change',()=>{store.settings.intervalColors=colorsToggle.checked;store.save();paint();});
+    }
     body.append(el('h3','Strings to practice'),el('p','Choose at least one string. Only selected strings count.'));
     const fields=el('div','','note-region-string-options');
     const total=instrumentConfig(instrument).tuning.length;
