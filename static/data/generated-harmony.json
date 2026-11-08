@@ -1,0 +1,5 @@
+{
+  "degrees": ["I", "bII", "II", "bIII", "III", "IV", "bV", "V", "bVI", "VI", "bVII", "VII"],
+  "defaultTypes": ["maj7", "min7", "7"],
+  "weights": {"base": 1, "fifth": 8, "iiV": 22, "dominantResolve": 28, "tritoneResolve": 10, "diminishedResolve": 20, "tonicToII": 14, "relativeMinor": 10, "commonTone": 2, "recentPenalty": 0.15}
+}

@@ -1228,3 +1228,9 @@ html.amoled-on #games-panel {
 
 /* Shared game surface: do not reserve rapid taps for double-tap zoom. */
 #games-panel, #game-content, #game-content svg { touch-action:manipulation; }
+
+.voice-leading-generated-types:not([hidden]) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0.5rem; margin:0.75rem 0; padding:0.75rem; }
+.voice-leading-generated-types label { font-size:0.8rem; display:flex; gap:0.35rem; align-items:center; }
+.voice-leading-generated-types input { accent-color:#111; }
+.voice-leading-fields > [hidden] { display:none; }
+.voice-leading-fields > .voice-leading-generated-types { grid-column:1 / -1; }

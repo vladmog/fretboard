@@ -1,3 +1,5 @@
+import { createHarmonyGenerator, DEFAULT_GENERATED_TYPES } from '../core/generated-harmony.js';
+import { generatorSettings } from './voice-leading-generator-settings.js';
 import { beginPracticeQuestion } from './practice-log.js';
 import { clearAnswerFeedback } from './answer-feedback.js';
 /** Phone-first chord-to-chord practice using the shared progression catalog. */
@@ -10,10 +12,10 @@ import { exerciseChord, nearestShapes, checkAnswer, instrumentConfig, chooseLapS
 import { gameState } from './session.js';
 import { createSettingsStore } from './storage.js';
 
-const store=createSettingsStore('fretboard-voice-leading-settings',{key:'C',progression:'',shell:false});
+const store=createSettingsStore('fretboard-voice-leading-settings',{key:'C',progression:'',shell:false,generated:false,generatedTypes:[...DEFAULT_GENERATED_TYPES]});
 let context={instrument:'guitar',userProgressions:[]};
 let choices=[],sequence=[],step=0,current=[],selected=[],board,status,nextButton,active=false;
-let lapStarts=new Set(),lapNotice='';
+let lapStarts=new Set(),lapNotice='',generator=null;
 let playbackGeneration=0,heardTimer=null,resizeObserver=null,assisted=false,completed=0,smoothCount=0;
 const el=(tag,text='',className='')=>{const n=document.createElement(tag);n.textContent=text;n.className=className;return n;};
 const button=(text,action)=>{const b=el('button',text);b.type='button';b.addEventListener('click',action);return b;};
@@ -41,18 +43,32 @@ function renderTitlePage(){
     const pLabel=el('label','Progression');pLabel.append(prog);const kLabel=el('label','Key');kLabel.append(key);
     fields.append(pLabel,kLabel,label);root.append(fields);
     root.append(el('p',`${context.instrument==='bass'?'Bass':'Guitar'} · Four-fret shapes · Full chords, with shells when a full shape is unavailable.`));
+    generatorSettings(fields,store.settings,()=>{pLabel.hidden=store.settings.generated;store.save();});
+    pLabel.hidden=store.settings.generated;
     root.append(button('Start practice',()=>{
         store.settings.progression=prog.value;store.settings.key=key.value;store.settings.shell=shell.checked;store.save();
-        const choice=choices.find(c=>c.id===prog.value);if(!choice)return;
-        sequence=Progressions.buildProgressionChordsFromTokens(choice.tokens,key.value).map(c=>exerciseChord(c,context.instrument,shell.checked));
-        if(sequence.length<2||sequence.some(c=>!c.shapes.length)){root.append(el('p','This progression has no supported shapes for this instrument. Choose another progression.'));return;}
+        startPractice();
+    }));
+    if(!choices.length)root.append(el('p','No progressions loaded. Reload the app to try again.'));
+    root.append(el('p','Equal pitches score equally, wherever they are fingered. Ties and answers within 2 points of the best suggestion count as smooth.'));
+}
+function startPractice(){
+    try {
+        generator=null;
+        if(store.settings.generated){
+            generator=createHarmonyGenerator({key:store.settings.key,types:store.settings.generatedTypes,instrument:context.instrument,shell:store.settings.shell});
+            const first=generator.start();sequence=[first,generator.next(first)];
+        }else{
+            const choice=choices.find(c=>c.id===store.settings.progression)||choices[0];
+            if(!choice)throw new Error('Choose a progression.');
+            sequence=Progressions.buildProgressionChordsFromTokens(choice.tokens,store.settings.key).map(c=>exerciseChord(c,context.instrument,store.settings.shell));
+        }
+        if(sequence.length<2||sequence.some(c=>!c.shapes.length))throw new Error('This progression has no supported shapes for this instrument. Choose another progression.');
         step=0;completed=0;smoothCount=0;
         const seed=chooseLapStart(sequence[0].shapes,context.instrument);
         lapStarts=seed.used;lapNotice='';current=seed.shape.positions;
         active=true;renderRound();
-    }));
-    if(!choices.length)root.append(el('p','No progressions loaded. Reload the app to try again.'));
-    root.append(el('p','Equal pitches score equally, wherever they are fingered. Ties and answers within 2 points of the best suggestion count as smooth.'));
+    }catch(error){cleanup();content().replaceChildren(el('p',error.message),button('Choose progression',renderTitlePage));}
 }
 function play(positions){
     if(!gameState.soundEnabled){if(status)status.textContent='Turn on Sound in Game controls to hear the chord.';return Promise.resolve();}
@@ -115,7 +131,8 @@ function renderRound(){
     actions.append(button('Show suggestion',()=>{clearAnswerFeedback(status);assisted=true;const suggestion=nearestShapes(current,target,context.instrument,rules)[0];if(!suggestion){status.textContent='No different suggested voicing is available. Try your own inversion or register.';return;}selected=suggestion.shape.positions.map(p=>({...p}));paint();const result=checkAnswer(current,selected,target,context.instrument,rules);status.textContent='Suggested shape';setReady(true);transition(selected);}));
     nextButton=button('Next chord →',()=>{const result=checkAnswer(current,selected,target,context.instrument,rules);if(!result.valid){setReady(false);return;}if(result.smooth&&!assisted)smoothCount++;completed++;current=selected.map(p=>({...p}));step++;
         lapNotice='';
-        if(step%sequence.length===0){
+        if(generator){sequence=[target,generator.next(target)];step=0;}
+        else if(step%sequence.length===0){
             const seed=chooseLapStart(sequence[0].shapes,context.instrument,lapStarts,current);
             lapStarts=seed.used;current=seed.shape.positions;
             lapNotice=seed.changed?'New lap: a different starting voicing. Hear current before answering.':'New lap: no different starting voicing is available.';
@@ -132,5 +149,9 @@ function renderRound(){
     draw();let previousWidth=host.clientWidth;resizeObserver=new ResizeObserver(()=>{if(host.clientWidth!==previousWidth){previousWidth=host.clientWidth;draw();}});resizeObserver.observe(host);
 }
 function cleanup(){active=false;cancelPlayback();resizeObserver?.disconnect();resizeObserver=null;board=null;}
-function renderSettings(body){body.replaceChildren(el('p','Choose the progression, key, and shell preference on the Voice leading start screen. Guitar/Bass follows the app’s instrument setting.'));}
+function renderSettings(body){
+    body.replaceChildren();
+    generatorSettings(body,store.settings,()=>{store.save();if(active)startPractice();});
+    body.append(el('p','Changing generation settings starts a fresh exercise. Fixed progression, key, and voicing choices are on the start screen.'),button('Choose progression',()=>{document.getElementById('game-settings-modal').style.display='none';renderTitlePage();}));
+}
 export default {configure,renderTitlePage,renderSettings,cleanup,advance(){},repeatQuestion(){if(active)play(current);}};
