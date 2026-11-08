@@ -4,7 +4,7 @@ export function refreshMatrixAppearance(root, settings, center, colorFor) {
     for (const group of root.querySelectorAll('[data-semitone]')) {
         const tone = Number(group.dataset.semitone);
         const colors = settings.circleColors ? colorFor(tone, center, true)
-            : {fill: tone % 2 === 0 ? '#000' : '#fff', border: '#000', text: tone % 2 === 0 ? '#fff' : '#000'};
+            : {fill: tone % 2 === 0 ? '#000' : '#777', border: tone % 2 === 0 ? '#000' : '#777', text: '#fff'};
         // Locator rings precede the marker; keep their outlines unchanged.
         const circles = group.querySelectorAll('circle');
         const marker = circles[circles.length - 1];

@@ -280,7 +280,7 @@ export function createMatrixGame(config) {
 
             const colors = settings.circleColors
                 ? colorForSemitone(i, centerSemitone, true)
-                : { fill: i % 2 === 0 ? '#000' : '#fff', border: '#000', text: i % 2 === 0 ? '#fff' : '#000' };
+                : { fill: i % 2 === 0 ? '#000' : '#777', border: i % 2 === 0 ? '#000' : '#777', text: '#fff' };
 
             const g = document.createElementNS(svgNS, 'g');
             g.setAttribute('data-semitone', i);
@@ -504,7 +504,7 @@ export function createMatrixGame(config) {
             v => { settings.showColors = v === 'on'; });
 
         addSelectSetting(modalBody, 'Circle colors',
-            [{ value: 'on', text: 'On' }, { value: 'off', text: 'Black and white' }],
+            [{ value: 'on', text: 'On' }, { value: 'off', text: 'Black and gray' }],
             v => (v === 'on') === settings.circleColors,
             v => { settings.circleColors = v === 'on'; });
         addSelectSetting(modalBody, 'Circle labels',
