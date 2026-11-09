@@ -16,6 +16,6 @@ for(const instrument of ['guitar','bass'])test(`position identification answers,
  context.game.handleNoteKey((target+1)%12);assert.equal(awaiting,false);assert.equal(marked.style.text,'');
  context.game.handleNoteKey(target);assert.equal(awaiting,true);assert.equal(marked.style.text,getNoteName(target));assert.deepEqual(logs,[false]);
  const settings=new E();context.game.renderSettings(settings);const input=settings.children[0].children[0];input.checked=false;input.change();
- const circle=root.children[0].children[0].children[0];assert.equal(circle.children.length,12);assert.ok(circle.children.every(b=>b.textContent===''));
- context.game.advance();assert.equal(awaiting,false);assert.notEqual(`${marked.string}:${marked.fret}`,`${original.string}:${original.fret}`);
+ const circle=root.children[0].children[0].children[0];assert.equal(circle.children.length,12);assert.equal(circle.children.filter(b=>b.textContent!=='').length,1);assert.equal(circle.children[target].style.background,'#32CD32');
+ context.game.advance();assert.ok(root.children[0].children[0].children[0].children.filter(b=>b.className==='fret-identify-note').every(b=>b.textContent===''));assert.equal(awaiting,false);assert.notEqual(`${marked.string}:${marked.fret}`,`${original.string}:${original.fret}`);
 });

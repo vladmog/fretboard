@@ -19,16 +19,19 @@ function answer(pitch){
     if(!active||solved)return;
     const correct=pitch===position.midi%12;log(correct);
     status.textContent=correct?'Correct':'Try again';status.dataset.result=correct?'correct':'incorrect';
-    if(correct){solved=true;count++;counter.textContent=`${count} answered`;paintBoard();setAwaitingAdvance(true);}
+    if(correct){solved=true;count++;counter.textContent=`${count} answered`;paintBoard();paintCircle();setAwaitingAdvance(true);}
     if(gameState.soundEnabled){if(correct)Sound.playNote(getNoteName(pitch)+'4');else Sound.playError();}
 }
 function paintCircle(){
     if(!circle)return;const prompt=circle.querySelector('.fret-identify-prompt');circle.replaceChildren();if(prompt)circle.append(prompt);
     for(let pitch=0;pitch<12;pitch++){
-        const b=el('button',store.settings.showLabels?names[pitch].replace(' / ','\n'):'','fret-identify-note');b.type='button';
+        const isAnswer=solved&&pitch===position.midi%12;
+        const b=el('button',(store.settings.showLabels||isAnswer)?names[pitch].replace(' / ','\n'):'','fret-identify-note');b.type='button';
         const angle=(pitch*30-90)*Math.PI/180;
         b.style.left=`${50+39*Math.cos(angle)}%`;b.style.top=`${50+39*Math.sin(angle)}%`;
-        b.style.background=pitch%2?'#777':'#000';b.setAttribute('aria-label',names[pitch]);
+        b.style.background=isAnswer?'#32CD32':pitch%2?'#777':'#000';
+        if(isAnswer){b.style.borderColor='#167326';b.style.color='#111';}
+        b.setAttribute('aria-label',names[pitch]);
         b.addEventListener('click',()=>{if(solved)advance();else answer(pitch);});circle.append(b);
     }
 }
