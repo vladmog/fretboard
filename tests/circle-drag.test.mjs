@@ -1,0 +1,21 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {attachCircleDrag} from '../static/js/games/circle-drag.js';
+test('circle drag clamps movement, remembers orientation and suppresses clicks',()=>{
+ const handlers={},settings={};let saves=0,taps=0;
+ const handle={style:{},setAttribute(){},setPointerCapture(){},addEventListener(k,fn){handlers[k]=fn;}};
+ const circle={style:{},getBoundingClientRect:()=>({left:200,right:390,top:300,bottom:490})};
+ globalThis.innerWidth=402;globalThis.innerHeight=874;
+ const apply=attachCircleDrag(handle,circle,settings,()=>saves++,()=>taps++);
+ const event=(x,y)=>({button:0,pointerId:1,clientX:x,clientY:y,preventDefault(){},stopPropagation(){}});
+ apply();handlers.pointerdown(event(250,400));handlers.pointermove(event(900,2000));handlers.pointerup(event(900,2000));
+ assert.equal(circle.style.translate,'0px 328px');assert.equal(settings.circlePortrait,1);assert.equal(saves,1);assert.equal(taps,0);
+ handlers.pointerdown(event(250,400));handlers.pointermove(event(252,402));handlers.pointerup(event(252,402));assert.equal(taps,1);
+ handlers.pointerdown(event(250,400));handlers.pointercancel({...event(250,400),type:'pointercancel'});assert.equal(taps,1);
+ globalThis.innerWidth=874;globalThis.innerHeight=402;apply();assert.equal(circle.style.translate,'0px 0px');
+ handlers.pointerdown(event(250,200));handlers.pointermove(event(-500,500));handlers.pointerup(event(-500,500));
+ assert.equal(circle.style.translate,'-188px 0px');assert.equal(settings.circleLandscape,-1);
+ globalThis.innerWidth=402;globalThis.innerHeight=874;apply();assert.equal(circle.style.translate,'0px 328px');
+ let stopped=false;handlers.click({preventDefault(){},stopPropagation(){stopped=true;}});assert.ok(stopped);
+ delete globalThis.innerWidth;delete globalThis.innerHeight;
+});

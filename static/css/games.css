@@ -1296,3 +1296,55 @@ html.amoled-on #games-panel {
 
 /* Override the editorial square-button rule for circular note targets. */
 #games-panel .fret-identify-circle .fret-identify-note { border-radius:50%; }
+
+/* Give the position drill a definite width; absolute circle markers have no
+   intrinsic width and must not determine the size of the whole game. */
+.fret-identify-round { width:100%; }
+.fret-identify-round .fret-identify-circle { width:min(42vw,calc(100dvh - 200px)); }
+.fret-identify-round .fret-identify-prompt { position:absolute; left:25%; right:25%; top:50%; transform:translateY(-50%); margin:0; font-size:clamp(1rem,2.5vmin,1.8rem); }
+.fret-identify-round .fret-identify-note { font-size:clamp(12px,2vmin,22px); }
+.fret-identify-round.note-region-mobile[data-controls="right"] .fret-identify-circle { width:min(calc(50vw - 24px),calc(100dvh - 190px)); }
+.fret-identify-round.note-region-mobile:is([data-controls="top"],[data-controls="bottom"]) .note-region-controls { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:0; }
+.fret-identify-round.note-region-mobile:is([data-controls="top"],[data-controls="bottom"]) .fret-identify-circle { width:min(calc(100vw - 80px),calc(50dvh - 100px)); flex:none; }
+.fret-identify-round.note-region-mobile:is([data-controls="top"],[data-controls="bottom"]) .game-round-counter { font-size:0.65rem; }
+
+/* Center the answer circle within the available controls half. */
+.fret-identify-round:not(.note-region-mobile) { flex:1; }
+.fret-identify-round.note-region-mobile[data-controls="right"] .note-region-controls {
+    position:fixed; left:50%; right:0; top:0; bottom:0; margin:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    box-sizing:border-box;
+    padding:env(safe-area-inset-top,0px) max(12px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) 12px;
+}
+.fret-identify-round .fret-identify-circle { margin:0 auto; }
+
+/* Anchor the circle itself to the geometric center of the screen half;
+   feedback, counters and unequal safe-area padding must not shift it. */
+.fret-identify-round.note-region-mobile .note-region-controls > .fret-identify-circle {
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); margin:0;
+}
+.fret-identify-round.note-region-mobile .note-region-controls > .game-round-counter {
+    position:absolute; left:0; right:0; bottom:8px; margin:0;
+}
+.fret-identify-round.note-region-mobile .note-region-controls > .fret-identify-feedback {
+    position:absolute; left:0; right:0; bottom:28px; margin:0;
+}
+.fret-identify-round:not(.note-region-mobile) { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+.fret-identify-round:not(.note-region-mobile) .fret-identify-circle { max-width:100%; }
+
+.fret-identify-round.note-region-mobile:is([data-controls="top"],[data-controls="bottom"]) .fret-identify-circle { width:var(--drill-circle-size,min(calc(100vw - 80px),calc(50dvh - 100px))); }
+
+.fret-identify-round .fret-identify-note { white-space:pre-line; line-height:1.05; font-weight:700; }
+.fret-identify-round.note-region-mobile[data-controls="right"] .fret-identify-circle { width:var(--drill-circle-size,calc(50vw - 12px)); }
+.fret-identify-round.note-region-mobile:is([data-controls="top"],[data-controls="bottom"]) .note-region-controls > :is(.game-round-counter,.fret-identify-feedback) { left:12px; right:auto; width:22%; }
+@media (max-width:600px), (max-height:500px) {
+ .fret-identify-round .fret-identify-note { font-size:11px; }
+ .fret-identify-round .fret-identify-prompt { font-size:13px; }
+}
+
+@media (max-width:600px), (max-height:500px) {
+ #games-panel .fret-identify-round .fret-identify-circle .fret-identify-note { width:19%; height:19%; font-size:13px; }
+}
+
+#games-panel .fret-identify-round .fret-identify-prompt { width:auto; height:auto; min-height:44px; padding:0; border:0; background:transparent; color:#111; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; z-index:1; }
+#games-panel .fret-identify-round .fret-identify-prompt:active { cursor:grabbing; }

@@ -1,5 +1,5 @@
 // Bump this for every app change, including local previews. Shared by app and game settings.
-export const APP_VERSION = '1.1.22';
+export const APP_VERSION = '1.1.32';
 export function versionLabel() {
     const label = document.createElement('p');
     label.className = 'settings-hint app-version';
