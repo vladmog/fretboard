@@ -1,3 +1,4 @@
+import {drillCandidates,sanitizeDrillDistance} from '../static/js/core/fretboard-drill-distance.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -8,7 +9,7 @@ import {getNoteName} from '../static/js/core/music-theory.js';
 for(const instrument of ['guitar','bass'])test(`position identification answers, retries and live labels on ${instrument}`,()=>{
  let marked,awaiting=false,logs=[];
  class E{constructor(){this.children=[];this.style={removeProperty(){}};this.dataset={};this.classList={contains:()=>false};this.clientWidth=500;}append(...x){this.children.push(...x);}replaceChildren(...x){this.children=x;}querySelector(){return null;}setAttribute(){}addEventListener(type,fn){this[type]=fn;}}
- const root=new E();const context=vm.createContext({attachCircleDrag:()=>()=>{},notePositions,instrumentConfig,getNoteName,Math,ResizeObserver:class{observe(){}disconnect(){}},document:{createElement:()=>new E(),getElementById:()=>root},createSettingsStore:(_,defaults)=>({settings:defaults,load(){},save(){}}),beginPracticeQuestion:()=>{let logged=false;return value=>{if(!logged)logs.push(value);logged=true;}},gameState:{soundEnabled:false},Sound:{},setAwaitingAdvance:v=>awaiting=v,attachRegionLayout:(_,host,draw)=>{draw(false);return ()=>{};},createFretboard:()=>({clearMarkers(){},setMarker(string,fret,style){marked={string,fret,style};}})});
+ const root=new E();const context=vm.createContext({drillCandidates,sanitizeDrillDistance,attachCircleDrag:()=>()=>{},notePositions,instrumentConfig,getNoteName,Math,ResizeObserver:class{observe(){}disconnect(){}},document:{createElement:()=>new E(),getElementById:()=>root},createSettingsStore:(_,defaults)=>({settings:defaults,load(){},save(){}}),beginPracticeQuestion:()=>{let logged=false;return value=>{if(!logged)logs.push(value);logged=true;}},gameState:{soundEnabled:false},Sound:{},setAwaitingAdvance:v=>awaiting=v,attachRegionLayout:(_,host,draw)=>{draw(false);return ()=>{};},createFretboard:()=>({clearMarkers(){},setMarker(string,fret,style){marked={string,fret,style};}})});
  let source=readFileSync(new URL('../static/js/games/fretboard-drills.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace('export default','globalThis.game =');vm.runInContext(source,context);
  context.game.configure({instrument});context.game.renderTitlePage();root.children[0].children.at(-1).click();
  const original={...marked};assert.equal(marked.style.text,'');

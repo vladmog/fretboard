@@ -1,3 +1,4 @@
+import {drillCandidates,sanitizeDrillDistance} from '../core/fretboard-drill-distance.js';
 import {attachCircleDrag} from './circle-drag.js';
 /** Identify a marked fretboard position using the chromatic circle. */
 import {createFretboard} from '../core/fretboard.js';
@@ -9,9 +10,10 @@ import {createSettingsStore} from './storage.js';
 import {beginPracticeQuestion} from './practice-log.js';
 import {gameState,setAwaitingAdvance} from './session.js';
 import * as Sound from '../core/sound.js';
-const store=createSettingsStore('fretboard-drills-settings',{showLabels:true,circlePortrait:0,circleLandscape:0},s=>{s.showLabels=s.showLabels!==false;});
+const store=createSettingsStore('fretboard-drills-settings',{showLabels:true,circlePortrait:0,circleLandscape:0,limitDistance:false,distance:1},s=>{s.showLabels=s.showLabels!==false;s.limitDistance=s.limitDistance===true;s.distance=sanitizeDrillDistance(s.distance);});
 const el=(tag,text='',cls='')=>{const node=document.createElement(tag);node.textContent=text;node.className=cls;return node;};
 const names=['C','C♯ / D♭','D','D♯ / E♭','E','F','F♯ / G♭','G','G♯ / A♭','A','A♯ / B♭','B'];
+let history=[];
 let instrument='guitar',active=false,solved=false,position,lastPosition='',count=0,board,detach,observer,circle,status,counter,log;
 function cleanup(){active=false;setAwaitingAdvance(false);detach?.();detach=null;observer?.disconnect();observer=null;board=null;}
 function paintBoard(){board?.clearMarkers();board?.setMarker(position.string,position.fret,{text:solved?getNoteName(position.midi%12):'',color:solved?'#32CD32':'#333',borderColor:'#111',textColor:solved?'#111':'#fff'});}
@@ -37,8 +39,8 @@ function paintCircle(){
 }
 function round(){
     cleanup();active=true;solved=false;
-    const candidates=notePositions(instrument).filter(p=>`${p.string}:${p.fret}`!==lastPosition);
-    position=candidates[Math.floor(Math.random()*candidates.length)];lastPosition=`${position.string}:${position.fret}`;
+    const candidates=drillCandidates(instrument,position,store.settings.limitDistance,store.settings.distance,history);
+    position=candidates[Math.floor(Math.random()*candidates.length)];lastPosition=`${position.string}:${position.fret}`;history=[...history,position].slice(-3);
     log=beginPracticeQuestion('fretboard-position-id',[instrument,String(position.string),String(position.fret)]);
     const root=el('div','','note-region-round fret-identify-round');
     const panel=el('div','','note-region-controls');
@@ -77,6 +79,19 @@ function round(){
     let width=host.clientWidth;observer=new ResizeObserver(()=>{if(width!==host.clientWidth){width=host.clientWidth;draw(root.classList.contains('note-region-mobile'));}});observer.observe(host);
 }
 function advance(){if(active&&solved)round();}
-function renderTitlePage(){cleanup();store.load();const root=el('div','','voice-leading');const start=el('button','Start practice');start.addEventListener('click',()=>{count=0;round();});root.append(el('h2','Fretboard Drills'),el('p','Identify the marked note using the chromatic circle.'),start);document.getElementById('game-content').replaceChildren(root);}
-function renderSettings(body){body.replaceChildren();const label=el('label','','note-region-limit-toggle'),input=el('input');input.type='checkbox';input.checked=store.settings.showLabels;label.append(input,el('span','Show circle note labels'));body.append(label);input.addEventListener('change',()=>{store.settings.showLabels=input.checked;store.save();paintCircle();});}
-export default {configure(value){instrument=value.instrument||'guitar';},renderTitlePage,renderSettings,cleanup,advance,handleNoteKey:answer};
+function renderTitlePage(){cleanup();store.load();const root=el('div','','voice-leading');const start=el('button','Start practice');start.addEventListener('click',()=>{count=0;position=null;history=[];round();});root.append(el('h2','Fretboard Drills'),el('p','Identify the marked note using the chromatic circle.'),start);document.getElementById('game-content').replaceChildren(root);}
+function renderSettings(body){
+    body.replaceChildren();
+    const label=el('label','','note-region-limit-toggle'),input=el('input');input.type='checkbox';input.checked=store.settings.showLabels;
+    label.append(input,el('span','Show circle note labels'));body.append(label);
+    input.addEventListener('change',()=>{store.settings.showLabels=input.checked;store.save();paintCircle();});
+    const limitLabel=el('label','','note-region-limit-toggle'),limit=el('input');limit.type='checkbox';limit.checked=store.settings.limitDistance;
+    limitLabel.append(limit,el('span','Limit distance to next note'));body.append(limitLabel);
+    const field=el('label','Distance (strings and frets) ','note-region-distance'),number=el('input');
+    number.type='number';number.min='1';number.max='15';number.step='1';number.inputMode='numeric';number.value=String(store.settings.distance);
+    number.setAttribute('aria-label','Maximum distance in strings and frets');field.append(number);field.hidden=!limit.checked;body.append(field);
+    limit.addEventListener('change',()=>{store.settings.limitDistance=limit.checked;field.hidden=!limit.checked;store.save();});
+    number.addEventListener('change',()=>{store.settings.distance=sanitizeDrillDistance(number.value);number.value=String(store.settings.distance);store.save();});
+}
+
+export default {configure(value){const nextInstrument=value.instrument||'guitar';if(nextInstrument!==instrument){position=null;history=[];}instrument=nextInstrument;},renderTitlePage,renderSettings,cleanup,advance,handleNoteKey:answer};
