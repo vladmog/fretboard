@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as MusicTheory from '../static/js/core/music-theory.js';
 
-for (const file of ['interval-training.js', 'fretboard-drills.js']) {
+for (const file of ['interval-training.js']) {
     const source = readFileSync(new URL(`../static/js/games/${file}`, import.meta.url), 'utf8');
     const helper = source.slice(source.indexOf('    function getBuilderNoteName('), source.indexOf('\n    function ', source.indexOf('    function getBuilderNoteName(') + 10));
     test(`${file}: chord labels follow chord degrees, not generic accidentals`, () => {

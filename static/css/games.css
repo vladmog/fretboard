@@ -1265,3 +1265,34 @@ html.amoled-on #games-panel {
 .note-box-question-phrase { display:flex; flex-wrap:wrap; align-items:baseline; gap:0.2em 0.5em; min-width:0; }
 .note-box-interval.note-region-round .note-box-question-phrase > p { margin:0; text-align:left; }
 .note-box-interval.note-region-mobile:is([data-controls="top"],[data-controls="bottom"]) .note-box-question-phrase { grid-column:1 / 3; grid-row:2; }
+
+/* Position identification: fixed physical fretboard, compact answer circle. */
+.fret-identify-round:not(.note-region-mobile) { display:grid; grid-template-columns:minmax(0,1fr) minmax(240px,0.7fr); align-items:center; gap:2rem; }
+.fret-identify-round:not(.note-region-mobile) .voice-leading-board { grid-column:1; grid-row:1; width:100%; }
+.fret-identify-round:not(.note-region-mobile) .note-region-controls { display:block; grid-column:2; grid-row:1; }
+.fret-identify-prompt { font-size:1.5rem; font-weight:700; margin:0.4rem 0; text-align:center; }
+.fret-identify-circle { position:relative; width:min(100%,360px); aspect-ratio:1; margin:auto; }
+.fret-identify-circle .fret-identify-note { position:absolute; transform:translate(-50%,-50%); width:16%; height:16%; min-height:0; border-radius:50%; padding:0; border:2px solid #111; color:white; font-size:clamp(10px,1.4vw,15px); line-height:1.1; touch-action:manipulation; }
+.fret-identify-feedback { min-height:1.4em; text-align:center; margin:0.3rem; }
+.fret-identify-feedback[data-result="incorrect"] { color:#a31515; }
+.fret-identify-feedback[data-result="correct"] { color:#167326; }
+.fret-identify-round .game-round-counter { text-align:center; }
+.fret-identify-round.note-region-mobile:is([data-controls="top"],[data-controls="bottom"]) .note-region-controls { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:1fr auto auto; align-content:center; }
+.fret-identify-round.note-region-mobile:is([data-controls="top"],[data-controls="bottom"]) .fret-identify-circle { grid-column:2; grid-row:1 / 4; width:min(100%,calc(50dvh - 62px)); }
+.fret-identify-round.note-region-mobile:is([data-controls="top"],[data-controls="bottom"]) .fret-identify-note { width:16%; min-height:0; padding:0; }
+/* Match Interval Training: centered circle with its question in the middle.
+   Use viewport dimensions directly so absolute markers cannot shrink the parent. */
+.degree-counting-round { text-align:center; width:100%; }
+.degree-counting-circle { width:max(250px,min(85vw,calc((100dvh - 200px)*0.85))); flex:none; }
+.degree-counting-prompt { position:absolute; left:25%; right:25%; top:50%; transform:translateY(-50%); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0.25em 0.45em; font-size:clamp(1.5rem,4vmin,2.5rem); font-weight:750; pointer-events:none; }
+.degree-counting-circle .fret-identify-note { width:12%; height:12%; font-size:clamp(14px,2.4vmin,24px); background:#000; display:flex; align-items:center; justify-content:center; box-sizing:border-box; }
+.degree-counting-circle span.fret-identify-note { opacity:0.2; }
+
+/* Announce results accessibly without consuming space below the circle. */
+.degree-counting-announcement { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+
+.degree-counting-degree { font-size:0.65em; font-weight:500; }
+.degree-counting-root,.degree-counting-answer { border:1px solid #999; padding:0.12em; line-height:1.2; }
+
+/* Override the editorial square-button rule for circular note targets. */
+#games-panel .fret-identify-circle .fret-identify-note { border-radius:50%; }

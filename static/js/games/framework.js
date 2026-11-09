@@ -7,6 +7,7 @@ import { versionLabel } from '../app/version.js';
 import { IntervalTraining, BlindIntervalTraining } from './interval-training.js';
 import EarTraining from './ear-training.js';
 import ChromaticCircleDrills from './chromatic-circle-drills.js';
+import ScaleDegreeCounting from './scale-degree-counting.js';
 import FretboardDrills from './fretboard-drills.js';
 import IntervalId from './interval-id.js';
 import NoteId from './note-id.js';
@@ -32,6 +33,7 @@ export const Games = (function() {
         'ear-training': EarTraining,
         'chromatic-circle-drills': ChromaticCircleDrills,
         'fretboard-drills': FretboardDrills,
+        'scale-degree-counting': ScaleDegreeCounting,
         'interval-id': IntervalId,
         'note-id': NoteId,
         'interval-locator': IntervalLocator,
@@ -56,6 +58,7 @@ export const Games = (function() {
         'ear-training': 'Ear Training',
         'chromatic-circle-drills': 'Chromatic Circle Drills',
         'fretboard-drills': 'Fretboard Drills',
+        'scale-degree-counting': 'Scale Degree Counting',
         'interval-id': 'Interval ID',
         'note-id': 'Note ID',
         'interval-locator': 'Interval Locator',
@@ -310,7 +313,7 @@ export const Games = (function() {
     }
 
     return {
-        configureVoiceLeading: value => { VoiceLeading.configure(value); NearestNote.configure(value); NoteInBox.configure(value); NoteOnString.configure(value); },
+        configureVoiceLeading: value => { FretboardDrills.configure(value); VoiceLeading.configure(value); NearestNote.configure(value); NoteInBox.configure(value); NoteOnString.configure(value); },
         activate,
         deactivate,
         getState: () => ({ ...gameState }),
