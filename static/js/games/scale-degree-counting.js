@@ -1,3 +1,4 @@
+import * as Voice from './voice.js';
 import {createSettingsStore} from './storage.js';
 import {DEGREE_LETTERS,degreeQuestions} from '../core/degree-counting.js';
 import {getIntervalColor} from '../core/music-theory.js';
@@ -9,7 +10,8 @@ const natural={0:'C',2:'D',4:'E',5:'F',7:'G',9:'A',11:'B'};
 const store=createSettingsStore('fretboard-degree-counting-settings',{showColors:false,showLabels:true,showDegrees:false});
 let circle,answerCell,feedback=null;
 let active=false,solved=false,question,last='',count=0,status,counter,log;
-function cleanup(){active=false;setAwaitingAdvance(false);}
+function cleanup(){active=false;setAwaitingAdvance(false);Voice.cancel();}
+function repeatQuestion(){if(active&&!solved)Voice.speak(`${Voice.spokenNote(question.root).toLowerCase()}\n${Voice.spokenName(String(question.degree))}`);}
 function answer(pitch,spelling){
     if(!active||solved)return;
     const correct=natural[pitch]===question.answer&&(!spelling||spelling.toUpperCase()===question.answer);
@@ -23,11 +25,13 @@ function round(){
     log=beginPracticeQuestion('scale-degree-counting',[question.root,String(question.degree)]);
     const root=el('div','','game-play-area degree-counting-round');
     const prompt=el('div','','degree-counting-prompt');prompt.setAttribute('aria-label',`Root ${question.root}, degree ${question.degree}`);
+    prompt.addEventListener('click',repeatQuestion);
     answerCell=el('span','?','degree-counting-answer');
     prompt.append(el('span','1','degree-counting-degree'),el('span',String(question.degree),'degree-counting-degree'),el('span',question.root,'degree-counting-root'),answerCell);
     circle=el('div','','fret-identify-circle degree-counting-circle');circle.setAttribute('aria-label','Choose the natural note letter');paintCircle();
     status=el('p','','degree-counting-announcement');status.setAttribute('role','status');counter=el('p',`${count} answered`,'game-round-counter');
     circle.append(prompt);root.append(counter,circle,status);document.getElementById('game-content').replaceChildren(root);
+    repeatQuestion();
 }
 function paintCircle(){
     if(!circle||!active)return;const prompt=circle.querySelector('.degree-counting-prompt');circle.replaceChildren();if(prompt)circle.append(prompt);
@@ -46,7 +50,7 @@ function paintCircle(){
 }
 function advance(){if(active&&solved)round();}
 function renderTitlePage(){cleanup();store.load();const root=el('div','','voice-leading');const start=el('button','Start practice');start.addEventListener('click',()=>{count=0;round();});root.append(el('h2','Scale Degree Counting'),el('p','Find the letter for degree 2–7 of the given root. No accidentals.'),start);document.getElementById('game-content').replaceChildren(root);}
-export default {renderTitlePage,cleanup,advance,handleNoteKey:answer,renderSettings(body){
+export default {renderTitlePage,cleanup,advance,repeatQuestion,handleNoteKey:answer,renderSettings(body){
     body.replaceChildren();
     for(const [key,title] of [['showColors','Show colors'],['showLabels','Show note labels'],['showDegrees','Show degree labels']]){
         const label=el('label','','note-region-limit-toggle'),input=el('input');input.type='checkbox';input.checked=store.settings[key];

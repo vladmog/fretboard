@@ -1348,3 +1348,5 @@ html.amoled-on #games-panel {
 
 #games-panel .fret-identify-round .fret-identify-prompt { width:auto; height:auto; min-height:44px; padding:0; border:0; background:transparent; color:#111; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; z-index:1; }
 #games-panel .fret-identify-round .fret-identify-prompt:active { cursor:grabbing; }
+
+.degree-counting-prompt { pointer-events:auto; cursor:pointer; }
