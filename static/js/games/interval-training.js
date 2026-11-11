@@ -1,3 +1,4 @@
+import { relativeIntervalQuestion } from '../core/relative-interval-question.js';
 import { needsSpellingRetry } from './note-spelling.js';
 import { renderAnnouncementOrder } from './interval-announcement-settings.js';
 import { currentMagsafeProfile, magsafeCircleSize, alignMagsafeCircle } from '../core/magsafe-layout.js';
@@ -66,6 +67,7 @@ function createIntervalTrainingGame(config) {
         showLabels: true,
         showIntervalLabels: false,
         sayRootFirst: false,
+        relativeToPreviousAnswer: false,
         enabledScales: [...ALL_SCALE_TYPES],
         enabledChords: [...ALL_CHORD_TYPES]
     };
@@ -76,6 +78,7 @@ function createIntervalTrainingGame(config) {
         currentRound: 0,
         totalRounds: 0,
         currentRoot: null,
+        previousAnswer: null,
         currentRootIndex: 0,
         currentSemitone: 0,
         correctCount: 0,
@@ -751,6 +754,27 @@ function createIntervalTrainingGame(config) {
         modeGroup.appendChild(modeSelect);
         modalBody.appendChild(modeGroup);
 
+        if (!settings.gameMode.endsWith('-builder')) {
+            const group = document.createElement('div');
+            group.className = 'game-setting-group';
+            const label = document.createElement('label');
+            label.className = 'game-setting-label';
+            const toggle = document.createElement('input');
+            toggle.type = 'checkbox';
+            toggle.checked = settings.relativeToPreviousAnswer === true;
+            toggle.addEventListener('change', () => {
+                settings.relativeToPreviousAnswer = toggle.checked;
+                saveSettings();
+            });
+            label.append(toggle, ' Relative to previous answer');
+            const hint = document.createElement('p');
+            hint.className = 'settings-hint';
+            hint.textContent = 'Each correct answer becomes the next given note. Root choices apply to the first question only.';
+            group.append(label, hint);
+            modalBody.appendChild(group);
+        }
+
+
 
 
         // Notation style (hidden in scale-builder mode)
@@ -1220,6 +1244,7 @@ function createIntervalTrainingGame(config) {
 
     function startGame() {
         gameState.currentRound = 0;
+        gameState.previousAnswer = null;
         gameState.totalRounds = totalRoundsFor(settings.roundCount);
         gameState.correctCount = 0;
         gameState.questionTimes = [];
@@ -1245,7 +1270,10 @@ function createIntervalTrainingGame(config) {
         if (gameState.questionQueue.length === 0) {
             fillQuestionQueue();
         }
-        const q = gameState.questionQueue.shift();
+        const drawn = gameState.questionQueue.shift();
+        const q = relativeIntervalQuestion(drawn, gameState.activeMode,
+            settings.relativeToPreviousAnswer === true ? gameState.previousAnswer : null,
+            ALL_ROOTS);
         gameState.lastDrawnItem = q;
 
         gameState.currentRoot = q.root;
@@ -1482,6 +1510,7 @@ function createIntervalTrainingGame(config) {
     }
 
     function handleCorrectAnswer(noteIndex) {
+        gameState.previousAnswer = noteIndex;
         gameState.answered = true;
         if (!gameState.hadMistake) {
             gameState.correctCount++;
