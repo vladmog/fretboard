@@ -1,3 +1,4 @@
+import { routeNextRound } from './round-routing.js';
 import * as Voice from './voice.js';
 import {createSettingsStore} from './storage.js';
 import {DEGREE_LETTERS,degreeQuestions} from '../core/degree-counting.js';
@@ -20,6 +21,7 @@ function answer(pitch,spelling){
     if(gameState.soundEnabled){if(correct)Sound.playNote(question.answer+'4');else Sound.playError();}
 }
 function round(){
+    if(routeNextRound())return;
     cleanup();active=true;solved=false;feedback=null;
     const pool=degreeQuestions().filter(q=>q.root+q.degree!==last);question=pool[Math.floor(Math.random()*pool.length)];last=question.root+question.degree;
     log=beginPracticeQuestion('scale-degree-counting',[question.root,String(question.degree)]);
@@ -50,7 +52,7 @@ function paintCircle(){
 }
 function advance(){if(active&&solved)round();}
 function renderTitlePage(){cleanup();store.load();const root=el('div','','voice-leading');const start=el('button','Start practice');start.addEventListener('click',()=>{count=0;round();});root.append(el('h2','Scale Degree Counting'),el('p','Find the letter for degree 2–7 of the given root. No accidentals.'),start);document.getElementById('game-content').replaceChildren(root);}
-export default {renderTitlePage,cleanup,advance,repeatQuestion,handleNoteKey:answer,renderSettings(body){
+export default {continueRound:round,startRound(){store.load();count=0;round();},renderTitlePage,cleanup,advance,repeatQuestion,handleNoteKey:answer,renderSettings(body){
     body.replaceChildren();
     for(const [key,title] of [['showColors','Show colors'],['showLabels','Show note labels'],['showDegrees','Show degree labels']]){
         const label=el('label','','note-region-limit-toggle'),input=el('input');input.type='checkbox';input.checked=store.settings[key];

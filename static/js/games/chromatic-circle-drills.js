@@ -1,3 +1,4 @@
+import { routeNextRound } from './round-routing.js';
 import { currentMagsafeProfile, magsafeCircleSize, alignMagsafeCircle } from '../core/magsafe-layout.js';
 /**
  * Chromatic Circle Drills Game
@@ -522,6 +523,7 @@ export default (function() {
     }
 
     function nextQuestion() {
+        if (routeNextRound()) return;
         gameState.currentRound++;
         gameState.answered = false;
         gameState.hadMistake = false;
@@ -903,6 +905,8 @@ export default (function() {
     loadStats();
 
     return {
+        continueRound: nextQuestion,
+        startRound: () => { if (!validateSettings()) return false; startGame(); return true; },
         renderTitlePage,
         renderSettings,
         cleanup,

@@ -1,3 +1,4 @@
+import { routeNextRound } from './round-routing.js';
 import {drillCandidates,sanitizeDrillDistance} from '../core/fretboard-drill-distance.js';
 import {attachCircleDrag} from './circle-drag.js';
 /** Identify a marked fretboard position using the chromatic circle. */
@@ -38,6 +39,7 @@ function paintCircle(){
     }
 }
 function round(){
+    if(routeNextRound())return;
     cleanup();active=true;solved=false;
     const candidates=drillCandidates(instrument,position,store.settings.limitDistance,store.settings.distance,history);
     position=candidates[Math.floor(Math.random()*candidates.length)];lastPosition=`${position.string}:${position.fret}`;history=[...history,position].slice(-3);
@@ -94,4 +96,4 @@ function renderSettings(body){
     number.addEventListener('change',()=>{store.settings.distance=sanitizeDrillDistance(number.value);number.value=String(store.settings.distance);store.save();});
 }
 
-export default {configure(value){const nextInstrument=value.instrument||'guitar';if(nextInstrument!==instrument){position=null;history=[];}instrument=nextInstrument;},renderTitlePage,renderSettings,cleanup,advance,handleNoteKey:answer};
+export default {continueRound:round,startRound(){store.load();count=0;position=null;history=[];round();},configure(value){const nextInstrument=value.instrument||'guitar';if(nextInstrument!==instrument){position=null;history=[];}instrument=nextInstrument;},renderTitlePage,renderSettings,cleanup,advance,handleNoteKey:answer};

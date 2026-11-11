@@ -7,7 +7,7 @@ test('degree questions announce root then degree, repeat, obey voice off, and ca
  let spoken=[],enabled=true,cancelled=0;
  class E{constructor(){this.children=[];this.style={};this.dataset={};}append(...c){this.children.push(...c);}replaceChildren(...c){this.children=c;}setAttribute(){}addEventListener(k,f){this[k]=f;}querySelector(){return this.children.find(c=>c.className==='degree-counting-prompt');}}
  const root=new E();
- const c=vm.createContext({DEGREE_LETTERS,degreeQuestions,Math,createSettingsStore:(_,settings)=>({settings,load(){},save(){}}),beginPracticeQuestion:()=>()=>{},gameState:{soundEnabled:false},setAwaitingAdvance(){},Sound:{},getIntervalColor(){},document:{createElement:()=>new E(),getElementById:()=>root},Voice:{cancel(){cancelled++;},spokenNote:n=>n,spokenName:n=>n,speak:t=>{if(enabled)spoken.push(t);}}});
+ const c=vm.createContext({routeNextRound:()=>false,DEGREE_LETTERS,degreeQuestions,Math,createSettingsStore:(_,settings)=>({settings,load(){},save(){}}),beginPracticeQuestion:()=>()=>{},gameState:{soundEnabled:false},setAwaitingAdvance(){},Sound:{},getIntervalColor(){},document:{createElement:()=>new E(),getElementById:()=>root},Voice:{cancel(){cancelled++;},spokenNote:n=>n,spokenName:n=>n,speak:t=>{if(enabled)spoken.push(t);}}});
  const source=readFileSync(new URL('../static/js/games/scale-degree-counting.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace('export default','globalThis.game=');vm.runInContext(source,c);
  c.game.renderTitlePage();root.children[0].children.at(-1).click();
  assert.equal(spoken.length,1);assert.match(spoken[0],/^[a-g]\n[2-7]$/);

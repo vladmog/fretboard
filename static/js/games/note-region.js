@@ -1,3 +1,4 @@
+import { routeNextRound } from './round-routing.js';
 import { boxNoteName, makeBoxQuestion, boxQuestionText, sanitizeBoxMode, BOX_INTERVALS } from '../core/note-box-question.js';
 import { renderBoxModeSettings } from './note-box-mode-settings.js';
 import { beginPositionTiming } from './note-position-stats.js';
@@ -63,6 +64,7 @@ function paint(){
     if(answer)board.setMarker(answer.string,answer.fret,{text:questionNoteName(notePositions(instrument).find(p=>p.string===answer.string&&p.fret===answer.fret).midi%12),color:isString?'#fff':answerCorrect?'#32CD32':'#ed5353',borderColor:isString?'#111':answerCorrect?'#167326':'#a31515',textColor:'#111',...(!isString&&question.mode!=='note'&&answerCorrect&&store.settings.intervalColors?intervalMarker(target):{})});
 }
 function round(){
+    if(routeNextRound())return;
     cleanup();active=true;unavailable=false;answer=null;answerCorrect=null;revealed=false;
     // Pick the target from notes actually present in the four-fret region.
     let key, attempts=0;
@@ -214,6 +216,6 @@ function renderSettings(body){
     });
     limitLabel.append(limit,el('span','Limit frets'));fillRange();body.append(limitLabel,range);
 }
-return {configure(value){instrument=value.instrument||'guitar';},renderTitlePage,cleanup,renderSettings,advance(){if(active&&!next.disabled){count++;round();}},repeatQuestion(){if(Voice.isEnabled())announceQuestion();else if(active&&answer)play(answer);}};
+return {continueRound:round,startRound(){unavailable=false;count=0;answeredCount=0;round();},configure(value){instrument=value.instrument||'guitar';},renderTitlePage,cleanup,renderSettings,advance(){if(active&&!next.disabled){count++;round();}},repeatQuestion(){if(Voice.isEnabled())announceQuestion();else if(active&&answer)play(answer);}};
 
 }

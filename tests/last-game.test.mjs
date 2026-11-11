@@ -7,7 +7,7 @@ const storage=readFileSync(new URL('../static/js/games/storage.js',import.meta.u
 function load(saved){
  const shown=[];const handlers={};const picker={value:'',addEventListener(type,fn){handlers[type]=fn;},blur(){}};
  const game={renderTitlePage(){shown.push('shown');},cleanup(){}};
- const c={console,gameState:{currentGame:'interval-training'},setAwaitingAdvance(){},markReady(){},isAwaitingAdvance(){return false;},
+ const c={createRandomGame:()=>game,console,gameState:{currentGame:'interval-training'},setAwaitingAdvance(){},markReady(){},isAwaitingAdvance(){return false;},
   localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},
   document:{readyState:'complete',addEventListener(){},getElementById:id=>id==='games-select'?picker:null},
   Voice:{cancel(){}},Blackout:{attach(){},detach(){},hide(){}},NoteKeyboard:{attach(){},detach(){}}};

@@ -1,3 +1,4 @@
+import { routeNextRound } from './round-routing.js';
 /**
  * Ear Training Game
  * Listen to a chord and identify the root note and chord type
@@ -367,6 +368,7 @@ function createEarTrainingGame(config) {
     }
 
     function nextQuestion() {
+        if (routeNextRound()) return;
         gameState.currentRound++;
         gameState.answered = false;
         gameState.selectedRoot = null;
@@ -905,6 +907,8 @@ function createEarTrainingGame(config) {
     loadStats();
 
     return {
+        continueRound: nextQuestion,
+        startRound: () => { if (!validateSettings()) return false; startGame(); return true; },
         renderTitlePage,
         renderSettings,
         cleanup,

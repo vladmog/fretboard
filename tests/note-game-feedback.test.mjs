@@ -20,7 +20,7 @@ for(const config of [{kind:'nearest'},{kind:'box'},{kind:'string'},{kind:'box',m
   setAttribute(){}
  }
  const root=new Element('div');
- const context=vm.createContext({boxNoteName,makeBoxQuestion,boxQuestionText,sanitizeBoxMode,BOX_INTERVALS,renderBoxModeSettings(){},beginPositionTiming:()=>({complete(){},reveal(){}}),renderPositionHeatmap:()=>()=>{},beginPracticeQuestion:()=>()=>{},...notes,instrumentConfig,CHROMATIC_NOTES,getNoteName,voicingNotes,Math:config.random===undefined?Math:Object.assign(Object.create(Math),{random:()=>config.random}),showAnswerFeedback,clearAnswerFeedback,
+ const context=vm.createContext({routeNextRound:()=>false,boxNoteName,makeBoxQuestion,boxQuestionText,sanitizeBoxMode,BOX_INTERVALS,renderBoxModeSettings(){},beginPositionTiming:()=>({complete(){},reveal(){}}),renderPositionHeatmap:()=>()=>{},beginPracticeQuestion:()=>()=>{},...notes,instrumentConfig,CHROMATIC_NOTES,getNoteName,voicingNotes,Math:config.random===undefined?Math:Object.assign(Object.create(Math),{random:()=>config.random}),showAnswerFeedback,clearAnswerFeedback,
   Voice:{speak(text){if(voiceEnabled)announcements.push(text);},spokenNote:n=>n.replace('#',' sharp').replace('b',' flat'),cancel(){cancellations++;},isEnabled:()=>voiceEnabled},
   markReady(){awaiting=true;},isAwaitingAdvance:()=>awaiting,setAwaitingAdvance(value){awaiting=value;},
   createSettingsStore:(_key,defaults)=>({settings:{...defaults,...(config.min===undefined?{}:{limitFrets:true,minFret:config.min,maxFret:config.max,guitar:[1]})},load(){},save(){}}),

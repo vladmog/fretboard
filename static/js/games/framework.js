@@ -1,3 +1,4 @@
+import { createRandomGame } from './random-game.js';
 import { versionLabel } from '../app/version.js';
 /**
  * Games Framework
@@ -44,6 +45,8 @@ export const Games = (function() {
         'note-locator': NoteLocator
     };
 
+    GAMES.random = createRandomGame(GAMES, () => GAME_NAMES);
+
     const selectionStore = createSettingsStore('fretboard-games-settings', {
         lastGame: 'interval-training'
     }, settings => {
@@ -53,6 +56,7 @@ export const Games = (function() {
     gameState.currentGame = selectionStore.settings.lastGame;
 
     const GAME_NAMES = {
+        random: 'Random',
         'interval-training': 'Interval Training',
         'blind-interval-training': 'Blind Interval Training',
         'ear-training': 'Ear Training',

@@ -1,3 +1,4 @@
+import { routeNextRound } from './round-routing.js';
 import { createHarmonyGenerator, DEFAULT_GENERATED_TYPES } from '../core/generated-harmony.js';
 import { generatorSettings } from './voice-leading-generator-settings.js';
 import { beginPracticeQuestion } from './practice-log.js';
@@ -129,7 +130,7 @@ function renderRound(){
     status=el('p','','voice-leading-feedback');status.setAttribute('role','status');root.append(status);
     const controls=el('div','','voice-leading-actions');
     actions.append(button('Show suggestion',()=>{clearAnswerFeedback(status);assisted=true;const suggestion=nearestShapes(current,target,context.instrument,rules)[0];if(!suggestion){status.textContent='No different suggested voicing is available. Try your own inversion or register.';return;}selected=suggestion.shape.positions.map(p=>({...p}));paint();const result=checkAnswer(current,selected,target,context.instrument,rules);status.textContent='Suggested shape';setReady(true);transition(selected);}));
-    nextButton=button('Next chord →',()=>{const result=checkAnswer(current,selected,target,context.instrument,rules);if(!result.valid){setReady(false);return;}if(result.smooth&&!assisted)smoothCount++;completed++;current=selected.map(p=>({...p}));step++;
+    nextButton=button('Next chord →',()=>{const result=checkAnswer(current,selected,target,context.instrument,rules);if(!result.valid){setReady(false);return;}if(routeNextRound())return;if(result.smooth&&!assisted)smoothCount++;completed++;current=selected.map(p=>({...p}));step++;
         lapNotice='';
         if(generator){sequence=[target,generator.next(target)];step=0;}
         else if(step%sequence.length===0){
@@ -154,4 +155,4 @@ function renderSettings(body){
     generatorSettings(body,store.settings,()=>{store.save();if(active)startPractice();});
     body.append(el('p','Changing generation settings starts a fresh exercise. Fixed progression, key, and voicing choices are on the start screen.'),button('Choose progression',()=>{document.getElementById('game-settings-modal').style.display='none';renderTitlePage();}));
 }
-export default {configure,renderTitlePage,renderSettings,cleanup,advance(){},repeatQuestion(){if(active)play(current);}};
+export default {continueRound(){active=true;nextButton?.click();},startRound(){store.load();catalog();startPractice();},configure,renderTitlePage,renderSettings,cleanup,advance(){},repeatQuestion(){if(active)play(current);}};

@@ -1,3 +1,4 @@
+import { routeNextRound } from './round-routing.js';
 import { beginPracticeQuestion } from './practice-log.js';
 import { showAnswerFeedback, clearAnswerFeedback } from './answer-feedback.js';
 import { createFretboard } from '../core/fretboard.js';
@@ -18,6 +19,7 @@ function paint(){
     if(answer)board.setMarker(answer.string,answer.fret,{text:CHROMATIC_NOTES[notePositions(instrument).find(p=>p.string===answer.string&&p.fret===answer.fret).midi%12],color:'#fff',borderColor:'#111',textColor:'#111'});
 }
 function round(){
+    if(routeNextRound())return;
     cleanup();active=true;answer=null;
     const positions=notePositions(instrument);
     // Exclude the same pitch class and avoid an immediate repeated question.
@@ -46,4 +48,4 @@ function round(){
     draw();let width=host.clientWidth;observer=new ResizeObserver(()=>{if(width!==host.clientWidth){width=host.clientWidth;draw();}});observer.observe(host);
 }
 function renderTitlePage(){cleanup();const root=el('div','','voice-leading');root.append(el('h2','Nearest note'),el('p','Find the closest pitch of a target note from a shown starting position. Any tied position counts. Uses your Guitar/Bass setting.'),button('Start practice',()=>{count=0;round();}));document.getElementById('game-content').replaceChildren(root);}
-export default {configure(value){instrument=value.instrument||'guitar';},renderTitlePage,cleanup,renderSettings(body){body.replaceChildren(el('p','Uses the app’s Guitar/Bass setting and frets 0–15. Answers are scored by exact pitch distance.'));},advance(){if(active&&!next.disabled){count++;round();}},repeatQuestion(){if(active)play(start);}};
+export default {continueRound:round,startRound(){count=0;round();},configure(value){instrument=value.instrument||'guitar';},renderTitlePage,cleanup,renderSettings(body){body.replaceChildren(el('p','Uses the app’s Guitar/Bass setting and frets 0–15. Answers are scored by exact pitch distance.'));},advance(){if(active&&!next.disabled){count++;round();}},repeatQuestion(){if(active)play(start);}};

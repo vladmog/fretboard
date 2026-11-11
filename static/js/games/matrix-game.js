@@ -1,3 +1,4 @@
+import { routeNextRound } from './round-routing.js';
 import { refreshMatrixAppearance } from './matrix-appearance.js';
 /**
  * Matrix Drills Factory
@@ -567,6 +568,7 @@ export function createMatrixGame(config) {
     }
 
     function nextQuestion() {
+        if (routeNextRound()) return;
         gameState.currentRound++;
         gameState.answered = false;
         gameState.hadMistake = false;
@@ -1034,6 +1036,8 @@ export function createMatrixGame(config) {
     loadStats();
 
     return {
+        continueRound: nextQuestion,
+        startRound: startGame,
         renderTitlePage,
         renderSettings,
         cleanup,

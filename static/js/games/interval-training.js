@@ -1,3 +1,4 @@
+import { routeNextRound } from './round-routing.js';
 import { relativeIntervalQuestion } from '../core/relative-interval-question.js';
 import { needsSpellingRetry } from './note-spelling.js';
 import { renderAnnouncementOrder } from './interval-announcement-settings.js';
@@ -1257,6 +1258,7 @@ function createIntervalTrainingGame(config) {
     }
 
     function nextQuestion() {
+        if (routeNextRound()) return;
         gameState.currentRound++;
         gameState.answered = false;
         gameState.inputLocked = false;
@@ -2565,6 +2567,8 @@ function createIntervalTrainingGame(config) {
     loadStats();
 
     return {
+        continueRound: nextQuestion,
+        startRound: () => { if (!validateSettings()) return false; startGame(); return true; },
         renderTitlePage,
         renderSettings,
         cleanup,
