@@ -1,3 +1,5 @@
+import { attachRotatableCross } from './rotatable-cross.js';
+import { TRIAD_SCALES, scaleChordQuestions, scaleChordDegree } from '../core/scale-chord-questions.js';
 import { routeNextRound } from './round-routing.js';
 import { relativeIntervalQuestion } from '../core/relative-interval-question.js';
 import { needsSpellingRetry } from './note-spelling.js';
@@ -54,12 +56,12 @@ function createIntervalTrainingGame(config) {
 
     const VALID_GAME_MODES = ['root-to-interval', 'interval-to-root', 'interval-to-interval', 'scale-builder', 'chord-builder'];
 
-    const ALL_SCALE_TYPES = Object.keys(MusicTheory.SCALES);
+    const ALL_SCALE_TYPES = config.scaleChords ? TRIAD_SCALES : Object.keys(MusicTheory.SCALES);
     const ALL_CHORD_TYPES = Object.keys(MusicTheory.CHORD_TYPES);
 
     // Game settings (persisted)
     let settings = {
-        gameMode: 'root-to-interval',
+        gameMode: config.scaleChords ? 'chord-builder' : 'root-to-interval',
         roundCount: 0,
         enabledIntervals: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
         enabledRoots: [...ALL_ROOTS],
@@ -68,6 +70,10 @@ function createIntervalTrainingGame(config) {
         showLabels: true,
         showIntervalLabels: false,
         sayRootFirst: false,
+        romanDegrees: false,
+        showReferenceCross: false,
+        freeReferenceCross: false,
+        highlightScaleNotes: false,
         relativeToPreviousAnswer: false,
         enabledScales: [...ALL_SCALE_TYPES],
         enabledChords: [...ALL_CHORD_TYPES]
@@ -125,6 +131,7 @@ function createIntervalTrainingGame(config) {
                     settings.gameMode = 'root-to-interval';
                 }
             }
+            if (config.scaleChords) settings.gameMode = 'chord-builder';
         } catch (e) {
             console.error('Failed to load interval training settings:', e);
         }
@@ -312,6 +319,20 @@ function createIntervalTrainingGame(config) {
         return MusicTheory.CHROMATIC_NOTES[noteIndex];
     }
 
+    function showScaleChordHeading(text, api) {
+        const q = gameState.scaleChordQuestion;
+        text.textContent = `${q.scaleRoot} ${MusicTheory.SCALES[q.scaleType].name} · ${scaleChordDegree(q, settings.romanDegrees)}`;
+        text.setAttribute('font-size', api.size * 0.045);
+        text.setAttribute('y', api.center - api.size * (gameState.answered ? 0.14 : 0.06));
+        if (gameState.answered) {
+            const chord = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+            chord.setAttribute('x', api.center);
+            chord.setAttribute('dy', api.size * 0.065);
+            chord.textContent = gameState.currentRoot + ' ' + MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
+            text.appendChild(chord);
+        }
+    }
+
     function updateQuestionText() {
         const api = gameState.circleApi;
         if (!api) return;
@@ -340,6 +361,7 @@ function createIntervalTrainingGame(config) {
             const s = api.size;
             intervalText.textContent = gameState.currentRoot + ' ' + scaleName;
             intervalText.setAttribute('y', center - s * 0.06);
+            if (gameState.scaleChordQuestion) showScaleChordHeading(intervalText, api);
             rootText.textContent = '';
             rootText.setAttribute('y', center + s * 0.005);
             if (notesText) {
@@ -350,8 +372,11 @@ function createIntervalTrainingGame(config) {
             const chordName = MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
             const center = api.center;
             const s = api.size;
-            intervalText.textContent = gameState.currentRoot + ' ' + chordName;
+            const q = gameState.scaleChordQuestion;
+            intervalText.textContent = q ? `${q.scaleRoot} ${MusicTheory.SCALES[q.scaleType].name} · ${scaleChordDegree(q, settings.romanDegrees)}` : gameState.currentRoot + ' ' + chordName;
+            if (q) intervalText.setAttribute('font-size', s * 0.045);
             intervalText.setAttribute('y', center - s * 0.06);
+            if (gameState.scaleChordQuestion) showScaleChordHeading(intervalText, api);
             rootText.textContent = '';
             rootText.setAttribute('y', center + s * 0.005);
             if (notesText) {
@@ -369,7 +394,64 @@ function createIntervalTrainingGame(config) {
 
     // ---- Apply settings to current round without re-render ----
 
+    function updateReferenceCross() {
+        const api = gameState.circleApi, q = gameState.scaleChordQuestion;
+        if (!api || !q) return;
+        if (!api.referenceCross) api.referenceCross = attachRotatableCross(api.svg, api.size, () => {
+            if (!GameSession.isAwaitingAdvance()) return false;
+            GameSession.setAwaitingAdvance(false); nextQuestion(); return true;
+        });
+        api.referenceCross.update(settings.showReferenceCross, settings.freeReferenceCross, MusicTheory.getNoteIndex(q.scaleRoot));
+    }
+
+    function paintScaleChordCircle() {
+        const api = gameState.circleApi, q = gameState.scaleChordQuestion;
+        if (!api || !q) return;
+        updateReferenceCross();
+        const scale = MusicTheory.buildScale(q.scaleRoot, q.scaleType);
+        const chosen = gameState.chordNotes.slice(0, gameState.currentDegreeIndex);
+        for (const group of api.noteGroups) {
+            const pitch = Number(group.getAttribute('data-note-index'));
+            const degree = scale.noteToDegree[pitch];
+            const circle = group.querySelector('circle');
+            const text = group.querySelector('text');
+            const il = group.querySelector('.interval-label');
+            let colors = {fill: pitch % 2 === 0 ? '#000' : '#777', border: '#777', text: '#fff'};
+            if (settings.highlightScaleNotes) {
+                colors = !degree ? {fill:'#ddd',border:'#bbb',text:'#777'}
+                    : settings.showColors ? MusicTheory.getIntervalColor(degree)
+                    : {fill:'#000',border:'#000',text:'#fff'};
+                if (degree === '1' && settings.showColors) colors = {...colors,fill:'#000',text:'#fff'};
+            } else if (settings.showColors) {
+                const semitone = (pitch - MusicTheory.getNoteIndex(q.scaleRoot) + 12) % 12;
+                colors = MusicTheory.getIntervalColor(SIMPLE_LABELS[semitone]);
+            }
+            if (chosen.includes(pitch) && degree) {
+                const chordDegree = gameState.chordIntervals[gameState.chordNotes.indexOf(pitch)];
+                const chordColors = MusicTheory.getIntervalColor(chordDegree);
+                const scaleColors = MusicTheory.getIntervalColor(degree);
+                colors = {
+                    fill: chordDegree === '1' ? '#000' : chordColors.fill,
+                    text: chordDegree === '1' ? '#fff' : chordColors.text,
+                    border: scaleColors.border
+                };
+            }
+            circle.setAttribute('fill', colors.fill);
+            circle.setAttribute('stroke', colors.border);
+            circle.setAttribute('stroke-width', chosen.includes(pitch) ? 5 : degree && settings.highlightScaleNotes ? 3 : 2);
+            group.setAttribute('opacity','1');
+            text.setAttribute('fill',colors.text);
+            text.setAttribute('visibility',settings.showLabels || chosen.includes(pitch) ? 'visible' : 'hidden');
+            if (degree) text.textContent = scale.noteSpelling[pitch];
+            if (il) {
+                il.textContent = degree || '';
+                il.setAttribute('visibility',settings.showIntervalLabels || chosen.includes(pitch) ? 'visible' : 'hidden');
+            }
+        }
+    }
+
     function applySettingsToCurrentRound() {
+        if (config.scaleChords) { paintScaleChordCircle(); updateQuestionText(); updateBuilderCenterText(); return; }
         const api = gameState.circleApi;
         if (!api) return;
 
@@ -655,6 +737,7 @@ function createIntervalTrainingGame(config) {
             'chord-builder': 'You\'ll be given a chord \u2014 click the notes on the chromatic circle in order, from root through each chord tone.'
         };
         explanation.textContent = 'Train your ear and theory knowledge by identifying intervals on the chromatic circle. ' + modeDescriptions[settings.gameMode];
+        if (config.scaleChords) explanation.textContent = 'Build the triad on the given scale degree. Enter its root, third, then fifth on the circle.';
         wrapper.appendChild(explanation);
 
         gameState.activeMode = settings.gameMode;
@@ -678,7 +761,7 @@ function createIntervalTrainingGame(config) {
     }
 
     function validateSettings() {
-        if (settings.gameMode === 'scale-builder') {
+        if (settings.gameMode === 'scale-builder' || config.scaleChords) {
             if (settings.enabledScales.length === 0) {
                 alert('Please enable at least one scale type in settings.');
                 return false;
@@ -723,6 +806,46 @@ function createIntervalTrainingGame(config) {
     function renderSettings(modalBody) {
         modalBody.innerHTML = '';
         renderAnnouncementOrder(modalBody, settings, saveSettings);
+        if (config.scaleChords) {
+            const group = document.createElement('label');
+            group.className = 'game-setting-group';
+            const crossLabel = document.createElement('label');
+            crossLabel.className = 'game-setting-label';
+            const crossToggle = document.createElement('input');
+            crossToggle.type = 'checkbox'; crossToggle.checked = settings.showReferenceCross;
+            const crossMode = document.createElement('select');
+            crossMode.className = 'game-setting-select';
+            for (const [value, text] of [['root','Follow scale root'],['free','Start at C · drag to rotate']]) {
+                const option = document.createElement('option'); option.value=value;option.textContent=text;crossMode.append(option);
+            }
+            crossMode.value=settings.freeReferenceCross?'free':'root';crossMode.hidden=!settings.showReferenceCross;
+            crossToggle.addEventListener('change',()=>{settings.showReferenceCross=crossToggle.checked;crossMode.hidden=!crossToggle.checked;saveSettings();updateReferenceCross();});
+            crossMode.addEventListener('change',()=>{settings.freeReferenceCross=crossMode.value==='free';saveSettings();updateReferenceCross();});
+            crossLabel.append(crossToggle,' Show reference cross');modalBody.append(crossLabel,crossMode);
+            group.textContent = 'Degree display';
+            const select = document.createElement('select');
+            select.className = 'game-setting-select';
+            for (const [value, text] of [['number', 'Number (hide chord quality)'], ['roman', 'Roman numeral (show chord quality)']]) {
+                const option = document.createElement('option');
+                option.value = value; option.textContent = text; select.append(option);
+            }
+            select.value = settings.romanDegrees ? 'roman' : 'number';
+            select.addEventListener('change', () => {
+                settings.romanDegrees = select.value === 'roman';
+                saveSettings(); applySettingsToCurrentRound();
+            });
+            group.append(select); modalBody.append(group);
+            const highlight = document.createElement('label');
+            highlight.className = 'game-setting-label';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox'; checkbox.checked = settings.highlightScaleNotes;
+            checkbox.addEventListener('change', () => {
+                settings.highlightScaleNotes = checkbox.checked;
+                saveSettings(); applySettingsToCurrentRound();
+            });
+            highlight.append(checkbox, ' Highlight scale notes'); modalBody.append(highlight);
+        }
+
 
         // Game Mode
         const modeGroup = document.createElement('div');
@@ -753,7 +876,7 @@ function createIntervalTrainingGame(config) {
         });
         modeGroup.appendChild(modeLabel);
         modeGroup.appendChild(modeSelect);
-        modalBody.appendChild(modeGroup);
+        if (!config.scaleChords) modalBody.appendChild(modeGroup);
 
         if (!settings.gameMode.endsWith('-builder')) {
             const group = document.createElement('div');
@@ -856,7 +979,7 @@ function createIntervalTrainingGame(config) {
         let ilSelect = null;
         labelsSelect.addEventListener('change', () => {
             settings.showLabels = labelsSelect.value === 'on';
-            if (!settings.showLabels) {
+            if (!settings.showLabels && !config.scaleChords) {
                 settings.showIntervalLabels = false;
                 if (ilSelect) ilSelect.value = 'off';
             }
@@ -894,7 +1017,7 @@ function createIntervalTrainingGame(config) {
         ilGroup.appendChild(ilSelect);
         modalBody.appendChild(ilGroup);
 
-        if (settings.gameMode === 'chord-builder') {
+        if (settings.gameMode === 'chord-builder' && !config.scaleChords) {
             // Chord type checkboxes
             const chordGroup = document.createElement('div');
             chordGroup.className = 'game-setting-group';
@@ -959,14 +1082,14 @@ function createIntervalTrainingGame(config) {
 
             chordGroup.appendChild(chordChecks);
             modalBody.appendChild(chordGroup);
-        } else if (settings.gameMode === 'scale-builder') {
+        } else if (settings.gameMode === 'scale-builder' || config.scaleChords) {
             // Scale type checkboxes
             const scaleGroup = document.createElement('div');
             scaleGroup.className = 'game-setting-group';
             const scaleHeader = document.createElement('div');
             scaleHeader.className = 'game-setting-header';
             const scaleLabel = document.createElement('label');
-            scaleLabel.textContent = 'Scale Types';
+            scaleLabel.textContent = config.scaleChords ? 'Scales and modes' : 'Scale Types';
             scaleLabel.className = 'game-setting-label';
             scaleHeader.appendChild(scaleLabel);
 
@@ -1187,6 +1310,7 @@ function createIntervalTrainingGame(config) {
     // ---- Game Logic ----
 
     function buildQuestionPool(mode) {
+        if (config.scaleChords) return scaleChordQuestions(settings.enabledRoots, settings.enabledScales);
         const pool = [];
         if (mode === 'scale-builder') {
             for (const root of settings.enabledRoots) {
@@ -1278,6 +1402,7 @@ function createIntervalTrainingGame(config) {
             ALL_ROOTS);
         gameState.lastDrawnItem = q;
 
+        gameState.scaleChordQuestion = config.scaleChords ? q : null;
         gameState.currentRoot = q.root;
         gameState.currentRootIndex = MusicTheory.getNoteIndex(q.root);
 
@@ -1394,6 +1519,8 @@ function createIntervalTrainingGame(config) {
             handleNoteClick,
             circleOptions
         );
+
+        paintScaleChordCircle();
 
         // Set question text
         updateQuestionText();
@@ -1658,6 +1785,7 @@ function createIntervalTrainingGame(config) {
             const degreeLabel = gameState.scaleDegrees[gameState.currentDegreeIndex];
 
             setTimeout(() => {
+                if (config.scaleChords) { if (gameState.circleApi === api) paintScaleChordCircle(); return; }
                 // Always reveal interval color on correct answer
                 const colors = MusicTheory.getIntervalColor(degreeLabel);
                 circle.setAttribute('fill', colors.fill);
@@ -1736,6 +1864,7 @@ function createIntervalTrainingGame(config) {
             // Reset sequence
             gameState.currentDegreeIndex = 0;
             gameState.inputLocked = false;
+            if (config.scaleChords) paintScaleChordCircle();
 
             updateBuilderCenterText();
         }, 400);
@@ -1850,6 +1979,7 @@ function createIntervalTrainingGame(config) {
             const degreeLabel = gameState.chordIntervals[gameState.currentDegreeIndex];
 
             setTimeout(() => {
+                if (config.scaleChords) { if (gameState.circleApi === api) paintScaleChordCircle(); return; }
                 // Always reveal interval color on correct answer
                 const colors = MusicTheory.getIntervalColor(degreeLabel);
                 circle.setAttribute('fill', colors.fill);
@@ -1923,6 +2053,7 @@ function createIntervalTrainingGame(config) {
             // Reset sequence
             gameState.currentDegreeIndex = 0;
             gameState.inputLocked = false;
+            if (config.scaleChords) paintScaleChordCircle();
 
             updateBuilderCenterText();
         }, 400);
@@ -1986,6 +2117,7 @@ function createIntervalTrainingGame(config) {
         const notesText = api.questionGroup.querySelector('.question-notes');
         if (intervalText) {
             intervalText.textContent = gameState.currentRoot + ' ' + MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
+            if (gameState.scaleChordQuestion) showScaleChordHeading(intervalText, api);
         }
         if (rootText && notesText) {
             var notes = gameState.chordNotes.map(function(idx) {
@@ -2005,6 +2137,7 @@ function createIntervalTrainingGame(config) {
             Sound.playChord(chordNoteNames);
         }
 
+        if (config.scaleChords) paintScaleChordCircle();
         GameSession.markReady();
     }
 
@@ -2590,4 +2723,10 @@ export const BlindIntervalTraining = createIntervalTrainingGame({
     statsKey: 'fretboard-games-stats',
     statsPrefix: 'blind-',
     title: 'Blind Interval Training'
+});
+
+export const ScaleChordBuilder = createIntervalTrainingGame({
+    settingsKey: 'fretboard-scale-chord-builder-settings',
+    statsKey: 'fretboard-games-stats', statsPrefix: 'scale-degree-',
+    title: 'Scale Chord Builder', scaleChords: true
 });

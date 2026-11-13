@@ -5,7 +5,7 @@ import { versionLabel } from '../app/version.js';
  * Mode switching, controls box, modal, and game routing
  */
 
-import { IntervalTraining, BlindIntervalTraining } from './interval-training.js';
+import { IntervalTraining, BlindIntervalTraining, ScaleChordBuilder } from './interval-training.js';
 import EarTraining from './ear-training.js';
 import ChromaticCircleDrills from './chromatic-circle-drills.js';
 import ScaleDegreeCounting from './scale-degree-counting.js';
@@ -29,6 +29,7 @@ export const Games = (function() {
 
     // Game registry - maps game IDs to game modules
     const GAMES = {
+        'scale-chord-builder': ScaleChordBuilder,
         'interval-training': IntervalTraining,
         'blind-interval-training': BlindIntervalTraining,
         'ear-training': EarTraining,
@@ -57,6 +58,7 @@ export const Games = (function() {
 
     const GAME_NAMES = {
         random: 'Random',
+        'scale-chord-builder': 'Scale Chord Builder',
         'interval-training': 'Interval Training',
         'blind-interval-training': 'Blind Interval Training',
         'ear-training': 'Ear Training',
@@ -300,7 +302,7 @@ export const Games = (function() {
                 if (!isAwaitingAdvance() || Blackout.isActive()) return;
                 const modal = document.getElementById('game-settings-modal');
                 if (modal && getComputedStyle(modal).display !== 'none') return;
-                if (e.target.closest('button, select, input, label, a')) return;
+                if (e.target.closest('button, select, input, label, a, [data-free-rotation]')) return;
                 e.stopPropagation();
                 tryAdvance();
             }, true);

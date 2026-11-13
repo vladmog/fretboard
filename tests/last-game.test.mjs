@@ -11,7 +11,7 @@ function load(saved){
   localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},
   document:{readyState:'complete',addEventListener(){},getElementById:id=>id==='games-select'?picker:null},
   Voice:{cancel(){}},Blackout:{attach(){},detach(){},hide(){}},NoteKeyboard:{attach(){},detach(){}}};
- for(const name of ['ScaleDegreeCounting','IntervalTraining','BlindIntervalTraining','EarTraining','ChromaticCircleDrills','FretboardDrills','IntervalId','NoteId','IntervalLocator','NoteLocator','VoiceLeading','NearestNote','NoteInBox','NoteOnString'])c[name]=game;
+ for(const name of ['ScaleChordBuilder','ScaleDegreeCounting','IntervalTraining','BlindIntervalTraining','EarTraining','ChromaticCircleDrills','FretboardDrills','IntervalId','NoteId','IntervalLocator','NoteLocator','VoiceLeading','NearestNote','NoteInBox','NoteOnString'])c[name]=game;
  vm.createContext(c);
  vm.runInContext(storage+'\n'+source.replace(/^import .*;\n/gm,'').replace('export const Games','globalThis.Games'),c);
  return {c,picker,handlers,shown};
