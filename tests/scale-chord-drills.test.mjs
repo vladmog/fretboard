@@ -45,3 +45,14 @@ test('answer choices are limited to selected scales for every chord size',()=>{
  assert.ok(chordQualityOptions(4,['harmonic_minor']).some(o=>o.label==='Augmented major 7th'));
  assert.deepEqual(chordQualityOptions(4,[]),[]);
 });
+
+test('major and minor come first, followed by selected-scale frequency',()=>{
+ assert.deepEqual(chordQualityOptions(4,['major','natural_minor']).map(o=>o.label),['Major 7th','Minor 7th','Dominant 7th','Half-diminished 7th']);
+ for(let size=3;size<=7;size++){
+  const options=chordQualityOptions(size,['major','natural_minor']);
+  const first=options[0].quality.split(',').slice(1, size===3?3:4).join(',');
+  assert.equal(first,size===3?'4,7':'4,7,11');
+ }
+ const options=chordQualityOptions(4,['harmonic_minor']);
+ assert.ok(options.findIndex(o=>o.label==='Major 7th')<options.findIndex(o=>o.label==='Minor 7th'));
+});

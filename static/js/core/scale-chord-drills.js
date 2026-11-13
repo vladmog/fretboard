@@ -28,11 +28,23 @@ export function drillChord(root,scaleType,degree,size){
  return {scaleRoot:root,scaleType,degree,size:Number(size),notes,intervals,quality:intervals.join(','),label};
 }
 export function chordQualityOptions(size,scales=TRIAD_SCALES){
- const unique=new Map();
+ const unique=new Map(),counts=new Map();
  for(const scale of TRIAD_SCALES.filter(key=>scales.includes(key)))for(let degree=1;degree<=7;degree++){
-  const q=drillChord('C',scale,degree,size);unique.set(q.quality,{quality:q.quality,label:q.label});
+  const q=drillChord('C',scale,degree,size);
+  unique.set(q.quality,{quality:q.quality,label:q.label});
+  counts.set(q.quality,(counts.get(q.quality)||0)+1);
  }
- return [...unique.values()].sort((a,b)=>a.label.localeCompare(b.label));
+ const order=data.commonQualityOrder[Number(size)===3?'triads':'sevenths'];
+ const rank=option=>{
+  const family=option.quality.split(',').slice(1,Number(size)===3?3:4).join(',');
+  const major=Number(size)===3?'4,7':'4,7,11';
+  const minor=Number(size)===3?'3,7':'3,7,10';
+  return [family===major?0:family===minor?1:2,order.indexOf(family)];
+ };
+ return [...unique.values()].sort((a,b)=>{
+  const ar=rank(a),br=rank(b);
+  return ar[0]-br[0]||counts.get(b.quality)-counts.get(a.quality)||ar[1]-br[1]||a.label.localeCompare(b.label);
+ });
 }
 
 function intervalLabel(pitch, degree) {
