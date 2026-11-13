@@ -1,0 +1,25 @@
+{
+  "sizes": {
+    "3": "Triads",
+    "4": "Sevenths",
+    "5": "Ninths",
+    "6": "Elevenths",
+    "7": "Thirteenths"
+  },
+  "triads": {
+    "4,7": "Major",
+    "3,7": "Minor",
+    "3,6": "Diminished",
+    "4,8": "Augmented"
+  },
+  "sevenths": {
+    "4,7,11": "Major 7th",
+    "3,7,10": "Minor 7th",
+    "4,7,10": "Dominant 7th",
+    "3,6,9": "Diminished 7th",
+    "3,6,10": "Half-diminished 7th",
+    "3,7,11": "Minor-major 7th",
+    "4,8,11": "Augmented major 7th",
+    "4,8,10": "Augmented 7th"
+  }
+}

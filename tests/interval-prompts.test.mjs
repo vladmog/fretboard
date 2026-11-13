@@ -23,3 +23,11 @@ test('a standalone spoken root uses lowercase to avoid capital-letter announceme
     const {questionSpeech}=createIntervalPrompts(state,{2:'Major 2nd'},3,()=>3,()=>true);
     assert.equal(questionSpeech(),'c\nmajor second');
 });
+
+test('scale chord speech omits size and calls natural minor simply minor',()=>{
+ const state={scaleChordQuestion:{scaleRoot:'C',scaleType:'natural_minor',degree:2,size:5}};
+ const prompts=createIntervalPrompts(state,{},3,()=>3);
+ assert.equal(prompts.questionSpeech(),'c Minor. Degree 2');
+ state.scaleChordQuestion.scaleType='harmonic_minor';
+ assert.equal(prompts.questionSpeech(),'c Harmonic Minor. Degree 2');
+});

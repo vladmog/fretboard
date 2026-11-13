@@ -1350,3 +1350,19 @@ html.amoled-on #games-panel {
 #games-panel .fret-identify-round .fret-identify-prompt:active { cursor:grabbing; }
 
 .degree-counting-prompt { pointer-events:auto; cursor:pointer; }
+
+.scale-chord-drill { width:min(100%,760px); margin:auto; padding:64px 16px 80px; box-sizing:border-box; }
+.scale-chord-drill-prompt { text-align:center; cursor:pointer; margin-bottom:20px; }
+.scale-chord-drill-prompt h2 { font-size:clamp(24px,4vw,40px); margin:0 0 8px; }
+.scale-chord-drill-prompt p { font-size:22px; margin:0; }
+.scale-chord-drill-answers { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px; }
+#games-panel .scale-chord-drill-answers button { min-height:48px;white-space:normal;font-size:15px;padding:12px; }
+#games-panel .scale-chord-drill-answers button[data-result="correct"] { background:#bce6bd;border-color:#167326;color:#111; }
+#games-panel .scale-chord-drill-answers button[data-result="incorrect"] { background:#ffd6d6;border-color:#a31515;color:#111; }
+.scale-chord-drill-feedback { min-height:24px;text-align:center; }
+
+.scale-chord-drill-answers button > * { display:block; }
+.scale-chord-drill-answers button > span { font-size:13px; margin-top:5px; }
+
+.scale-chord-major-third { color:#b84b00; font-weight:900; }
+.scale-chord-minor-third { color:#0065ca; font-weight:900; }

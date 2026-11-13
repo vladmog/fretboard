@@ -1,6 +1,7 @@
+import {drillChord,optionIntervals} from './scale-chord-drills.js';
 import { SCALES, buildScale, getNoteIndex } from './music-theory.js';
 export const TRIAD_SCALES = Object.keys(SCALES).filter(key => SCALES[key].intervals.length === 7);
-export function scaleChordQuestions(roots, scales) {
+export function scaleChordQuestions(roots, scales, size = 3) {
     const questions = [];
     for (const scaleRoot of roots) for (const scaleType of scales) {
         if (!TRIAD_SCALES.includes(scaleType)) continue;
@@ -10,7 +11,11 @@ export function scaleChordQuestions(roots, scales) {
             const pitches = notes.map(getNoteIndex);
             const steps = pitches.slice(1).map(pitch => (pitch - pitches[0] + 12) % 12).join(',');
             const chordType = { '4,7': 'maj', '3,7': 'min', '3,6': 'dim', '4,8': 'aug' }[steps];
-            if (chordType) questions.push({ root: notes[0], chordType, scaleRoot, scaleType, degree: degree + 1, notes });
+            if (chordType) {
+                const chord = drillChord(scaleRoot,scaleType,degree+1,size);
+                const formula = optionIntervals(chord,chord).chord.map(label=>label.replaceAll('♭','b').replaceAll('♯','#'));
+                questions.push({...chord, root:notes[0],chordType,formula});
+            }
         }
     }
     return questions;

@@ -6,7 +6,7 @@ export function createIntervalPrompts(gameState, LONG_NAMES, GAME_OCTAVE, getNot
     // Spoken form of the current question; intervals always use long names
     function questionSpeech() {
         const q = gameState.scaleChordQuestion;
-        if (q) return Voice.spokenNote(q.scaleRoot).toLowerCase() + ' ' + MusicTheory.SCALES[q.scaleType].name + '. Degree ' + q.degree;
+        if (q) return Voice.spokenNote(q.scaleRoot).toLowerCase() + ' ' + (q.scaleType === 'natural_minor' ? 'Minor' : MusicTheory.SCALES[q.scaleType].name) + '. Degree ' + q.degree;
         const mode = gameState.activeMode;
         const root = Voice.spokenNote(gameState.currentRoot).toLowerCase();
         const useFlats = MusicTheory.shouldUseFlats(gameState.currentRoot);

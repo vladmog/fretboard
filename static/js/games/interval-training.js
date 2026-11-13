@@ -1,3 +1,4 @@
+import {CHORD_SIZES} from '../core/scale-chord-drills.js';
 import { attachRotatableCross } from './rotatable-cross.js';
 import { TRIAD_SCALES, scaleChordQuestions, scaleChordDegree } from '../core/scale-chord-questions.js';
 import { routeNextRound } from './round-routing.js';
@@ -71,6 +72,7 @@ function createIntervalTrainingGame(config) {
         showIntervalLabels: false,
         sayRootFirst: false,
         romanDegrees: false,
+        chordSize: 3,
         showReferenceCross: false,
         freeReferenceCross: false,
         highlightScaleNotes: false,
@@ -132,6 +134,7 @@ function createIntervalTrainingGame(config) {
                 }
             }
             if (config.scaleChords) settings.gameMode = 'chord-builder';
+            if (!CHORD_SIZES[settings.chordSize]) settings.chordSize=3;
         } catch (e) {
             console.error('Failed to load interval training settings:', e);
         }
@@ -237,6 +240,7 @@ function createIntervalTrainingGame(config) {
     }
 
     function getStatsKey() {
+        if(config.scaleChords && settings.chordSize>3)return STATS_PREFIX+'chord-builder-'+settings.chordSize;
         if (gameState.activeMode === 'root-to-interval') return STATS_PREFIX + 'interval-training';
         if (gameState.activeMode === 'scale-builder') return STATS_PREFIX + 'scale-builder';
         if (gameState.activeMode === 'chord-builder') return STATS_PREFIX + 'chord-builder';
@@ -298,6 +302,8 @@ function createIntervalTrainingGame(config) {
     // ---- Helper functions ----
 
     function getBuilderNoteName(noteIndex) {
+        const q=gameState.scaleChordQuestion;
+        if(q){const note=q.notes.find(n=>MusicTheory.getNoteIndex(n)===noteIndex);if(note)return note;}
         if (gameState.activeMode === 'chord-builder') {
             const chord = MusicTheory.buildChord(gameState.currentRoot, gameState.currentChordType);
             const spelling = chord.noteSpelling[noteIndex];
@@ -328,7 +334,7 @@ function createIntervalTrainingGame(config) {
             const chord = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
             chord.setAttribute('x', api.center);
             chord.setAttribute('dy', api.size * 0.065);
-            chord.textContent = gameState.currentRoot + ' ' + MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
+            chord.textContent = gameState.currentRoot + ' ' + (gameState.scaleChordQuestion?.label || MusicTheory.CHORD_TYPES[gameState.currentChordType].name);
             text.appendChild(chord);
         }
     }
@@ -369,7 +375,7 @@ function createIntervalTrainingGame(config) {
                 notesText.setAttribute('y', center + s * 0.06);
             }
         } else if (mode === 'chord-builder') {
-            const chordName = MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
+            const chordName = (gameState.scaleChordQuestion?.label || MusicTheory.CHORD_TYPES[gameState.currentChordType].name);
             const center = api.center;
             const s = api.size;
             const q = gameState.scaleChordQuestion;
@@ -428,7 +434,7 @@ function createIntervalTrainingGame(config) {
             }
             if (chosen.includes(pitch) && degree) {
                 const chordDegree = gameState.chordIntervals[gameState.chordNotes.indexOf(pitch)];
-                const chordColors = MusicTheory.getIntervalColor(chordDegree);
+                const chordColors = MusicTheory.getIntervalColor(SIMPLE_LABELS[(pitch-gameState.currentRootIndex+12)%12]);
                 const scaleColors = MusicTheory.getIntervalColor(degree);
                 colors = {
                     fill: chordDegree === '1' ? '#000' : chordColors.fill,
@@ -520,7 +526,7 @@ function createIntervalTrainingGame(config) {
     function setMarkerNoteText(textEl, noteIndex, x, y, markerRadius) {
         textEl.textContent = '';
         if (gameState.activeMode === 'chord-builder' &&
-            MusicTheory.buildChord(gameState.currentRoot, gameState.currentChordType).noteSpelling[noteIndex]) {
+            (gameState.scaleChordQuestion || MusicTheory.buildChord(gameState.currentRoot, gameState.currentChordType).noteSpelling[noteIndex])) {
             textEl.setAttribute('font-size', markerRadius * 0.9);
             textEl.textContent = getBuilderNoteName(noteIndex);
             return;
@@ -737,7 +743,7 @@ function createIntervalTrainingGame(config) {
             'chord-builder': 'You\'ll be given a chord \u2014 click the notes on the chromatic circle in order, from root through each chord tone.'
         };
         explanation.textContent = 'Train your ear and theory knowledge by identifying intervals on the chromatic circle. ' + modeDescriptions[settings.gameMode];
-        if (config.scaleChords) explanation.textContent = 'Build the triad on the given scale degree. Enter its root, third, then fifth on the circle.';
+        if (config.scaleChords) explanation.textContent = 'Build the chord on the given scale degree, entering its notes in stacked-third order.';
         wrapper.appendChild(explanation);
 
         gameState.activeMode = settings.gameMode;
@@ -807,6 +813,14 @@ function createIntervalTrainingGame(config) {
         modalBody.innerHTML = '';
         renderAnnouncementOrder(modalBody, settings, saveSettings);
         if (config.scaleChords) {
+            const sizeLabel=document.createElement('label');sizeLabel.className='game-setting-group';sizeLabel.textContent='Chord size';
+            const sizeSelect=document.createElement('select');sizeSelect.className='game-setting-select';
+            for(const [value,name] of Object.entries(CHORD_SIZES)){
+                const option=document.createElement('option');option.value=value;option.textContent=name;sizeSelect.append(option);
+            }
+            sizeSelect.value=String(settings.chordSize);
+            sizeSelect.addEventListener('change',()=>{settings.chordSize=Number(sizeSelect.value);saveSettings();gameState.questionQueue=[];if(gameState.currentRoot)startGame();else renderTitlePage();});
+            sizeLabel.append(sizeSelect);modalBody.append(sizeLabel);
             const group = document.createElement('label');
             group.className = 'game-setting-group';
             const crossLabel = document.createElement('label');
@@ -1310,7 +1324,7 @@ function createIntervalTrainingGame(config) {
     // ---- Game Logic ----
 
     function buildQuestionPool(mode) {
-        if (config.scaleChords) return scaleChordQuestions(settings.enabledRoots, settings.enabledScales);
+        if (config.scaleChords) return scaleChordQuestions(settings.enabledRoots, settings.enabledScales, settings.chordSize);
         const pool = [];
         if (mode === 'scale-builder') {
             for (const root of settings.enabledRoots) {
@@ -1420,8 +1434,8 @@ function createIntervalTrainingGame(config) {
             gameState.hadMistake = false;
         } else if (mode === 'chord-builder') {
             gameState.currentChordType = q.chordType;
-            const chordFormula = MusicTheory.CHORD_TYPES[q.chordType];
-            gameState.chordNotes = chordFormula.intervals.map(interval =>
+            const chordFormula = config.scaleChords ? {intervals:q.formula} : MusicTheory.CHORD_TYPES[q.chordType];
+            gameState.chordNotes = config.scaleChords ? q.notes.map(MusicTheory.getNoteIndex) : chordFormula.intervals.map(interval =>
                 (gameState.currentRootIndex + MusicTheory.INTERVALS[interval]) % 12
             );
             gameState.chordIntervals = chordFormula.intervals;
@@ -2116,7 +2130,7 @@ function createIntervalTrainingGame(config) {
         const rootText = api.questionGroup.querySelector('.question-root');
         const notesText = api.questionGroup.querySelector('.question-notes');
         if (intervalText) {
-            intervalText.textContent = gameState.currentRoot + ' ' + MusicTheory.CHORD_TYPES[gameState.currentChordType].name;
+            intervalText.textContent = gameState.currentRoot + ' ' + (gameState.scaleChordQuestion?.label || MusicTheory.CHORD_TYPES[gameState.currentChordType].name);
             if (gameState.scaleChordQuestion) showScaleChordHeading(intervalText, api);
         }
         if (rootText && notesText) {

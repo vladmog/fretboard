@@ -9,8 +9,8 @@ test('scale highlights use parent degrees and survive hidden labels and monochro
  const node=()=>({attrs:{},setAttribute(k,v){this.attrs[k]=v;}});
  const groups=Array.from({length:12},(_,pitch)=>({circle:node(),text:node(),il:node(),getAttribute:()=>pitch,setAttribute(){},querySelector(s){return s==='circle'?this.circle:s==='text'?this.text:this.il;}}));
  const settings={showColors:true,highlightScaleNotes:true,showLabels:false,showIntervalLabels:false};
- const state={circleApi:{noteGroups:groups},scaleChordQuestion:{scaleRoot:'G',scaleType:'lydian'},chordNotes:[1,4,7],chordIntervals:['1','b3','b5'],currentDegreeIndex:1};
- const c=vm.createContext({updateReferenceCross(){},MusicTheory,gameState:state,settings});vm.runInContext(paint,c);c.paintScaleChordCircle();
+ const state={circleApi:{noteGroups:groups},scaleChordQuestion:{scaleRoot:'G',scaleType:'lydian'},currentRootIndex:1,chordNotes:[1,4,7],chordIntervals:['1','b3','b5'],currentDegreeIndex:1};
+ const c=vm.createContext({SIMPLE_LABELS:['1','b2','2','b3','3','4','b5','5','b6','6','b7','7'],updateReferenceCross(){},MusicTheory,gameState:state,settings});vm.runInContext(paint,c);c.paintScaleChordCircle();
  assert.equal(groups[7].circle.attrs.fill,'#000');
  assert.equal(groups[1].circle.attrs.fill,'#000');
  assert.equal(groups[0].circle.attrs.fill,'#ddd');

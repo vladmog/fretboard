@@ -1,3 +1,4 @@
+import ScaleChordDrills from './scale-chord-drills.js';
 import { createRandomGame } from './random-game.js';
 import { versionLabel } from '../app/version.js';
 /**
@@ -29,6 +30,7 @@ export const Games = (function() {
 
     // Game registry - maps game IDs to game modules
     const GAMES = {
+        'scale-chord-drills': ScaleChordDrills,
         'scale-chord-builder': ScaleChordBuilder,
         'interval-training': IntervalTraining,
         'blind-interval-training': BlindIntervalTraining,
@@ -58,6 +60,7 @@ export const Games = (function() {
 
     const GAME_NAMES = {
         random: 'Random',
+        'scale-chord-drills': 'Scale Chord Drills',
         'scale-chord-builder': 'Scale Chord Builder',
         'interval-training': 'Interval Training',
         'blind-interval-training': 'Blind Interval Training',

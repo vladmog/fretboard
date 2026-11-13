@@ -21,3 +21,15 @@ test('numbers hide quality and Roman numerals show major minor diminished augmen
   assert.equal(scaleChordDegree({degree:3,chordType},true),expected);
  }
 });
+
+test('extended builder questions preserve stacked thirds and contextual spelling',()=>{
+ for(const size of [4,5,6,7])for(const q of scaleChordQuestions(['C','C#','Eb'],TRIAD_SCALES,size)){
+  assert.equal(q.notes.length,size);assert.equal(q.formula.length,size);
+  const scale=buildScale(q.scaleRoot,q.scaleType);
+  assert.deepEqual(q.notes,Array.from({length:size},(_,i)=>scale.notes[(q.degree-1+2*i)%7]));
+ }
+ const q=scaleChordQuestions(['C'],['major'],5)[1];
+ assert.deepEqual(q.notes,['D','F','A','C','E']);
+ assert.deepEqual(q.formula,['1','b3','5','b7','9']);
+ assert.equal(q.label,'Minor 9th');
+});
