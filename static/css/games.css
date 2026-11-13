@@ -1367,3 +1367,11 @@ html.amoled-on #games-panel {
 
 .scale-chord-major-third { color:#b84b00; font-weight:900; }
 .scale-chord-minor-third { color:#0065ca; font-weight:900; }
+
+.scale-chord-drill-answers[hidden] { display:none; }
+.chord-root-input { text-align:center; }
+.chord-root-circle { position:relative; width:min(100%,380px); aspect-ratio:1; margin:12px auto; }
+#games-panel .chord-root-note { position:absolute; transform:translate(-50%,-50%); width:17%; aspect-ratio:1; border:2px solid #333; border-radius:50%; background:#fff; color:#000; font:inherit; font-size:clamp(12px,3vw,18px); touch-action:none; user-select:none; padding:0; }
+#games-panel .chord-root-note:focus-visible { outline:3px solid #2275d7; outline-offset:3px; }
+.chord-root-preview { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:36px; pointer-events:none; }
+.scale-chord-root-stage { text-align:center; font-weight:bold; }
