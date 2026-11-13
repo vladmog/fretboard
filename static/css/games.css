@@ -1356,7 +1356,8 @@ html.amoled-on #games-panel {
 .scale-chord-drill-prompt h2 { font-size:clamp(24px,4vw,40px); margin:0 0 8px; }
 .scale-chord-drill-prompt p { font-size:22px; margin:0; }
 .scale-chord-drill-answers { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px; }
-#games-panel .scale-chord-drill-answers button { min-height:48px;white-space:normal;font-size:15px;padding:12px; }
+#games-panel .scale-chord-drill-answers button { min-height:48px;white-space:normal;font-size:15px;padding:12px;color:#000; }
+#games-panel .scale-chord-drill-answers button:hover { background:#f2f2f2; }
 #games-panel .scale-chord-drill-answers button[data-result="correct"] { background:#bce6bd;border-color:#167326;color:#111; }
 #games-panel .scale-chord-drill-answers button[data-result="incorrect"] { background:#ffd6d6;border-color:#a31515;color:#111; }
 .scale-chord-drill-feedback { min-height:24px;text-align:center; }
