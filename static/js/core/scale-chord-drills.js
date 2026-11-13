@@ -27,9 +27,9 @@ export function drillChord(root,scaleType,degree,size){
  }
  return {scaleRoot:root,scaleType,degree,size:Number(size),notes,intervals,quality:intervals.join(','),label};
 }
-export function chordQualityOptions(size){
+export function chordQualityOptions(size,scales=TRIAD_SCALES){
  const unique=new Map();
- for(const scale of TRIAD_SCALES)for(let degree=1;degree<=7;degree++){
+ for(const scale of TRIAD_SCALES.filter(key=>scales.includes(key)))for(let degree=1;degree<=7;degree++){
   const q=drillChord('C',scale,degree,size);unique.set(q.quality,{quality:q.quality,label:q.label});
  }
  return [...unique.values()].sort((a,b)=>a.label.localeCompare(b.label));

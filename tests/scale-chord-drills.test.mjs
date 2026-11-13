@@ -32,3 +32,16 @@ test('third separators use adjacent pitches including wrapped extensions',()=>{
  const q=drillChord('C','major',1,7);
  assert.deepEqual(optionIntervals(q,q).thirds,[4,3,4,3,3,4]);
 });
+
+test('answer choices are limited to selected scales for every chord size',()=>{
+ const scales=['major','natural_minor'];
+ assert.deepEqual(chordQualityOptions(4,scales).map(o=>o.label).sort(),
+  ['Dominant 7th','Half-diminished 7th','Major 7th','Minor 7th']);
+ for(let size=3;size<=7;size++){
+  const expected=new Set(scales.flatMap(scale=>Array.from({length:7},(_,i)=>drillChord('C',scale,i+1,size).quality)));
+  assert.deepEqual(new Set(chordQualityOptions(size,scales).map(o=>o.quality)),expected);
+ }
+ assert.ok(chordQualityOptions(4,['harmonic_minor']).some(o=>o.label==='Minor-major 7th'));
+ assert.ok(chordQualityOptions(4,['harmonic_minor']).some(o=>o.label==='Augmented major 7th'));
+ assert.deepEqual(chordQualityOptions(4,[]),[]);
+});

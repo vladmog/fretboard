@@ -43,7 +43,7 @@ function round(){
  prompt.append(el('h2',`${question.scaleRoot} ${SCALES[question.scaleType].name}`),el('p',`Degree ${question.degree} · ${CHORD_SIZES[size]}`));
  prompt.addEventListener('click',()=>solved?advance():repeatQuestion());
  const answers=el('div','','scale-chord-drill-answers');
- for(const option of chordQualityOptions(size)){
+ for(const option of chordQualityOptions(size,scales)){
   const b=button('',()=>answer(option,b));
   const formulas=optionIntervals(option,question);
   b.append(el('strong',option.label));
